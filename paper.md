@@ -30,10 +30,15 @@ bibliography: paper.bib
 ---
 
 # Summary
-The Matlab script `fdm_segmenter` processes X and Y direction command signals obtained from the fdm printer control board in order to generate the segmentation of contour and raster lines. `fdm_segmenter` is aimed to provide reproducible and fully open-source implementation of the segmentation of contour and raster lines for signal processing purposes.
+"The Matlab script `fdm_segmenter` processes X and Y direction command signals obtained from the FDM printer control board to generate the period segmentation of contour and raster lines. `fdm_segmenter` aims to provide a reproducible and fully open-source implementation of the period segmentation of contour and raster lines for signal processing purposes."
+TODO /Review
 
 # Statement of need
-The Fused Deposition Modeling Process (FDM), also known as 3D Printing, deals with the manufacturing of parts by adding multiple layers of fused plastic filament following a printing pattern. The printing pattern is defined by the process operator in the slicing process conducted in a postprocessing FDM software, 
+The Fused Deposition Modeling Process (FDM), also known as 3D Printing, deals with the manufacturing of parts by adding multiple layers of fused plastic filament following a specific printing pattern. The printing pattern is defined by the process operator in the slicing process performed in a postprocessing FDM software.
+TODO /Review
+
+There are several printing patterns, which vary in the number of contours and raster lines. Some printing parameters defined in the slicing process, such as the layer width, have a direct influence on the outcome of the print pattern with respect to the number of contour and raster lines.
+TODO /Review
 
 Micro Finite Element (microFE) models derived from micro Computed Tomography (microCT) volumetric data can provide non-destructive assessments of mechanical properties of trabecular bone. The technique is used to investigate the effect of pathologies, treatment and remodelling on the mechanical response of bone at the tissue level, and is applied both to human and animal samples. Linear elastic microFE simulations are implemented to back-calculate the tissue elastic modulus [@bayraktar_comparison_2004], understand deformation mechanisms [@zauel_comparison_2005], or predict failure [@pistoia_estimation_2002] of trabecular bone, as well as to estimate the stiffness of whole bones from small animals [@oliviero_optimization_2020].
 
