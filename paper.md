@@ -21,7 +21,7 @@ authors:
     corresponding: true
 
 affiliations:
-  - name: Department of Electrical Engineering, São Paulo State University, United Kingdom
+  - name: Department of Electrical Engineering, São Paulo State University, Brazil
     index: 1
 
 date: 06 April 2023 
@@ -33,6 +33,8 @@ bibliography: paper.bib
 The Matlab script `fdm_segmenter` processes X and Y direction command signals obtained from the fdm printer control board in order to generate the segmentation of contour and raster lines. `fdm_segmenter` is aimed to provide reproducible and fully open-source implementation of the segmentation of contour and raster lines for signal processing purposes.
 
 # Statement of need
+The Fused Deposition Modeling Process (FDM), also known as 3D Printing, deals with the manufacturing of parts by adding multiple layers of fused plastic filament following a printing pattern. The printing pattern is defined by the process operator in the slicing process conducted in a postprocessing FDM software, 
+
 Micro Finite Element (microFE) models derived from micro Computed Tomography (microCT) volumetric data can provide non-destructive assessments of mechanical properties of trabecular bone. The technique is used to investigate the effect of pathologies, treatment and remodelling on the mechanical response of bone at the tissue level, and is applied both to human and animal samples. Linear elastic microFE simulations are implemented to back-calculate the tissue elastic modulus [@bayraktar_comparison_2004], understand deformation mechanisms [@zauel_comparison_2005], or predict failure [@pistoia_estimation_2002] of trabecular bone, as well as to estimate the stiffness of whole bones from small animals [@oliviero_optimization_2020].
 
 Different pipelines for the generation of microFE models of trabecular bone were proposed [@stauber_finite_2004; @verhulp_indirect_2008; @fernandez_nonlinear_2022; @megias_numerical_2022; @cox_heterogeneous_2022]. Nevertheless, the validation and comparison of results across studies is hindered by the use of proprietary or non-open-source software, and by the general absence of reproducible FE pipelines.
