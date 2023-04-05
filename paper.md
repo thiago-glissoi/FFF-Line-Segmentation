@@ -16,7 +16,7 @@ authors:
     orcid: 0000-0002-7093-1754
     affiliation: 1
   - name: Paulo Roberto de Aguiar
-    TODO orcid: 
+    TODO orcid:
     affiliation: 1
     corresponding: true
 
@@ -24,14 +24,13 @@ affiliations:
   - name: Department of Electrical Engineering, São Paulo State University, United Kingdom
     index: 1
 
-date: 15 August 2022
+date: 06 April 2023 
 bibliography: paper.bib 
 
 ---
 
 # Summary
-The Python package `ciclope` processes micro Computed Tomography images to generate Finite Element models. 
-`Ciclope` is aimed to provide reproducible and fully open-source pipelines for simulating the mechanical behaviour of trabecular bone using the Finite Element method.
+The Matlab script `fdm_segmenter` processes X and Y direction command signals obtained from the fdm printer control board in order to generate the segmentation of contour and raster lines. `fdm_segmenter` is aimed to provide reproducible and fully open-source implementation of the segmentation of contour and raster lines for signal processing purposes.
 
 # Statement of need
 Micro Finite Element (microFE) models derived from micro Computed Tomography (microCT) volumetric data can provide non-destructive assessments of mechanical properties of trabecular bone. The technique is used to investigate the effect of pathologies, treatment and remodelling on the mechanical response of bone at the tissue level, and is applied both to human and animal samples. Linear elastic microFE simulations are implemented to back-calculate the tissue elastic modulus [@bayraktar_comparison_2004], understand deformation mechanisms [@zauel_comparison_2005], or predict failure [@pistoia_estimation_2002] of trabecular bone, as well as to estimate the stiffness of whole bones from small animals [@oliviero_optimization_2020].
