@@ -50,7 +50,7 @@ TODO /Review
 
 Commission under grant ID: [FP6-IST 026932](https://cordis.europa.eu/project/id/026932).
 
-![image](././/images/IMG_7577.png){width=100%}
+
 
 # Design
 
@@ -60,6 +60,7 @@ Commission under grant ID: [FP6-IST 026932](https://cordis.europa.eu/project/id/
 
 # Examples
 
+![Teste.\label{fig:examples}](IMG_7577.png){width=100%}
 
 # Acknowledgements
 We acknowledge support from the community 
