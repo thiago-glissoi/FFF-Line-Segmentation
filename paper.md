@@ -50,7 +50,6 @@ TODO /Review
 
 Commission under grant ID: [FP6-IST 026932](https://cordis.europa.eu/project/id/026932).
 
-![image](/Images/IMG_7577.png)
 
 teste2
 # Design
