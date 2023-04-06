@@ -19,6 +19,9 @@ authors:
     TODO orcid:
     affiliation: 1
     corresponding: true
+  - name: Reinaldo Götz de Oliveira Junior
+    orcid: 0000-0002-2843-528X
+    affiliation: 1
 
 affiliations:
   - name: Department of Electrical Engineering, São Paulo State University, Brazil
@@ -43,7 +46,7 @@ TODO /Review
 The monitoring of the FDM process by means of signal processing of acoustic data has been a very prominent subject of research. There are several types of defects that can be detected during the fabrication of the first layer in the FDM process. The first layer is considered to be a crucial period in the process, where if a defect is detected, the whole process can be terminated. Thus, avoiding the costs regarding a incorrect part fabrication. 
 TODO /Review
 
-The raw acoustic signal obtained from the FDM process monitoring is very hard to segment regarding the different phenomena that composes a first layer fabrication. It has been reported that the difficulties only increases when the goal is to segment into the different fabrication lines. This is due to the fact that the acoustic signal obtained possess a lot of process noise alongside the deposition phenomena. We present the Matlab script `fdm_segmenter`: a fully open-source script for automatic segmentation of contour and raster lines through the use of the X and Y axis direction command signals.
+The raw acoustic signal obtained from the FDM process monitoring is usually hard to accurately segment regarding the different phenomena that composes a first layer fabrication. It has been reported that the difficulties only increases when the goal is to segment into the different fabrication lines [@Lopes2022]. This is due to the fact that the acoustic signal obtained possess a lot of process noise alongside the deposition phenomena. We present the Matlab script `fdm_segmenter`: a fully open-source script for automatic segmentation of contour and raster lines through the use of the X and Y axis direction command signals.
 TODO /Review
 
 [comment]: <> (Several research articles highlighted the importance of an accurate segmentation of the contour and raster lines in order to evaluate geometrical and surface defects on the printing part.)
@@ -58,7 +61,7 @@ summit para testar
 # Proof of concept 
 
 
-# Examples
+# Example
 
 ![Teste.\label{fig:examples}](IMG_7577.png){width=100%}
 
