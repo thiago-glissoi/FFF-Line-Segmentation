@@ -30,24 +30,23 @@ bibliography: paper.bib
 ---
 
 # Summary
-"The Matlab script `fdm_segmenter` processes X and Y direction command signals obtained from the FDM printer control board to generate the period segmentation of contour and raster lines. `fdm_segmenter` aims to provide a reproducible and fully open-source implementation of the period segmentation of contour and raster lines for signal processing purposes."
+"The Matlab script `fdm_segmenter` processes X and Y axis direction command signals obtained from the FDM printer control board to generate the period segmentation of contour and raster lines. `fdm_segmenter` aims to provide a reproducible and fully open-source implementation of the period segmentation of contour and raster lines for signal processing purposes."
 TODO /Review
 
 # Statement of need
-The Fused Deposition Modeling Process (FDM), also known as 3D Printing, deals with the manufacturing of parts by adding multiple layers of fused plastic filament following a specific printing pattern. The printing pattern is defined by the process operator in the slicing process performed in a postprocessing FDM software.
+The Fused Deposition Modeling Process (FDM), also known as 3D Printing, deals with the manufacturing of parts by adding multiple layers of fused plastic filament following a specific printing pattern. The printing pattern is defined by the process operator in the slicing process performed in a postprocessing FDM software [@bayraktar_comparison_2004].
 TODO /Review
 
 There are several printing patterns, which vary in the number of contours and raster lines. Some printing parameters defined in the slicing process, such as the layer width, have a direct influence on the outcome of the print pattern with respect to the number of contour and raster lines.
 TODO /Review
 
-Micro Finite Element (microFE) models derived from micro Computed Tomography (microCT) volumetric data can provide non-destructive assessments of mechanical properties of trabecular bone. The technique is used to investigate the effect of pathologies, treatment and remodelling on the mechanical response of bone at the tissue level, and is applied both to human and animal samples. Linear elastic microFE simulations are implemented to back-calculate the tissue elastic modulus [@bayraktar_comparison_2004], understand deformation mechanisms [@zauel_comparison_2005], or predict failure [@pistoia_estimation_2002] of trabecular bone, as well as to estimate the stiffness of whole bones from small animals [@oliviero_optimization_2020].
+The monitoring of the FDM process by means of signal processing of acoustic data has been a very prominent subject of research. There are several types of defects that can be detected during the fabrication of the first layer in the FDM process. The first layer is considered to be a crucial period in the process, where if a defect is detected, the whole process can be terminated. Thus, avoiding the costs regarding a incorrect part fabrication. 
+TODO /Review
 
-Different pipelines for the generation of microFE models of trabecular bone were proposed [@stauber_finite_2004; @verhulp_indirect_2008; @fernandez_nonlinear_2022; @megias_numerical_2022; @cox_heterogeneous_2022]. Nevertheless, the validation and comparison of results across studies is hindered by the use of proprietary or non-open-source software, and by the general absence of reproducible FE pipelines.
-We present the Python package `ciclope`: a fully open-source pipeline from microCT data preprocessing to microFE model generation, solution and postprocessing.
+The raw acoustic signal obtained from the FDM process monitoring is very hard to segment regarding the different phenomena that composes a first layer fabrication. It has been reported that the difficulties only increases when the goal is to segment into the different fabrication lines. This is due to the fact that the acoustic signal obtained possess a lot of process noise alongside the deposition phenomena. We present the Matlab script `fdm_segmenter`: a fully open-source script for automatic segmentation of contour and raster lines through the use of the X and Y axis direction command signals.
+TODO /Review
 
-[comment]: <> (Several groups highlighted the importance of an accurate description of boundary conditions and of validating model predictions with experimental measurements e.g. with Digital Volume Correlation.)
-
-[comment]: <> (The development of open-source and reproducible microFE workflows is expected to facilitate and support the validation of biomechanical studies, strengthening at the same time the synergy with other fields of microFE application such as concrete, fiber composites and porous materials research.)
+[comment]: <> (Several research articles highlighted the importance of an accurate segmentation of the contour and raster lines in order to evaluate geometrical and surface defects on the printing part.)
 
 # Design
 `Ciclope` is composed of a core library of modules for FE model generation (`ciclope.core`), and a library of utilities for image and FE model pre- and postprocessing (`ciclope.utils`) that can be imported and used within Python. Additionally, the `ciclope.py` script generated during package installation allows to launch microCT-to-FE pipelines directly from the commandline.
