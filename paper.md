@@ -48,6 +48,8 @@ TODO /Review
 
 [comment]: <> (Several research articles highlighted the importance of an accurate segmentation of the contour and raster lines in order to evaluate geometrical and surface defects on the printing part.)
 
+
+
 # Design
 `Ciclope` is composed of a core library of modules for FE model generation (`ciclope.core`), and a library of utilities for image and FE model pre- and postprocessing (`ciclope.utils`) that can be imported and used within Python. Additionally, the `ciclope.py` script generated during package installation allows to launch microCT-to-FE pipelines directly from the commandline.
 
