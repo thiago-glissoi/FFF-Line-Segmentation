@@ -48,6 +48,7 @@ TODO /Review
 
 [comment]: <> (Several research articles highlighted the importance of an accurate segmentation of the contour and raster lines in order to evaluate geometrical and surface defects on the printing part.)
 
+![image](/Images/IMG_7577.png)
 
 
 # Design
