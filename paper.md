@@ -1,5 +1,5 @@
 ---
-title: 'FFF fabrication lines segmentation'
+title: 'Fused Filament Fabrication lines segmentation'
 
 tags:
   - fused filament fabrication
@@ -21,11 +21,13 @@ authors:
     corresponding: true
   - name: Reinaldo Götz de Oliveira Junior
     orcid: 0000-0002-2843-528X
-    affiliation: 1
+    affiliation: 2
 
 affiliations:
   - name: Department of Electrical Engineering, São Paulo State University, Brazil
     index: 1
+  - name: Department of Electrical Engineering, São Paulo University, Brazil
+    index: 2
 
 date: 06 April 2023 
 bibliography: paper.bib 
