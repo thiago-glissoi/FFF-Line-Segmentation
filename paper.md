@@ -1,8 +1,8 @@
 ---
-title: 'Fused Filament Fabrication lines segmentation'
+title: 'fdm_segmenter: A signal segmentation script for acoustic FDM fabrication data in Matlab'
 
 tags:
-  - fused filament fabrication
+  - fused deposition modeling
   - signal processing
   - additive manufacturing
   - process monitoring
@@ -21,49 +21,71 @@ authors:
     corresponding: true
   - name: Reinaldo Götz de Oliveira Junior
     orcid: 0000-0002-2843-528X
-    affiliation: 2
+    affiliation: 1
 
 affiliations:
   - name: Department of Electrical Engineering, São Paulo State University, Brazil
     index: 1
-  - name: Department of Electrical Engineering, São Paulo University, Brazil
-    index: 2
 
-date: 06 April 2023 
+date: 13 April 2023 
 bibliography: paper.bib 
 
 ---
 
 # Summary
-"The Matlab script `fdm_segmenter` processes X and Y axis direction command signals obtained from the FDM printer control board to generate the period segmentation of contour and raster lines. `fdm_segmenter` aims to provide a reproducible and fully open-source implementation of the period segmentation of contour and raster lines for signal processing purposes."
-TODO /Review
+The Fused Deposition Modeling (FDM) process deals with the manufacturing of parts by adding multiple layers of fused material in predetermined printing lines. TODO: add references
+The monitoring of the FDM process via acoustic signals has been successfully used to detect the occurrence of defects in the printing process. TODO: add references
+Mechanistically, acoustic signals obtained from the FDM process are non-stationary time-series that capture alterations in the acoustic field arising from the material deposition. TODO: add references
+The signal segmentation is a fundamental step in the process monitoring of FDM, since it allows the identification of the printing lines and the extraction of the relevant information for the process monitoring and control. However, due to many acoustic interferences arising from the FDM process an accurate manual segmentation may not be possible to achieve TODO: add references
+`fdm_segmenter` is a signal segmentation script written in Matlab that allows for automatically and accurate segmentation of the printing lines. TODO: add references
 
 # Statement of need
-The Fused Deposition Modeling Process (FDM), also known as 3D Printing, deals with the manufacturing of parts by adding multiple layers of fused plastic filament following a specific printing pattern. The printing pattern is defined by the process operator in the slicing process performed in a postprocessing FDM software.
-TODO /Review
 
-There are several printing patterns, which vary in the number of contours and raster lines. Some printing parameters defined in the slicing process, such as the layer width, have a direct influence on the outcome of the print pattern with respect to the number of contour and raster lines.
-TODO /Review
+### Automatic
 
-The monitoring of the FDM process by means of signal processing of acoustic data has been a very prominent subject of research. There are several types of defects that can be detected during the fabrication of the first layer in the FDM process. The first layer is considered to be a crucial period in the process, where if a defect is detected, the whole process can be terminated. Thus, avoiding the costs regarding a incorrect part fabrication. 
-TODO /Review
+Current research on the FDM process utilizes different methods to segment the acoustic signals. However, all of these methods have a manual component,  like the printing time evaluation of each line through a video recording of the printing process, or manually selecting the printing lines in reference to amplitude variations in the time domain. These manual segmentation methods pose a serious challenge to adequate process monitoring, since they are time-consuming and prone to errors due to human mistakes. TODO: add references
+`fdm_segmenter` takes a programming approach that allows for automatic  segmentation of the printing lines in a acoustic signal utilizing the direction control signal of the X and Y step motors axis of the FDM printer, and the signals sampling frequency. This feature allows for accurate segmentation of the contour and raster printing lines from other signal data, thus allowing the extraction of the relevant information for the process monitoring and control. TODO: add references
+A consequence of this programming approach is that the FDM signal segmentation in `fdm_segmenter`, in contrast to other methods that have a manual component, is fully automatic and less prone to errors due to human mistakes. The process operator only needs to inputs the acoustic signal, the direction control signal of the X and Y step motors axis of the FDM printer, and the signals sampling frequency. In return, the operator receives the start and end points in number of samples for each printing line. TODO: add references
 
-The raw acoustic signal obtained from the FDM process monitoring is usually hard to accurately segment regarding the different phenomena that composes a first layer fabrication. It has been reported that the difficulties only increases when the goal is to segment into the different fabrication lines [@Lopes2022]. This is due to the fact that the acoustic signal obtained possess a lot of process noise alongside the deposition phenomena. We present the Matlab script `fdm_segmenter`: a fully open-source script for automatic segmentation of contour and raster lines through the use of the X and Y axis direction command signals.
-TODO /Review
+### Extensibile
 
-[comment]: <> (Several research articles highlighted the importance of an accurate segmentation of the contour and raster lines in order to evaluate geometrical and surface defects on the printing part.)
+In addition to its scalability, Openseize employs an extensible
+object-oriented architecture. This feature, missing in many currently
+available DSP packages, is crucial in neuroscience research for two reasons.
+First, there are many different data file types in-use. Abstract base
+classes [@GOF] help future developers integrate their file types into
+Openseize by identifying required methods needed to create producers that
+Openseize's algorithms can process. Second, DSP operations are strongly
+interdependent. By identifying and abstracting common methods, the
+algorithms in Openseize are smaller, more maintainable and above all, easier
+to understand.  \autoref{fig:types} diagrams the currently available DSP
+methods grouped by their abstract types or module names.
 
-Commission under grant ID: [FP6-IST 026932](https://cordis.europa.eu/project/id/026932).
+ ![Partial list of DSP classes and methods available in Openseize grouped by
+abstract type and/or module (gray boxes). Each gray box indicates a point of
+extensibility either through development of new concrete classes or
+functions within a module.\label{fig:types}](types.png)
 
-summit para testar
+### Intuitive API
 
-# Design
+Finally, Openseize has an intuitive application programming interface (API).
+While under the hood, Openseize is using a declarative programming approach,
+from the end-user's perspective, the calling of its functions are similar
+to Scipy's DSP call signatures. The main difference is that producers do not
+return DSP processed values when created. Rather, the values are generated
+when the producer is iterated over. To help new users understand the
+implications of this, Openseize includes extensive in-depth discussions
+about DSP algorithms and their iterative implementations in a series of
+Jupyter notebooks [@jupyter]. Importantly, to maintain the clarity and
+extensibility of Openseize's API, graphical user interfaces (GUIs) have been
+avoided. This decision reflects the fact that many current DSP packages have
+inconsistent APIs depending on whether the modules are invoked from the
+command-line or a GUI.   
 
-
-# Proof of concept 
-
-
-# Example
+In summary, Openseize fulfills a need in neuroscience research for DSP tools
+that scale to large EEG recordings, are extensible enough to handle new
+data types and methods, and are accessible to both end-users and
+developers.
 
 ![Teste.\label{fig:examples}](IMG_7577.png){width=100%}
 
