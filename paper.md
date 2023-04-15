@@ -47,6 +47,7 @@ Current research on the FDM process utilizes different methods to segment the ac
 `fdm_segmenter` takes a programming approach that allows for automatic  segmentation of the printing lines in a acoustic signal utilizing the direction control signal of the X and Y step motors axis of the FDM printer, and the signals sampling frequency. This feature allows for accurate segmentation of the contour and raster printing lines from other signal data, thus allowing the extraction of the relevant information for the process monitoring and control. TODO: add references
 A consequence of this programming approach is that the FDM signal segmentation in `fdm_segmenter`, in contrast to other methods that have a manual component, is fully automatic and less prone to errors due to human mistakes. The process operator only needs to inputs the acoustic signal, the direction control signal of the X and Y step motors axis of the FDM printer, and the signals sampling frequency. In return, the operator receives the start and end points in number of samples for each printing line. TODO: add references
 
+<!-- 
 ### Extensibile
 
 In addition to its scalability, Openseize employs an extensible
@@ -88,6 +89,8 @@ data types and methods, and are accessible to both end-users and
 developers.
 
 ![Teste.\label{fig:examples}](IMG_7577.png){width=100%}
+
+-->
 
 # Acknowledgements
 We acknowledge support from the community 
