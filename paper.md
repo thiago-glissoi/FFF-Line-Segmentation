@@ -37,60 +37,28 @@ The Fused Deposition Modeling (FDM) process deals with the manufacturing of part
 The monitoring of the FDM process via acoustic signals has been successfully used to detect the occurrence of defects in the printing process. TODO: add references
 Mechanistically, acoustic signals obtained from the FDM process are non-stationary time-series that capture alterations in the acoustic field arising from the material deposition. TODO: add references
 The signal segmentation is a fundamental step in the process monitoring of FDM, since it allows the identification of the printing lines and the extraction of the relevant information for the process monitoring and control. However, due to many acoustic interferences arising from the FDM process an accurate manual segmentation may not be possible to achieve TODO: add references
-`fdm_segmenter` is a signal segmentation script written in Matlab that allows for automatically and accurate segmentation of the printing lines. TODO: add references
+`fdm_segmenter` is a signal segmentation script written in Matlab that allows for automatically and accurate segmentation of the different printing lines. TODO: add references
 
 # Statement of need
 
 ### Automatic
 
-Current research on the FDM process utilizes different methods to segment the acoustic signals. However, all of these methods have a manual component,  like the printing time evaluation of each line through a video recording of the printing process, or manually selecting the printing lines in reference to amplitude variations in the time domain. These manual segmentation methods pose a serious challenge to adequate process monitoring, since they are time-consuming and prone to errors due to human mistakes. TODO: add references
+Current research on the FDM process utilizes different methods to segment the acoustic signals. However, all of these methods have a manual component,  like the printing time evaluation of each line through a video recording of the printing process, or manually selecting the printing lines in reference to amplitude variations in the time domain. These manual segmentation methods pose a serious challenge to adequate process monitoring, since they are time-consuming and prone to errors due to human mistakes [@Lopes2022].
 `fdm_segmenter` takes a programming approach that allows for automatic  segmentation of the printing lines in a acoustic signal utilizing the direction control signal of the X and Y step motors axis of the FDM printer, and the signals sampling frequency. This feature allows for accurate segmentation of the contour and raster printing lines from other signal data, thus allowing the extraction of the relevant information for the process monitoring and control. TODO: add references
 A consequence of this programming approach is that the FDM signal segmentation in `fdm_segmenter`, in contrast to other methods that have a manual component, is fully automatic and less prone to errors due to human mistakes. The process operator only needs to inputs the acoustic signal, the direction control signal of the X and Y step motors axis of the FDM printer, and the signals sampling frequency. In return, the operator receives the start and end points in number of samples for each printing line. TODO: add references
 
-<!-- 
-### Extensibile
+### Result orientated
 
-In addition to its scalability, Openseize employs an extensible
-object-oriented architecture. This feature, missing in many currently
-available DSP packages, is crucial in neuroscience research for two reasons.
-First, there are many different data file types in-use. Abstract base
-classes [@GOF] help future developers integrate their file types into
-Openseize by identifying required methods needed to create producers that
-Openseize's algorithms can process. Second, DSP operations are strongly
-interdependent. By identifying and abstracting common methods, the
-algorithms in Openseize are smaller, more maintainable and above all, easier
-to understand.  \autoref{fig:types} diagrams the currently available DSP
-methods grouped by their abstract types or module names.
+In addition to its automatic feature, `fdm_segmenter` is result orientated. Firstly, the segmentation results can be presented in graphical windows that allows for a quick visual inspection of the segmentation results. This feature allows for a quick and accurate evaluation of the script performance. Secondly, the segmentation results can be autosaved following predefined workspace data formats. These formats allow for the easy import of the segmentation results into other Matlab analysis. By identifying and abstracting common segmentation methods, the algorithms in `fdm_segementer` are more direct, maintainable and above all, easier to understand in regard to the printer deposition movements.
 
- ![Partial list of DSP classes and methods available in Openseize grouped by
-abstract type and/or module (gray boxes). Each gray box indicates a point of
-extensibility either through development of new concrete classes or
-functions within a module.\label{fig:types}](types.png)
+### Scalable
 
-### Intuitive API
+The algorithms in `fdm_segmenter` were developed with a cartesian [RepRap](https://reprap.org/wiki/RepRap) based FDM printer in focus. This is due to the fact that cartesian RepRap based FDM printers are commonly used for research purposes. TODO: add references
+Also, the segmentation algorithms were developed in order to segment the contour and raster printing lines of a rectangular shape monolayer part. The stl file of the part was sliced to g-code following standard printing parameters provided by the printer manufacturer. The documentation of `fdm_segmenter` provides a detailed explanation of the segmentation algorithms and how they were developed to attend the particularities of the cartesian RepRap based FDM printer and the rectangular shape monolayer part, which provides a scalable framework for the segmentation of other parts with different shapes and printing parameters. 
 
-Finally, Openseize has an intuitive application programming interface (API).
-While under the hood, Openseize is using a declarative programming approach,
-from the end-user's perspective, the calling of its functions are similar
-to Scipy's DSP call signatures. The main difference is that producers do not
-return DSP processed values when created. Rather, the values are generated
-when the producer is iterated over. To help new users understand the
-implications of this, Openseize includes extensive in-depth discussions
-about DSP algorithms and their iterative implementations in a series of
-Jupyter notebooks [@jupyter]. Importantly, to maintain the clarity and
-extensibility of Openseize's API, graphical user interfaces (GUIs) have been
-avoided. This decision reflects the fact that many current DSP packages have
-inconsistent APIs depending on whether the modules are invoked from the
-command-line or a GUI.   
-
-In summary, Openseize fulfills a need in neuroscience research for DSP tools
-that scale to large EEG recordings, are extensible enough to handle new
-data types and methods, and are accessible to both end-users and
-developers.
+In summary, `fdm_segmenter` fulfills a need in the FDM process monitoring research for a signal segmentation script that is automatic, result orientated and scalable.
 
 ![Teste.\label{fig:examples}](IMG_7577.png){width=100%}
-
--->
 
 # Acknowledgements
 We acknowledge support from the community 
