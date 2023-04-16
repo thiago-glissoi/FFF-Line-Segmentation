@@ -51,14 +51,14 @@ A consequence of this programming approach is that the FFF signal segmentation i
 
 In addition to its automatic feature, `fff_segmenter` is result orientated. Firstly, the segmentation results can be presented in graphical windows that allows for a quick visual inspection of the segmentation results. This feature allows for a quick and accurate evaluation of the script performance. Secondly, the segmentation results can be autosaved following predefined workspace data formats. These formats allow for the easy import of the segmentation results into other Matlab analysis. By identifying and abstracting common segmentation methods, the algorithms in `fff_segementer` are more direct, maintainable and above all, easier to understand in regard to the printer deposition movements.
 
+![`fff_segmenter` Input & Output\label{fig:examples}](Detalhamento_inputs_e_outputs.png){width=100%}
+
 ### Scalable
 
 The algorithms in `fff_segmenter` were developed with a cartesian [RepRap](https://reprap.org/wiki/RepRap) based FFF printer in focus. This is due to the fact that cartesian [RepRap](https://reprap.org/wiki/RepRap) based FFF printers are commonly used for research purposes [@Lopes2022; @Carmo2020; @Wu2015; @Liu2018b].
 Also, the segmentation algorithms were developed in order to segment the contour and raster printing lines of a rectangular shape monolayer part. The stl file of the part was sliced to g-code following standard printing parameters provided by the printer manufacturer. The documentation of `fff_segmenter` provides a detailed explanation of the segmentation algorithms and how they were developed to attend the particularities of the cartesian RepRap based FFF printer and the rectangular shape monolayer part, which provides a scalable framework for the segmentation of other parts with different shapes and printing parameters. 
 
-In summary, `fff_segmenter` fulfills a need in the FFF process monitoring research for a signal segmentation script that is automatic, result orientated and scalable.
-
-![Teste.\label{fig:examples}](IMG_7577.png){width=100%}
+In summary, `fff_segmenter` fulfills a need in the FFF process monitoring research for a signal segmentation script that is automatic, result orientated and scalable, as well providing a framework for the community to scale the script to attend other FFF printers and parts.
 
 # Acknowledgements
 We acknowledge support from the community 
