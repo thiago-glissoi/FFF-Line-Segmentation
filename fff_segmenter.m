@@ -2,8 +2,8 @@
 % Esta função é utilizada para segmentar de forma automática as linhas de
 % fabricação de contorno, que compõem o padrão externo, as linhas de
 % fabricação raster, que compõem o padrão interno, e demais movimentações
-% de um sinal obtido de fabricação monocamada pelo processo de manufatura
-% por fusão e deposição (FDM).
+% de um sinal obtido de fabricação monocamada pelo processo de fabricação
+% por filamento fundido (FFF).
 %
 % Para utilizar esta função, deve-se:
 % 1-> Obter os sinais de mudança de direção do eixo X, e do eixo Y;
@@ -78,7 +78,7 @@
 % CORE
 function [linhas_PE, linhas_PI, trans_PI, mov_ini_PI,...
     ponto_sep_PE_PI, sep_PE, sinal_linhas_PI, sinal_trans_PI] = ...
-    fdm_segmenter (sinal_sensor, Dir_X, Dir_Y, Fs, modo_linha,...
+    fff_segmenter (sinal_sensor, Dir_X, Dir_Y, Fs, modo_linha,...
     modo_salvar, modo_plot, modo_salvar_figura, nome_sinal_bruto)
 %% Pré-processamentos
 
