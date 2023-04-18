@@ -47,7 +47,7 @@ Current research on the FFF process utilizes different methods to segment the ac
 `fff_segmenter` takes a programming approach that allows for the automatic segmentation of the printing lines in an acoustic signal, utilizing the direction control signal of the X and Y step motor axes of the FFF printer, and the signal's sampling frequency. This feature allows for accurate segmentation of the contour and raster printing lines from the acoustic signal data, thus enabling the extraction of relevant information for process monitoring and control.
 A consequence of this programming approach is that the FFF signal segmentation in `fff_segmenter`, in contrast to other methods that have a manual component, is fully automatic and less prone to errors due to human mistakes. The process operator only needs to input the acoustic signal, the direction control signal of the X and Y step motor axes of the FFF printer, and the signal's sampling frequency. In return, the operator receives the start and end points in the number of samples for each printing line, alongside other relevant process information. 
 
-![Segmentation example with `fff_segmenter`. (a) signal with raster lines; (b) signal with transition between raster lines; (c) zoom into figure (a) 48s to 52s; (d) zoom into figure (b) 48s to 52s ](Figura_exemplificativa.png){width=100%}
+![Segmentation example with `fff_segmenter`. (a) signal with raster lines; (b) signal with transition between raster lines; (c) zoom into figure (a) 48s to 52s; (d) zoom into figure (b) 48s to 52s ](Figura_exemplificativa.png){width=80%}
 
 ### Result orientated
 
@@ -55,7 +55,7 @@ In addition to its automatic feature, `fff_segmenter` is result-oriented. Firstl
 Figure 1 exposes the different FFF process information that is extracted by applying the fff_segmenter script to an acoustic signal. The zoom windows in Figure 1(c) and Figure 1(d) show the transition period between contour lines and raster lines. In this period, it is possible to observe the last segments of the contour lines (C1_L10, C1_L11, and C1_L12), the first segments of the raster lines (RL1, RL2), and a transition period between printing patterns regarding the repositioning of the extruder where there is no deposition of filament. The observation of the transition period in Figure 1(c) also confirms an important property of the raster lines printing pattern, which is the fact that the duration of the lines is increasing, and the raster lines are always separated by a transition period that presents the same duration. These transitions between raster lines, presented in Figure 1(b), are periods of the signal in which there is deposition of filament.
 Due to being developed with the part's feature in focus, the algorithms in fff_segmenter are more direct, maintainable, and, above all, easier to understand with respect to the printer deposition movements.
 
-![`fff_segmenter` Input & Output\label{fig:Result orientated}](Detalhamento_inputs_e_outputs.png){width=50%}
+![`fff_segmenter` Input & Output\label{fig:Result orientated}](Detalhamento_inputs_e_outputs.png){width=70%}
 
 ### Scalable
 
