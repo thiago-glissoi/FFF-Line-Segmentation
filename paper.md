@@ -45,14 +45,15 @@ Signal segmentation is a fundamental step in the process monitoring of FFF, as i
 
 Current research on the FFF process utilizes different methods to segment the acoustic signals. However, all of these methods have a manual component, such as the evaluation of printing time for each line through video recordings of the printing process, or manually selecting the printing lines based on amplitude variations in the time domain. These manual segmentation methods pose a serious challenge to adequate process monitoring, since they are time-consuming and prone to errors due to human mistakes [@Lopes2022; @Lopes2021].
 `fff_segmenter` takes a programming approach that allows for the automatic segmentation of the printing lines in an acoustic signal, utilizing the direction control signal of the X and Y step motor axes of the FFF printer, and the signal's sampling frequency. This feature allows for accurate segmentation of the contour and raster printing lines from the acoustic signal data, thus enabling the extraction of relevant information for process monitoring and control.
-A consequence of this programming approach is that the FFF signal segmentation in `fff_segmenter`, in contrast to other methods that have a manual component, is fully automatic and less prone to errors due to human mistakes. The process operator only needs to input the acoustic signal, the direction control signal of the X and Y step motor axes of the FFF printer, and the signal's sampling frequency. In return, the operator receives the start and end points in the number of samples for each printing line, alongside other relevant process information.
+A consequence of this programming approach is that the FFF signal segmentation in `fff_segmenter`, in contrast to other methods that have a manual component, is fully automatic and less prone to errors due to human mistakes. The process operator only needs to input the acoustic signal, the direction control signal of the X and Y step motor axes of the FFF printer, and the signal's sampling frequency. In return, the operator receives the start and end points in the number of samples for each printing line, alongside other relevant process information. 
 
-![Segmentation example with `fff_segmenter`{fig:Automatic}](Sinal_exemplo.tiff){width=100%}
+![Segmentation example with `fff_segmenter`. (a) signal with raster lines; (b) signal with transition between raster lines; (c) zoom into figure (a) 48s to 52s; (d) zoom into figure (b) 48s to 52s ](Figura_exemplificativa.png){width=100%}
 
 ### Result orientated
 
 In addition to its automatic feature, `fff_segmenter` is result-oriented. Firstly, the segmentation results can be presented in graphical windows, such as the one presented in Figure 1, that allow for a quick visual inspection of the segmentation results. This feature allows for a quick and accurate evaluation of the script's performance. Secondly, the segmentation results can be autosaved in predefined workspace data formats. These formats allow for the easy import of segmentation results into other MATLAB analyses. Figure 2 reveals the input options for the process operator, and the obtained output information. 
-By identifying and abstracting common segmentation methods, the algorithms in fff_segementer are more direct, maintainable, and, above all, easier to understand with respect to the printer deposition movements.
+Figure 1 exposes the different FFF process information that are extracted by applying the fff_segmenter script to an acoustic signal. The zoom windows in Figure 1(c) and Figure 1(d) shows the transition period between contour lines and raster lines. In this period, it is possible to observe the last ones of the contour lines (C1_L10,C1_L11 and C1_L12), the first ones of the raster lines (RL1, RL2), and a transition period between printing patterns where where there are no deposition of filament, only the period that takes to reposition the extruder.  The observation of the transition period in Figure 1 (c) also confirms an important propriety of the infill printing pattern, which is the fact that the duration of the lines are crescent, and the raster lines are always separated by a transition period that presents the same duration. These transition between raster lines, presented in Figure 1(b) are periods of the signal in which there are deposition of filament.
+Due to been developed with the part's feature in focus, the algorithms in fff_segementer are more direct, maintainable, and, above all, easier to understand with respect to the printer deposition movements.
 
 ![`fff_segmenter` Input & Output\label{fig:Result orientated}](Detalhamento_inputs_e_outputs.png){width=100%}
 
@@ -63,6 +64,6 @@ The algorithms in `fff_segmenter` were developed with a focus on cartesian [RepR
 In summary, `fff_segmenter` fulfills the need in FFF process monitoring research for a signal segmentation script that is automatic, result-oriented, and scalable, as well as providing a framework for the community to scale the script to cater to other FFF printers and parts.
 
 # Acknowledgements
-We acknowledge support from ...
+The authors are thankful to the National Council for Scientific and Technological Development (CNPq) for supporting this research under the Grant # 306774/2021-6.
 
 # References
