@@ -85,6 +85,7 @@ function [linhas_PE, linhas_PI, trans_PI, mov_ini_PI,...
 Dir_X_ajustado = zeros(size(Dir_X));
 Dir_Y_ajustado = zeros(size(Dir_Y));
 
+% 1° Normalize the X and Y step motor control signals between 0V and 5V
 for i = 1:length(Dir_X)
     if Dir_X(i) > 2
         Dir_X_ajustado(i) = 5;
@@ -100,10 +101,15 @@ for i = 1:length(Dir_Y)
         Dir_Y_ajustado(i) = 0;
     end
 end
+% \ 1°
+
+% 2° Normalize the acoustic signal, and the X and Y step motor control 
+% signals between -1 and 1 (acoustic signal) and 0 & 1 (step motor signals)
 
 sinal_sensor_normalizado = Normaliz3r(sinal_sensor);
 Dir_Y_ajustado_normalizado = Normaliz3r(Dir_Y_ajustado);
 Dir_X_ajustado_normalizado = Normaliz3r(Dir_X_ajustado);
+% \ 2°
 
 %% Segmentação do padrão externo
 
@@ -135,27 +141,27 @@ end
 % amostras, a duração entre cada mudança de direção.
 
 flag = 0;
-Separacao_1 = 0;
-Separacao_2 = 0;
+position_Initial = 0;
+position_Final = 0;
 cont = 1;
 
 for i = 1:length(Posicao_mudanca)
     if Posicao_mudanca(i) == 1 && flag == 0
-        Separacao_1 = i;
+        position_Initial = i;
         flag = 1;
     else
         if Posicao_mudanca(i) == 1 && flag == 1
-            Separacao_2 = i;
+            position_Final = i;
             flag = 2;
         end
     end
     if flag == 2
-        Duracao(cont,1) = Separacao_2 - Separacao_1; %#ok<*SAGROW>
-        Duracao(cont,2) = Separacao_2;
-        Duracao(cont,3) = Separacao_1;
+        Duracao(cont,1) = position_Final - position_Initial; %#ok<*SAGROW>
+        Duracao(cont,2) = position_Final;
+        Duracao(cont,3) = position_Initial;
         cont = cont+1;
         flag = 1;
-        Separacao_1 = Separacao_2;
+        position_Initial = position_Final;
     end
 end
 
@@ -171,14 +177,7 @@ end
 % bloco_1 = zeros(3);
 % flag = 1;
 
-
-% Fs = val
-% 200e3 = 170e3
-% x = y
-% 170e3*x = 200e3*y
-% y = (170e3*x)/(200e3);
-
-referencia_tamanho = (150e3*Fs)/(200e3);
+referencia_tamanho = 150e3; % known duration for the last contour printing
 
 for i = 1:length(Duracao(:,1))
 
@@ -239,7 +238,9 @@ for i = 1:13
 end
 
 clear Posicao_mudanca a bloco_1 cont Duracao flag i j num_amostras_minimo
-clear Separacao_1 Separacao_2 soma ultima_mudanca valor_x valor_y
+clear position_Initial position_Final soma ultima_mudanca valor_x valor_y
+
+%% Segmentação do padrão interno
 
 valor_x = 0;
 valor_y = 0;
@@ -271,38 +272,37 @@ end
 % amostras, a duração entre cada mudança de direção.
 
 flag = 0;
-Separacao_1 = 0;
-Separacao_2 = 0;
+position_Initial = 0;
+position_Final = 0;
 cont = 1;
 clear Duracao
 
 for i = ponto_sep_PE_PI:length(Posicao_mudanca)
     if Posicao_mudanca(i) == 1 && flag == 0
-        Separacao_1 = i;
+        position_Initial = i;
         flag = 1;
     else
         if Posicao_mudanca(i) == 1 && flag == 1
-            Separacao_2 = i;
+            position_Final = i;
             flag = 2;
         end
     end
     if flag == 2
-        Duracao(cont,1) = Separacao_2 - Separacao_1; %#ok<*AGROW,*SAGROW>
-        Duracao(cont,2) = Separacao_2;
-        Duracao(cont,3) = Separacao_1;
+        Duracao(cont,1) = position_Final - position_Initial; 
+        Duracao(cont,2) = position_Final;
+        Duracao(cont,3) = position_Initial;
         cont = cont+1;
         flag = 1;
-        Separacao_1 = Separacao_2;
+        position_Initial = position_Final;
     end
 end
 
-%% Segmentação do padrão interno
-
 cont = 1;
 Duracao_2 = zeros(3);
+filtroDuracao = 8000; 
 
 for i = 1:length(Duracao(:,1))
-    if Duracao(i,1) > 8000
+    if Duracao(i,1) > filtroDuracao
         Duracao_2(cont,:) = Duracao(i,:);
         cont = cont + 1;
     end
@@ -311,16 +311,11 @@ end
 
 
 indice_valores_abaixo_9000 = find(Duracao_2(:,1) < 9000);
-indice_valores_acima_9000 = find(Duracao_2(:,1) > 9000);
-
-valores_abaixo_9000 = Duracao_2(indice_valores_abaixo_9000);
-valores_acima_9000 = Duracao_2(indice_valores_acima_9000); %#ok<*NASGU,*FNDSB>
-
-media_transicao = round(mean(valores_abaixo_9000),0);
 
 Duracao_3 = zeros(3);
 picoAnterior1 = 0;
 picoAnterior2 = 0;
+duracao_maior_raster = 310e3;
 
 for i = 1:length (indice_valores_abaixo_9000)
 
@@ -328,16 +323,8 @@ for i = 1:length (indice_valores_abaixo_9000)
         break;
     end
 
-    if i > 5
-        if  Duracao_3(i-1,1) == 160255
-            a = 1;
-        end
-    end
-
     index_ini = indice_valores_abaixo_9000(i);
     index_fin = indice_valores_abaixo_9000(i+1);
-
-
 
     result = detectAnom(index_ini, index_fin);
 
@@ -348,19 +335,15 @@ for i = 1:length (indice_valores_abaixo_9000)
         break;
     end
 
-    if  picoAnterior1 > 310e3
+    if  picoAnterior1 > duracao_maior_raster
         break;
     end
 
-    %     if picoAnterior1 < picoAnterior2 && picoAnterior2 > 280e3
-    %         break;
-    %     end
-
     if result == true % situação normal
 
-        [Duracao_obtida, index_dur3] = isNormal(Duracao_2, ...
+        Duracao_obtida= isNormal(Duracao_2, ...
             index_ini, index_fin, ...
-            1); %#ok<*ASGLU>
+            1); 
         if Duracao_3(1,1) == 0
             Duracao_3 = Duracao_obtida;
 
@@ -373,7 +356,7 @@ for i = 1:length (indice_valores_abaixo_9000)
         clear Duracao_obtida
     else % situação anormal
 
-        [Duracao_obtida, index_dur3] = isAnormal(Duracao_2, ...
+        Duracao_obtida = isAnormal(Duracao_2, ...
             index_ini, index_fin, ...
             picoAnterior1);
 
@@ -522,7 +505,7 @@ end
 end
 
 % SUB2
-function [duracaoComposta, lastIndex] = isNormal(duracaoOriginal, ...
+function duracaoComposta = isNormal(duracaoOriginal, ...
     initialPoint, lastPoint, ...
     indexDuracao)
 
@@ -545,12 +528,10 @@ duracaoComposta(indexDuracao+2, 3) =  duracaoOriginal(lastPoint,3);
 duracaoComposta(indexDuracao+2, 2) =  duracaoOriginal(lastPoint,2);
 duracaoComposta(indexDuracao+2, 1) =  duracaoComposta(indexDuracao+2, 2)...
     - duracaoComposta(indexDuracao+2, 3);
-
-lastIndex = indexDuracao+2;
 end
 
 % SUB3
-function [duracaoComposta, lastIndex] = isAnormal(duracaoOriginal, ...
+function duracaoComposta= isAnormal(duracaoOriginal, ...
     initialPoint, lastPoint, ...
     picoAnterior)
 
@@ -637,8 +618,6 @@ for i = initialPoint:2:lastPoint
 
 
 end
-
-lastIndex = cont;
 
 end
 
