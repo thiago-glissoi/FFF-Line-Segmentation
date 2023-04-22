@@ -36,12 +36,12 @@
 % linhas_PE -> Vetor que apresenta os índices de mudança das linhas de ...
 % contorno
 %
-% linhas_PI -> Matriz que apresenta os índices de mudança das linhas de ...
+% index_raster -> Matriz que apresenta os índices de mudança das linhas de ...
 % raster. Na primeira coluna é apresentada a duração da linha, na ...
 % segunda coluna é apresentado o índice final da linha, e na terceira ...
 % coluna é apresentado o índice inicial da linha
 %
-% trans_PI -> Matriz que apresenta os índices de transição entre as ...
+% index_trans_raster -> Matriz que apresenta os índices de transição entre as ...
 % linhas de raster. Na primeira coluna é apresentada a duração da ...
 % transição, na segunda coluna é apresentado o índice final da transição, ...
 % e na terceira coluna é apresentado o índice inicial da transição
@@ -71,7 +71,7 @@
 % Determinadas lógicas auxiliares, como a de normalizar sinais, são
 % realizadas nos blocos AUX1, AUX2, AUX3, AUX4, AUX5, e AUX6
 %
-% % Versão 2.0
+% % Versão 2.1
 % Autoria: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
 % Última edição: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
 
@@ -88,11 +88,11 @@ end
 clear prompt
 clc;
 
-disp ("Would you like to obtain the segmentation index (index) or the segments of signal (segments)? ");
-prompt = "Response index/segments [index]: ";
+disp ("Would you like to obtain the segmentation index (points) or the segments of signal (segments)? ");
+prompt = "Response points/segments [points]: ";
 segmentation_choice = input(prompt,"s");
 if isempty(segmentation_choice)
-    segmentation_choice = 'index';
+    segmentation_choice = 'points';
 end
 
 clear prompt
@@ -211,17 +211,16 @@ end
 % Separacao de linhas do padrão externo
 a = find(Duration(:,3) == ponto_signal_contour_PI);
 
-signal_contour = zeros(size(sensor_signal_normalizado));
+signal_contour_vert = zeros(size(sensor_signal_normalizado));
 linhas_PE = zeros(1,13);
 
 
 for i = 1:13
     linhas_PE(1,i) = Duration(a-13+i,3);
-    signal_reposition = plota_linha(1, linhas_PE(1,i),...
+    signal_contour_unit = plota_linha(1, linhas_PE(1,i),...
         sensor_signal_normalizado);
-    signal_contour = signal_reposition'...
-        + signal_contour;
-    clear signal_reposition
+    signal_contour_vert = signal_contour_unit'...
+        + signal_contour_vert;
 end
 
 cont = 1;
@@ -272,7 +271,7 @@ index_contour(9,:) = correct_contour_line9;
 
 contour_repositions = [repo_to_contour_line1; repo_to_contour_line5; repo_to_contour_line9];
 
-clear Posicao_mudanca a bloco_1 cont Duration flag i j num_amostras_minimo index_contour_temp
+clear Posicao_mudanca a bloco_1 cont Duration flag i j num_amostras_minimo
 clear position_Initial position_Final soma ultima_mudanca valor_x valor_y
 
 %% Segmentação do padrão interno
@@ -378,118 +377,67 @@ cont_trans_interno = 1;
 
 for j = 1:length(Duration_4_v2(:,1))
     if Duration_4_v2(j,1) < 8000 || Duration_4_v2(j,1) > 9000
-        linhas_PI(cont_interno,:) = Duration_4_v2(j,:);
+        index_raster(cont_interno,:) = Duration_4_v2(j,:);
         cont_interno = cont_interno + 1;
 
     else
-        trans_PI(cont_trans_interno,:) = Duration_4_v2(j,:);
+        index_trans_raster(cont_trans_interno,:) = Duration_4_v2(j,:);
         cont_trans_interno = cont_trans_interno + 1;
     end
 
 end
 
-contour_to_raster_reposition(1,1) = Duration_2(1,1) - Duration_4_v2(1,1);
+contour_to_raster_reposition(1,3) = index_contour(12,3);
 contour_to_raster_reposition(1,2) = Duration_4_v2(1,3);
-contour_to_raster_reposition(1,3) = contour_to_raster_reposition(1,2) -...
-    contour_to_raster_reposition(1,1);
+contour_to_raster_reposition(1,1) = contour_to_raster_reposition(1,2) -...
+    contour_to_raster_reposition(1,3);
 
-cont_repos = 1;
-aux1 = 0;
+% figure;
+% plot(Duration_4_v2(:,1));
 
-for j = 1:length(sensor_signal_normalizado)
+index_contour_alt = index_contour;
 
-    if j >=  contour_to_raster_reposition(1,3) && j <= contour_to_raster_reposition(1,2)
-        aux1(cont_repos,1) = 1;
-        cont_repos = cont_repos + 1;
-
-    else
-        aux1(cont_repos,1) = 0;
-        cont_repos = cont_repos + 1;
-    end
-
+for i = 1:1:12
+index_contour_alt(i,2) = index_contour(i,2);
+index_contour_alt(i,3) = index_contour(i,3)-5;
 end
 
-cont_repos = 1;
-aux2 = 0;
+signal_reposition = Compos3r(sensor_signal_normalizado,contour_to_raster_reposition(:,2:3),1)+...
+    Compos3r(sensor_signal_normalizado,contour_repositions(:,2:3),1);
+signal_raster = Compos3r(sensor_signal_normalizado, index_raster(:,2:3), 1);
+signal_trans_raster = Compos3r(sensor_signal_normalizado, index_trans_raster(:,2:3), 1);
+signal_contour = Compos3r(sensor_signal_normalizado, index_contour_alt(:,2:3), 1);
 
-for j = 1:length(sensor_signal_normalizado)
+test_segment_choice = strcmp(segmentation_choice,'points');
 
-    if j >=  contour_repositions(1,2) && j <= contour_repositions(1,3)
-        aux2(cont_repos,1) = 1;
-        cont_repos = cont_repos + 1;
-
-    else
-        aux2(cont_repos,1) = 0;
-        cont_repos = cont_repos + 1;
-    end
-
-end
-
-cont_repos = 1;
-
-for j = 1:length(sensor_signal_normalizado)
-
-    if j >=  contour_repositions(2,2) && j <= contour_repositions(2,3)
-        aux2(cont_repos,2) = 1;
-        cont_repos = cont_repos + 1;
-
-    else
-        aux2(cont_repos,2) = 0;
-        cont_repos = cont_repos + 1;
-    end
-
-end
-
-cont_repos = 1;
-
-for j = 1:length(sensor_signal_normalizado)
-
-    if j >=  contour_repositions(3,2) && j <= contour_repositions(3,3)
-        aux2(cont_repos,3) = 1;
-        cont_repos = cont_repos + 1;
-
-    else
-        aux2(cont_repos,3) = 0;
-        cont_repos = cont_repos + 1;
-    end
-
-end
-
-signal_reposition = aux1 + max(aux2,[],2);
-clear aux1 aux2
-
-figure;
-plot(Duration_4_v2(:,1));
-
-signal_raster = Compos3r(sensor_signal_normalizado, linhas_PI(:,2:3), 1);
-signal_trans_raster = Compos3r(sensor_signal_normalizado, trans_PI(:,2:3), 1);
-
-contour_to_raster_reposition_correct(1,1) = contour_to_raster_reposition(1,1);
-contour_to_raster_reposition_correct(1,2) = contour_to_raster_reposition(1,3);
-contour_to_raster_reposition_correct(1,3) = contour_to_raster_reposition(1,2);
-
-if segmentation_choice == 'index'
-    result_reposition = [contour_repositions; contour_to_raster_reposition_correct];
+if test_segment_choice == true
+    result_reposition = [contour_repositions; contour_to_raster_reposition];
     result_contour = index_contour;
-    result_raster = linhas_PI;
-    result_transition_raster = trans_PI;
+    result_raster = index_raster;
+    result_transition_raster = index_trans_raster;
 end
 
-if segmentation_choice == 'segments'
+test_segment_choice = strcmp(segmentation_choice,'segments');
 
-
-
+if test_segment_choice == true
+    result_reposition = gen_signal_segments(sensor_signal_normalizado,...
+        contour_repositions);
+    result_reposition(1,4) = gen_signal_segments(sensor_signal_normalizado,...
+        contour_to_raster_reposition);    
+    result_contour = gen_signal_segments(sensor_signal_normalizado, index_contour);
+    result_raster = gen_signal_segments(sensor_signal_normalizado, index_raster);
+    result_transition_raster = gen_signal_segments(sensor_signal_normalizado, index_trans_raster);
 end
 
 if save_choice == 'Y'
     save_files(result_reposition, result_contour, result_raster,...
-        result_transition_raster);
+        result_transition_raster, segmentation_choice, signal_identifier);
 end
 
 if graphical_choice == 'Y'
-    gen_graph(signal_reposition, sensor_signal, Fs,...
+    gen_graph(signal_reposition, sensor_signal_normalizado, Fs,...
         signal_identifier, signal_contour, signal_raster,...
-        signal_trans_raster, linhas_PE, figure_choice);
+        signal_trans_raster, index_raster, figure_choice);
 end
 
 end
@@ -747,12 +695,12 @@ end
 cont_low_dur = 0;
 
 for i = 1:length(duration(:,1))
-    if duration(i,1) < 50e3
+    if duration(i,1) < 8e3
         cont_low_dur = cont_low_dur + 1;
     end
 end
 
-if cont_low_dur > 500
+if cont_low_dur > 50
     result_problem = true;
 else
     result_problem = false;
@@ -763,13 +711,13 @@ end
 % OP1
 function gen_graph(signal_reposition, sensor_signal, Fs,...
     signal_identifier, signal_contour, signal_raster,...
-    signal_trans_raster, linhas_PE, figure_choice)
+    signal_trans_raster, index_raster, figure_choice)
 
 sensor_signal = Normaliz3r(sensor_signal);
 t = obtain_time_vec(sensor_signal,Fs);
 
 %Obtain the last point of the external pattern index in the time domain
-a = linhas_PE(1,end)/Fs;
+a = index_raster(1,3)/Fs;
 xlim_min = a - 2.0;
 xlim_max = a + 1.5;
 
@@ -785,7 +733,7 @@ generate_standard_fig(t, signal_contour, 1, 2,...
     0, 0, -1.1, 1.1,...
     2, 'Times New Roman', 16);
 generate_standard_fig(t, signal_reposition, 1, 2,...
-    'Transition between printing patterns', 0, 0, 0, 0, 0, ...
+    'Reposition', 0, 0, 0, 0, 0, ...
     0, 0, -1.1, 1.1,...
     2, 'Times New Roman', 16);
 generate_standard_fig(t, signal_raster, 1, 2,...
@@ -824,7 +772,7 @@ generate_standard_fig(t, signal_contour, 1, 2,...
     0, 0, -1.1, 1.1,...
     2, 'Times New Roman', 16);
 generate_standard_fig(t, signal_reposition, 1, 2,...
-    'Transition between printing patterns', 0, 0, 0, 0, 0, ...
+    'Reposition', 0, 0, 0, 0, 0, ...
     0, 0, -1.1, 1.1,...
     2, 'Times New Roman', 16);
 generate_standard_fig(t, signal_trans_raster, 1, 2,...
@@ -850,24 +798,22 @@ generate_standard_fig(t, signal_trans_raster, 1, 2,...
     0, 0, 'Time (s)', 'Normalized amplitude', 0, 0, ...
     xlim_min, xlim_max, 0, 1.1,...
     5, 'Times New Roman', 16);
-legend('off');
+    legend('off');
 
 if figure_choice == 'Y'
     signal_identifier2 = ['Segmentation results ',signal_identifier, '.png'];
-    salvarFigura(gca,'centimeters',[13 7]*1.8,600,signal_identifier2)
+    salvarFigura(gca,'centimeters',[13 11]*1.8,600,signal_identifier2)
 end
 
 end
 
 % OP2
-function save_files(signal_identifier, linhas_PE, linhas_PI,...
-    trans_PI, mov_ini_PI, ponto_signal_contour_PI, signal_contour, signal_raster,...
-    signal_trans_raster)
+function save_files(result_reposition, result_contour, result_raster,...
+        result_transition_raster, segmentation_choice, signal_identifier)
 
-save (['Segmentation results ',signal_identifier],'linhas_PE', 'linhas_PI',...
-    'trans_PI', 'mov_ini_PI', 'ponto_signal_contour_PI',...
-    'signal_contour', 'signal_raster',...
-    'signal_trans_raster');
+save ([segmentation_choice,' segmentation results ',signal_identifier],...
+    'result_reposition', 'result_contour',...
+    'result_raster', 'result_transition_raster');
 
 end
 
@@ -1134,11 +1080,24 @@ function sinal_composto = Compos3r(sinal_base, matriz_posicoes, modo)
 
 aux = zeros(length(sinal_base),1);
 
+if matriz_posicoes(1,1) > matriz_posicoes(1,2)
+low_column = 2;
+high_column = 1;
+else
+low_column = 1;
+high_column = 2;
+end
+
+min_situation = [1,2];
+
 if modo == 1 % cria um vetor binário indicando com 1 onde há confluência
     % de posições entre a matriz de posições e o sinal base
-
+    
     for i = 1:length(matriz_posicoes)
-        aux(matriz_posicoes(i,2):matriz_posicoes(i,1)) = 1;
+        aux(matriz_posicoes(i,low_column):matriz_posicoes(i,high_column)) = 1;
+    if size(matriz_posicoes) == min_situation
+    break;
+    end
     end
 
     sinal_composto = aux;
@@ -1190,8 +1149,27 @@ if sub_seguinte1 >= referencia_tamanho && ...
     result_sep = true;
 else
     result_sep = false;
+end
+end
+
+% AUX8
+function signal_segments = gen_signal_segments(raw_signal, index_matrix)
+
+num_interactions = size (index_matrix,1);
+
+if index_matrix(1,2) > index_matrix(1,3)
+low_column = 3;
+high_column = 2;
+else
+low_column = 2;
+high_column = 3;
+end
+
+for var_num_interactions = 1:num_interactions
+    signal_segments{:,var_num_interactions} = ...
+        raw_signal(index_matrix(var_num_interactions,low_column)...
+        :index_matrix(var_num_interactions,high_column));
+end
 
 end
 
-
-end
