@@ -24,19 +24,34 @@ clc;
 
 disp ("Would you like to obtain the segmentation index (points) or the segments of signal (segments)? ");
 prompt = "Response points/segments [points]: ";
-segmentation_choice = input(prompt,"s");
+segmentation_choice = input(prompt,'s');
 if isempty(segmentation_choice)
     segmentation_choice = 'points';
 end
+
+test_segment_choice_points = strcmp(segmentation_choice,'points');
+test_segment_choice_segments = strcmp(segmentation_choice,'segments');
+
+if test_segment_choice_points ~= 1 && test_segment_choice_segments ~= 1
+    segmentation_choice = 'points';
+end
+
 
 clear prompt
 clc;
 
 disp ("Would you like to obtain graphical visualization of the segmentation?");
 prompt = "Response Y/N [Y]: ";
-graphical_choice = input(prompt,"s");
+graphical_choice = input(prompt,'s');
 if isempty(graphical_choice)
     graphical_choice = 'Y';
+end
+
+test_graphical_choice_Y = strcmp(graphical_choice,'Y');
+test_graphical_choice_N = strcmp(graphical_choice,'N');
+
+if test_graphical_choice_Y ~= 1 && test_graphical_choice_N ~= 1
+    segmentation_choice = 'Y';
 end
 
 clear prompt
@@ -44,18 +59,33 @@ clc;
 if graphical_choice == 'Y'
     disp ("Would you like to autosave the figures?");
     prompt = "Response Y/N [Y]: ";
-    figure_choice = input(prompt,"s");
+    figure_choice = input(prompt,'s');
     if isempty(figure_choice)
         figure_choice = 'Y';
     end
+
+    test_figure_choice_Y = strcmp(figure_choice,'Y');
+    test_figure_choice_N = strcmp(figure_choice,'N');
+
+    if test_figure_choice_Y ~= 1 && test_figure_choice_N ~= 1
+        figure_choice = 'Y';
+    end
+
     clc;
     clear prompt
 end
 
 disp ("Would you like to obtain automatic .mat files of the segmentation results?");
 prompt = "Response Y/N [Y]: ";
-save_choice = input(prompt,"s");
+save_choice = input(prompt,'s');
 if isempty(save_choice)
+    save_choice = 'Y';
+end
+
+test_save_choice_Y = strcmp(save_choice,'Y');
+test_save_choice_N = strcmp(save_choice,'N');
+
+if test_save_choice_Y ~= 1 && test_save_choice_N ~= 1
     save_choice = 'Y';
 end
 
@@ -79,6 +109,66 @@ disp ("Wait just a few moments while we segment your FFF signal...");
 
 %% Pré-processamentos
 
+
+% generate_standard_fig(eixox, eixoy, tipo, nova_ou_sobrepor,...
+%     legenda, titulo, label_eixox, label_eixoy, x_ticks, y_ticks, ...
+%     limite_x1, limite_x2, limite_y1, limite_y2,...
+%     tipo_legenda, tipo_fonte, tamanho_fonte)
+
+% % DEBUG - POI-1 - Why adjust the X and Y signals?
+% 
+% figure;
+% subplot(2,5,1:3);
+% generate_standard_fig(obtain_time_vec(Dir_X,Fs), Dir_X, 1, 2,...
+%     'Raw direction X signal', 'DEBUG - POI-1', 'Time (s)',...
+%     'Amplitude (V)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     4, 'Times New Roman', 16);
+% 
+% subplot(2,5,4);
+% generate_standard_fig(obtain_time_vec(Dir_X,Fs), Dir_X, 1, 2,...
+%     0 , 0 , 0,...
+%     0, 0, 0, ...
+%     50, 55, -0.5, 0.5,...
+%     2, 'Times New Roman', 16);
+% legend('off');
+% 
+% subplot(2,5,5);
+% generate_standard_fig(obtain_time_vec(Dir_X,Fs), Dir_X, 1, 2,...
+%     0 , 0 , 0,...
+%     0, 0, 0, ...
+%     50, 55, 4.5, 5.5,...
+%     2, 'Times New Roman', 16);
+% legend('off');
+% 
+% subplot(2,5,6:8);
+% generate_standard_fig(obtain_time_vec(Dir_Y,Fs), Dir_Y, 1, 2,...
+%     'Raw direction Y signal', 0, 'Time (s)',...
+%     'Amplitude (V)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     4, 'Times New Roman', 16);
+% 
+% subplot(2,5,9);
+% generate_standard_fig(obtain_time_vec(Dir_Y,Fs), Dir_Y, 1, 2,...
+%     0 , 0 , 0,...
+%     0, 0, 0, ...
+%     50, 55, -0.5, 0.5,...
+%     2, 'Times New Roman', 16);
+% legend('off');
+% 
+% subplot(2,5,10);
+% generate_standard_fig(obtain_time_vec(Dir_Y,Fs), Dir_Y, 1, 2,...
+%     0 , 0 , 0,...
+%     0, 0, 0, ...
+%     50, 55, 4.5, 5.5,...
+%     2, 'Times New Roman', 16);
+% legend('off');
+% 
+%     DEBUG_ID = 'POI-1.png';
+%     salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% 
+% % \ DEBUG - POI-1
+
 Dir_X_ajustado = zeros(size(Dir_X));
 Dir_Y_ajustado = zeros(size(Dir_Y));
 
@@ -100,6 +190,60 @@ for i = 1:length(Dir_Y)
 end
 % \ 1°
 
+% % DEBUG - POI-2 - X and Y adjusted signals
+% 
+% figure;
+% subplot(2,5,1:3);
+% generate_standard_fig(obtain_time_vec(Dir_X_ajustado,Fs), Dir_X_ajustado, 1, 2,...
+%     'Adjusted direction X signal', 'DEBUG - POI-2', 'Time (s)',...
+%     'Amplitude (V)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     4, 'Times New Roman', 16);
+% 
+% subplot(2,5,4);
+% generate_standard_fig(obtain_time_vec(Dir_X_ajustado,Fs), Dir_X_ajustado, 1, 2,...
+%     0 , 0 , 0,...
+%     0, 0, 0, ...
+%     50, 55, -0.5, 0.5,...
+%     2, 'Times New Roman', 16);
+% legend('off');
+% 
+% subplot(2,5,5);
+% generate_standard_fig(obtain_time_vec(Dir_X_ajustado,Fs), Dir_X_ajustado, 1, 2,...
+%     0 , 0 , 0,...
+%     0, 0, 0, ...
+%     50, 55, 4.5, 5.5,...
+%     2, 'Times New Roman', 16);
+% legend('off');
+% 
+% subplot(2,5,6:8);
+% generate_standard_fig(obtain_time_vec(Dir_Y_ajustado,Fs), Dir_Y_ajustado, 1, 2,...
+%     'Adjusted direction Y signal', 0, 'Time (s)',...
+%     'Amplitude (V)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     4, 'Times New Roman', 16);
+% 
+% subplot(2,5,9);
+% generate_standard_fig(obtain_time_vec(Dir_Y_ajustado,Fs), Dir_Y_ajustado, 1, 2,...
+%     0 , 0 , 0,...
+%     0, 0, 0, ...
+%     50, 55, -0.5, 0.5,...
+%     2, 'Times New Roman', 16);
+% legend('off');
+% 
+% subplot(2,5,10);
+% generate_standard_fig(obtain_time_vec(Dir_Y_ajustado,Fs), Dir_Y_ajustado, 1, 2,...
+%     0 , 0 , 0,...
+%     0, 0, 0, ...
+%     50, 55, 4.5, 5.5,...
+%     2, 'Times New Roman', 16);
+% legend('off');
+% 
+%     DEBUG_ID = 'POI-2.png';
+%     salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% 
+% % \ DEBUG - POI-2
+
 % 2° Normalize the acoustic signal, and the X and Y step motor control
 % signals between -1 and 1 (acoustic signal) and 0 & 1 (step motor signals)
 
@@ -107,6 +251,60 @@ sensor_signal_normalizado = Normaliz3r(sensor_signal);
 Dir_Y_ajustado_normalizado = Normaliz3r(Dir_Y_ajustado);
 Dir_X_ajustado_normalizado = Normaliz3r(Dir_X_ajustado);
 % \ 2°
+
+% % DEBUG - POI-3 - X and Y Normalized signals
+% 
+% figure;
+% subplot(2,5,1:3);
+% generate_standard_fig(obtain_time_vec(Dir_X_ajustado_normalizado,Fs), Dir_X_ajustado_normalizado, 1, 2,...
+%     'Normalized direction X signal', 'DEBUG - POI-3', 'Time (s)',...
+%     'Amplitude (V)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     4, 'Times New Roman', 16);
+% 
+% subplot(2,5,4);
+% generate_standard_fig(obtain_time_vec(Dir_X_ajustado_normalizado,Fs), Dir_X_ajustado_normalizado, 1, 2,...
+%     0 , 0 , 0,...
+%     0, 0, 0, ...
+%     50, 55, -0.5, 0.5,...
+%     2, 'Times New Roman', 16);
+% legend('off');
+% 
+% subplot(2,5,5);
+% generate_standard_fig(obtain_time_vec(Dir_X_ajustado_normalizado,Fs), Dir_X_ajustado_normalizado, 1, 2,...
+%     0 , 0 , 0,...
+%     0, 0, 0, ...
+%     50, 55, -0.5, 0.5,...
+%     2, 'Times New Roman', 16);
+% legend('off');
+% 
+% subplot(2,5,6:8);
+% generate_standard_fig(obtain_time_vec(Dir_Y_ajustado_normalizado,Fs), Dir_Y_ajustado_normalizado, 1, 2,...
+%     'Normalized direction Y signal', 0, 'Time (s)',...
+%     'Amplitude (V)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     4, 'Times New Roman', 16);
+% 
+% subplot(2,5,9);
+% generate_standard_fig(obtain_time_vec(Dir_Y_ajustado_normalizado,Fs), Dir_Y_ajustado_normalizado, 1, 2,...
+%     0 , 0 , 0,...
+%     0, 0, 0, ...
+%     50, 55, -0.5, 0.5,...
+%     2, 'Times New Roman', 16);
+% legend('off');
+% 
+% subplot(2,5,10);
+% generate_standard_fig(obtain_time_vec(Dir_Y_ajustado_normalizado,Fs), Dir_Y_ajustado_normalizado, 1, 2,...
+%     0 , 0 , 0,...
+%     0, 0, 0, ...
+%     50, 55, -0.5, 0.5,...
+%     2, 'Times New Roman', 16);
+% legend('off');
+% 
+%     DEBUG_ID = 'POI-3.png';
+%     salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% 
+% % \ DEBUG - POI-3
 
 %% Segmentação do padrão externo
 
@@ -332,8 +530,8 @@ contour_to_raster_reposition(1,1) = contour_to_raster_reposition(1,2) -...
 index_contour_alt = index_contour;
 
 for i = 1:1:12
-index_contour_alt(i,2) = index_contour(i,2);
-index_contour_alt(i,3) = index_contour(i,3)-5;
+    index_contour_alt(i,2) = index_contour(i,2);
+    index_contour_alt(i,3) = index_contour(i,3)-5;
 end
 
 signal_reposition = Compos3r(sensor_signal_normalizado,contour_to_raster_reposition(:,2:3),1)+...
@@ -357,7 +555,7 @@ if test_segment_choice == true
     result_reposition = gen_signal_segments(sensor_signal_normalizado,...
         contour_repositions);
     result_reposition(1,4) = gen_signal_segments(sensor_signal_normalizado,...
-        contour_to_raster_reposition);    
+        contour_to_raster_reposition);
     result_contour = gen_signal_segments(sensor_signal_normalizado, index_contour);
     result_raster = gen_signal_segments(sensor_signal_normalizado, index_raster);
     result_transition_raster = gen_signal_segments(sensor_signal_normalizado, index_trans_raster);
@@ -649,11 +847,26 @@ function gen_graph(signal_reposition, sensor_signal, Fs,...
 
 sensor_signal = Normaliz3r(sensor_signal);
 
+% Segment signals for the zoom window
 
-%Obtain the last point of the external pattern index in the time domain
-a = index_raster(1,3)/Fs;
-xlim_min = a - 2.0;
-xlim_max = a + 1.5;
+sensor_signal_segmented =...
+    sensor_signal(index_raster(1,3)-(2.0*Fs):index_raster(1,3)+(1.5*Fs));
+
+signal_contour_segmented =...
+    signal_contour(index_raster(1,3)-(2.0*Fs):index_raster(1,3)+(1.5*Fs));
+
+signal_reposition_segmented =...
+    signal_reposition(index_raster(1,3)-(2.0*Fs):index_raster(1,3)+(1.5*Fs));
+
+signal_raster_segmented =...
+    signal_raster(index_raster(1,3)-(2.0*Fs):index_raster(1,3)+(1.5*Fs));
+
+signal_trans_raster_segmented =...
+    signal_trans_raster(index_raster(1,3)-(2.0*Fs):index_raster(1,3)+(1.5*Fs));
+
+t_segmented = obtain_time_vec(sensor_signal_segmented,200e3);
+
+%
 
 t = obtain_time_vec(sensor_signal,Fs);
 
@@ -661,6 +874,14 @@ sensor_signal = decimate(sensor_signal,10);
 signal_reposition = decimate(signal_reposition,10);
 
 t_decimated = obtain_time_vec(sensor_signal,Fs/10);
+
+%Obtain the last point of the external pattern index in the time domain
+a = index_raster(1,3)/Fs;
+xlim_min = a - 2.0;
+xlim_max = a + 1.5;
+
+ticks = round(xlim_min:1:xlim_max,1);
+ticks = num2str(ticks');
 
 figure;
 subplot (2,3,1:2);
@@ -677,30 +898,33 @@ generate_standard_fig(t_decimated, signal_reposition, 1, 2,...
     0, 0, -1.1, 1.1,...
     2, 'Times New Roman', 16);
 generate_standard_fig(t, signal_raster, 1, 2,...
-    'Raster lines', 0, 0, 0, 0, 0, ...
+    'Raster lines', 0, 'Time (s)', 'Normalized amplitude', 0, 0, ...
     0, 100, -1.1, 1.1,...
     4, 'Times New Roman', 16);
 
 
 % zoom
 subplot (2,3,3);
-generate_standard_fig(t_decimated, sensor_signal, 1, 2,...
+generate_standard_fig(t_segmented, sensor_signal_segmented, 1, 2,...
     0, 0, 0, 0, 0, 0, ...
     0, 0, -1.1, 1.1,...
     2, 'Times New Roman', 16);
-generate_standard_fig(t, signal_contour, 1, 2,...
+generate_standard_fig(t_segmented, signal_contour_segmented, 1, 2,...
     0, 0, 0, 0, 0, 0, ...
     0, 0, -1.1, 1.1,...
     2, 'Times New Roman', 16);
-generate_standard_fig(t_decimated, signal_reposition, 1, 2,...
+generate_standard_fig(t_segmented, signal_reposition_segmented, 1, 2,...
     0, 0, 0, 0, 0, 0, ...
     0, 0, -1.1, 1.1,...
     2, 'Times New Roman', 16);
-generate_standard_fig(t, signal_raster, 1, 2,...
-    0, 0, 0, 0, 0, 0, ...
-    xlim_min, xlim_max, 0, 1.1,...
+generate_standard_fig(t_segmented, signal_raster_segmented, 1, 2,...
+    0, 0, 0, 0, 0:1:3.5, 0, ...
+    0, length(signal_raster_segmented)/Fs, 0, 1.1,...
     5, 'Times New Roman', 16);
 legend('off');
+grid minor;
+
+xticklabels (ticks);
 
 subplot (2,3,4:5);
 generate_standard_fig(t_decimated, sensor_signal, 1, 2,...
@@ -716,29 +940,33 @@ generate_standard_fig(t_decimated, signal_reposition, 1, 2,...
     0, 0, -1.1, 1.1,...
     2, 'Times New Roman', 16);
 generate_standard_fig(t, signal_trans_raster, 1, 2,...
-    'Transition between raster lines', 0, 'Time (s)', 'Normalized amplitude', 0, 0, ...
+    'Transition between raster lines',...
+    0, 'Time (s)', 'Normalized amplitude', 0, 0, ...
     0, 100, -1.1, 1.1,...
     4, 'Times New Roman', 16);
 
 %zoom
 subplot (2,3,6);
-generate_standard_fig(t_decimated, sensor_signal, 1, 2,...
+generate_standard_fig(t_segmented, sensor_signal_segmented, 1, 2,...
     0, 0, 0, 0, 0, 0, ...
     0, 0, -1.1, 1.1,...
     2, 'Times New Roman', 16);
-generate_standard_fig(t, signal_contour, 1, 2,...
+generate_standard_fig(t_segmented, signal_contour_segmented, 1, 2,...
     0, 0, 0, 0, 0, 0, ...
     0, 0, -1.1, 1.1,...
     2, 'Times New Roman', 16);
-generate_standard_fig(t_decimated, signal_reposition, 1, 2,...
+generate_standard_fig(t_segmented, signal_reposition_segmented, 1, 2,...
     0, 0, 0, 0, 0, 0, ...
     0, 0, -1.1, 1.1,...
     2, 'Times New Roman', 16);
-generate_standard_fig(t, signal_trans_raster, 1, 2,...
-    0, 0, 'Time (s)', 'Normalized amplitude', 0, 0, ...
-    xlim_min, xlim_max, 0, 1.1,...
+generate_standard_fig(t_segmented, signal_trans_raster_segmented, 1, 2,...
+    0, 0, 0, 0, 0:1:3.5, 0, ...
+    0, length(signal_trans_raster_segmented)/Fs, 0, 1.1,...
     5, 'Times New Roman', 16);
-    legend('off');
+legend('off');
+grid minor;
+
+xticklabels (ticks);
 
 if figure_choice == 'Y'
     signal_identifier2 = ['Segmentation results ',signal_identifier, '.png'];
@@ -749,7 +977,7 @@ end
 
 % OP2
 function save_files(result_reposition, result_contour, result_raster,...
-        result_transition_raster, segmentation_choice, signal_identifier)
+    result_transition_raster, segmentation_choice, signal_identifier)
 
 save ([segmentation_choice,' segmentation results ',signal_identifier],...
     'result_reposition', 'result_contour',...
@@ -1021,23 +1249,23 @@ function sinal_composto = Compos3r(sinal_base, matriz_posicoes, modo)
 aux = zeros(length(sinal_base),1);
 
 if matriz_posicoes(1,1) > matriz_posicoes(1,2)
-low_column = 2;
-high_column = 1;
+    low_column = 2;
+    high_column = 1;
 else
-low_column = 1;
-high_column = 2;
+    low_column = 1;
+    high_column = 2;
 end
 
 min_situation = [1,2];
 
 if modo == 1 % cria um vetor binário indicando com 1 onde há confluência
     % de posições entre a matriz de posições e o sinal base
-    
+
     for i = 1:length(matriz_posicoes)
         aux(matriz_posicoes(i,low_column):matriz_posicoes(i,high_column)) = 1;
-    if size(matriz_posicoes) == min_situation
-    break;
-    end
+        if size(matriz_posicoes) == min_situation
+            break;
+        end
     end
 
     sinal_composto = aux;
@@ -1098,11 +1326,11 @@ function signal_segments = gen_signal_segments(raw_signal, index_matrix)
 num_interactions = size (index_matrix,1);
 
 if index_matrix(1,2) > index_matrix(1,3)
-low_column = 3;
-high_column = 2;
+    low_column = 3;
+    high_column = 2;
 else
-low_column = 2;
-high_column = 3;
+    low_column = 2;
+    high_column = 3;
 end
 
 for var_num_interactions = 1:num_interactions
