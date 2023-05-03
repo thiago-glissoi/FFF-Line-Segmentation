@@ -5,7 +5,7 @@
 % de um sinal obtido de fabricação monocamada pelo processo de fabricação
 % por filamento fundido (FFF).
 %
-% % Versão 2.2
+% % Versão 2.3
 % Autoria: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
 % Última edição: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
 
@@ -306,7 +306,42 @@ Dir_X_ajustado_normalizado = Normaliz3r(Dir_X_ajustado);
 % 
 % % \ DEBUG - POI-3
 
+clear Dir_X_ajustado Dir_X Dir_Y_ajustado Dir_Y sensor_signal
+
 %% Segmentação do padrão externo
+
+
+
+% % DEBUG - POI-4 - why verify the minimum variation number?
+% 
+% figure;
+% subplot(2,2,1:2);
+% generate_standard_fig(obtain_time_vec(Dir_X_ajustado_normalizado,Fs), Dir_X_ajustado_normalizado, 1, 2,...
+%     'Normalized direction X signal', 'DEBUG - POI-4', 'Time (s)',...
+%     'Amplitude (V)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     4, 'Times New Roman', 16);
+% 
+% subplot(2,2,3);
+% generate_standard_fig(obtain_time_vec(Dir_X_ajustado_normalizado,Fs), Dir_X_ajustado_normalizado, 1, 2,...
+%     0 , 0 , 'Time (s)',...
+%     'Amplitude (V)', 0, 0,...
+%     50.115, 50.155, 0, 0,...
+%     2, 'Times New Roman', 16);
+% legend('off');
+% 
+% subplot(2,2,4);
+% generate_standard_fig(obtain_time_vec(Dir_X_ajustado_normalizado,Fs), Dir_X_ajustado_normalizado, 1, 2,...
+%     0 , 0 , 'Time (s)',...
+%     0, 0, 0,...
+%     50.133, 50.135, 0, 0,...
+%     2, 'Times New Roman', 16);
+% legend('off');
+% 
+%     DEBUG_ID = 'POI-4.png';
+%     salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% 
+% % \ DEBUG - POI-4
 
 %Testa se deu o problema de muitas variações incorretas
 result_problem = test_Minvariations(sensor_signal_normalizado, Dir_X_ajustado_normalizado,...
@@ -316,6 +351,18 @@ result_problem = test_Minvariations(sensor_signal_normalizado, Dir_X_ajustado_no
 Duration = obtainDuration(sensor_signal_normalizado, Dir_X_ajustado_normalizado,...
     Dir_Y_ajustado_normalizado, result_problem);
 
+% % DEBUG - POI-6 - Duration for the external analysis
+% 
+% generate_standard_fig(1:length(Duration(:,1)), Duration(:,1), 1, 1,...
+%     'Duration', 'DEBUG - POI-6', 'Segment',...
+%     'Duration (number of samples)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     2, 'Times New Roman', 16);
+% 
+% DEBUG_ID = 'POI-6.png';
+% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% 
+% % \ DEBUG - POI-6
 
 % Para permitir encontrar o ponto de separacao entre padrão externo e
 % padrão interno, vou percorrer todo o vetor da Duration até encontrar um
@@ -414,9 +461,24 @@ clear position_Initial position_Final soma ultima_mudanca valor_x valor_y
 %falso ao result_problem
 result_problem = false;
 
+
+
 %Obtem vetor de duração
 Duration = obtainDuration(sensor_signal_normalizado, Dir_X_ajustado_normalizado,...
     Dir_Y_ajustado_normalizado, result_problem);
+
+% % DEBUG - POI-7 - First duration for the internal analysis
+% 
+% generate_standard_fig(1:length(Duration(:,1)), Duration(:,1), 1, 1,...
+%     'Duration', 'DEBUG - POI-7', 'Segment',...
+%     'Duration (number of samples)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     2, 'Times New Roman', 16);
+% 
+% DEBUG_ID = 'POI-7.png';
+% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% 
+% % \ DEBUG - POI-7
 
 cont_val_8000 = 1;
 Duration_2 = zeros(3);
@@ -428,6 +490,19 @@ for i = 1:length(Duration(:,1))
         cont_val_8000 = cont_val_8000 + 1;
     end
 end
+
+% % DEBUG - POI-8 - Second duration for the internal analysis
+% 
+% generate_standard_fig(1:length(Duration_2(:,1)), Duration_2(:,1), 1, 1,...
+%     'Duration', 'DEBUG - POI-8', 'Segment',...
+%     'Duration (number of samples)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     2, 'Times New Roman', 16);
+% 
+% DEBUG_ID = 'POI-8.png';
+% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% 
+% % \ DEBUG - POI-8
 
 indice_valores_abaixo_9000 = find(Duration_2(:,1) < 9000);
 
@@ -472,8 +547,35 @@ for i = 1:length (indice_valores_abaixo_9000)
         clear Duration_obtida
     end
 end
+
+% % DEBUG - POI-9 - Third duration for the internal analysis
+% 
+% generate_standard_fig(1:length(Duration_3(:,1)), Duration_3(:,1), 1, 1,...
+%     'Duration', 'DEBUG - POI-9', 'Segment',...
+%     'Duration (number of samples)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     2, 'Times New Roman', 16);
+% 
+% DEBUG_ID = 'POI-9.png';
+% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% 
+% % \ DEBUG - POI-9
+
 aux1 = find (Duration_3(:,1) == picoAnterior2);
 Duration_3_v2 = Duration_3(1:end-(end-aux1)+1,:);
+
+% % DEBUG - POI-10 - Fourth duration for the internal analysis
+% 
+% generate_standard_fig(1:length(Duration_3_v2(:,1)), Duration_3_v2(:,1), 1, 1,...
+%     'Duration', 'DEBUG - POI-10', 'Segment',...
+%     'Duration (number of samples)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     2, 'Times New Roman', 16);
+% 
+% DEBUG_ID = 'POI-10.png';
+% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% 
+% % \ DEBUG - POI-10
 
 % Raster area mirroring
 
@@ -495,6 +597,19 @@ for i = 1:length(Duration_3_v2(:,1))-2
     end
 end
 
+% % DEBUG - POI-11 - Fifith duration for the internal analysis
+% 
+% generate_standard_fig(1:length(Duration_4(:,1)), Duration_4(:,1), 1, 1,...
+%     'Duration', 'DEBUG - POI-11', 'Segment',...
+%     'Duration (number of samples)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     2, 'Times New Roman', 16);
+% 
+% DEBUG_ID = 'POI-11.png';
+% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% 
+% % \ DEBUG - POI-11
+
 Duration_4_v2(1,2) = Duration_4(1,3);
 Duration_4_v2(1,1) = Duration_4(2,1)-11e3;
 Duration_4_v2(1,3) = Duration_4_v2(1,2) - Duration_4_v2(1,1);
@@ -503,6 +618,19 @@ Duration_4_v2(2:length(Duration_4(:,1))+1,:) = Duration_4;
 Duration_4_v2(length(Duration_4(:,1))+2,3) = Duration_4_v2(length(Duration_4(:,1))+1,2);
 Duration_4_v2(length(Duration_4(:,1))+2,1) = Duration_4_v2(length(Duration_4(:,1)),1)-11e3;
 Duration_4_v2(length(Duration_4(:,1))+2,2) = Duration_4_v2(length(Duration_4(:,1))+2,1) + Duration_4_v2(length(Duration_4(:,1))+2,3);
+
+% % DEBUG - POI-12 - Eleventh duration for the internal analysis
+% 
+% generate_standard_fig(1:length(Duration_4_v2(:,1)), Duration_4_v2(:,1), 1, 1,...
+%     'Duration', 'DEBUG - POI-12', 'Segment',...
+%     'Duration (number of samples)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     2, 'Times New Roman', 16);
+% 
+% DEBUG_ID = 'POI-12.png';
+% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% 
+% % \ DEBUG - POI-12
 
 cont_interno = 1;
 cont_trans_interno = 1;
@@ -523,9 +651,6 @@ contour_to_raster_reposition(1,3) = index_contour(12,3);
 contour_to_raster_reposition(1,2) = Duration_4_v2(1,3);
 contour_to_raster_reposition(1,1) = contour_to_raster_reposition(1,2) -...
     contour_to_raster_reposition(1,3);
-
-% figure;
-% plot(Duration_4_v2(:,1));
 
 index_contour_alt = index_contour;
 
@@ -832,11 +957,27 @@ for i = 1:length(duration(:,1))
     end
 end
 
+% % DEBUG - POI-5 - why the min value of 50?
+% 
+% generate_standard_fig(1:length(duration(:,1)), duration(:,1), 1, 1,...
+%     'Duration', 'DEBUG - POI-5', 'Segment',...
+%     'Duration (number of samples)', 0, 0, ...
+%     0, 0, 0, 0,...
+%     2, 'Times New Roman', 16);
+% 
+% DEBUG_ID = 'POI-5.png';
+% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% 
+% % \ DEBUG - POI-5
+
 if cont_low_dur > 50
     result_problem = true;
 else
     result_problem = false;
 end
+
+
+
 
 end
 
@@ -1052,7 +1193,7 @@ if (tipo == 1)
     else
         p = plot(eixox, eixoy); %PLA
     end
-    p.LineWidth = 2;
+    p.LineWidth = 1;
 end
 
 if (tipo == 2)
