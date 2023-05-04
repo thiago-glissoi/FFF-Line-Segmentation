@@ -410,20 +410,30 @@ for i = 1:length(linhas_PE)-1
     cont = cont+1;
 end
 
-% resposition 1
+% reposition 1
 mean_contourgroup1 = round(mean([index_contour_temp(2,1) index_contour_temp(3,1)...
     index_contour_temp(4,1)]),0);
+
 correct_contour_line1(1,1) = mean_contourgroup1;
 correct_contour_line1(1,3) = index_contour_temp(1,3);
 correct_contour_line1(1,2) = index_contour_temp(1,3) - mean_contourgroup1;
 
+if index_contour_temp(1,1) - mean_contourgroup1 < 1
+repo_to_contour_line1(1,1) = abs(index_contour_temp(1,1) - mean_contourgroup1);
+repo_to_contour_line1(1,3) = correct_contour_line1(1,2);
+repo_to_contour_line1(1,2) = repo_to_contour_line1(1,3)...
+    - repo_to_contour_line1(1,1);
+else
 repo_to_contour_line1(1,1) = index_contour_temp(1,1) - mean_contourgroup1;
 repo_to_contour_line1(1,3) = correct_contour_line1(1,2);
 repo_to_contour_line1(1,2) = index_contour_temp(1,2);
+end
 
-% resposition 2
+
+% reposition 2
 mean_contourgroup2 = round(mean([index_contour_temp(6,1) index_contour_temp(7,1)...
     index_contour_temp(8,1)]),0);
+
 correct_contour_line5(1,1) = mean_contourgroup2;
 correct_contour_line5(1,3) = index_contour_temp(5,3);
 correct_contour_line5(1,2) = index_contour_temp(5,3) - mean_contourgroup2;
@@ -432,9 +442,10 @@ repo_to_contour_line5(1,1) = index_contour_temp(5,1) - mean_contourgroup2;
 repo_to_contour_line5(1,3) = correct_contour_line5(1,2);
 repo_to_contour_line5(1,2) = index_contour_temp(5,2);
 
-% resposition 3
+% reposition 3
 mean_contourgroup3 = round(mean([index_contour_temp(10,1) index_contour_temp(11,1)...
     index_contour_temp(12,1)]),0);
+
 correct_contour_line9(1,1) = mean_contourgroup3;
 correct_contour_line9(1,3) = index_contour_temp(9,3);
 correct_contour_line9(1,2) = index_contour_temp(9,3) - mean_contourgroup3;
@@ -748,7 +759,8 @@ cont = 1;
 
 for i = initialPoint:2:lastPoint
 
-    if lastPoint - i == 1 || lastPoint == i
+    if lastPoint - i == 1 || lastPoint == i 
+        if lastPoint - initialPoint > 3
         %transição correto
         % Período de transição (aprox 8000 amostras)
         DurationComposta(cont, 3) =  DurationComposta(cont-1, 2);
@@ -786,6 +798,7 @@ for i = initialPoint:2:lastPoint
             end
         end
         break;
+        end
     end
     if i == initialPoint % caso seja o primeiro, aproveita o valor de
         %transição correto
