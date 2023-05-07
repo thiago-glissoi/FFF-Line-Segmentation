@@ -306,11 +306,6 @@ Dir_X_ajustado_normalizado = Normaliz3r(Dir_X_ajustado);
 % 
 % % \ DEBUG - POI-3
 
-clear Dir_X_ajustado Dir_X Dir_Y_ajustado Dir_Y sensor_signal
-
-%% Segmentação do padrão externo
-
-
 
 % % DEBUG - POI-4 - why verify the minimum variation number?
 % 
@@ -343,13 +338,19 @@ clear Dir_X_ajustado Dir_X Dir_Y_ajustado Dir_Y sensor_signal
 % 
 % % \ DEBUG - POI-4
 
-%Testa se deu o problema de muitas variações incorretas
+% 3° Test for the occurence of the variation problem
 result_problem = test_Minvariations(sensor_signal_normalizado, Dir_X_ajustado_normalizado,...
     Dir_Y_ajustado_normalizado);
+% \ 3°
 
-%Obtem vetor de duração
+clear Dir_X_ajustado Dir_X Dir_Y_ajustado Dir_Y sensor_signal
+
+%% External pattern segmentation
+
+% 4° Obtain the duration vector
 Duration = obtainDuration(sensor_signal_normalizado, Dir_X_ajustado_normalizado,...
     Dir_Y_ajustado_normalizado, result_problem);
+% \ 4°
 
 % % DEBUG - POI-6 - Duration for the external analysis
 % 
@@ -373,6 +374,7 @@ Duration = obtainDuration(sensor_signal_normalizado, Dir_X_ajustado_normalizado,
 % está identificado o final do padrão externo. Caso negativo, volto a
 % verificar na duração por este padrão.
 
+% 5° Find the separation point
 referencia_tamanho = 150e3; % known duration for the last contour printing
 
 for i = 1:length(Duration(:,1))
@@ -386,13 +388,12 @@ for i = 1:length(Duration(:,1))
         clear result_sep
     end
 end
+% \ 5°
 
-% Separacao de linhas do padrão externo
+% 6° Contour lines obtaining
 a = find(Duration(:,3) == ponto_signal_contour_PI);
-
 signal_contour_vert = zeros(size(sensor_signal_normalizado));
 linhas_PE = zeros(1,13);
-
 
 for i = 1:13
     linhas_PE(1,i) = Duration(a-13+i,3);
@@ -401,7 +402,6 @@ for i = 1:13
     signal_contour_vert = signal_contour_unit'...
         + signal_contour_vert;
 end
-
 cont = 1;
 for i = 1:length(linhas_PE)-1
     index_contour_temp(cont,1) = linhas_PE(i+1) - linhas_PE(i);
@@ -409,6 +409,7 @@ for i = 1:length(linhas_PE)-1
     index_contour_temp(cont,3) = linhas_PE(i+1);
     cont = cont+1;
 end
+% \ 6°
 
 % reposition 1
 mean_contourgroup1 = round(mean([index_contour_temp(2,1) index_contour_temp(3,1)...
