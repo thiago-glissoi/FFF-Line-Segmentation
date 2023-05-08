@@ -8,5 +8,8 @@
         "segementer",
         "Teste",
         "Wendt"
+    ],
+    "cSpell.enableFiletypes": [
+        "matlab"
     ]
 }

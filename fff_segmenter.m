@@ -391,18 +391,13 @@ end
 % \ 5°
 
 % 6° Contour lines obtaining
-a = find(Duration(:,3) == ponto_signal_contour_PI);
-signal_contour_vert = zeros(size(sensor_signal_normalizado));
+separation_index = find(Duration(:,3) == ponto_signal_contour_PI);
 linhas_PE = zeros(1,13);
+cont = 1;
 
 for i = 1:13
-    linhas_PE(1,i) = Duration(a-13+i,3);
-    signal_contour_unit = plota_linha(1, linhas_PE(1,i),...
-        sensor_signal_normalizado);
-    signal_contour_vert = signal_contour_unit'...
-        + signal_contour_vert;
+    linhas_PE(1,i) = Duration(separation_index-13+i,3);
 end
-cont = 1;
 for i = 1:length(linhas_PE)-1
     index_contour_temp(cont,1) = linhas_PE(i+1) - linhas_PE(i);
     index_contour_temp(cont,2) = linhas_PE(i);
@@ -410,6 +405,8 @@ for i = 1:length(linhas_PE)-1
     cont = cont+1;
 end
 % \ 6°
+
+% 7° Repositioning evaluation and contour lines correction
 
 % reposition 1
 mean_contourgroup1 = round(mean([index_contour_temp(2,1) index_contour_temp(3,1)...
@@ -429,7 +426,6 @@ repo_to_contour_line1(1,1) = index_contour_temp(1,1) - mean_contourgroup1;
 repo_to_contour_line1(1,3) = correct_contour_line1(1,2);
 repo_to_contour_line1(1,2) = index_contour_temp(1,2);
 end
-
 
 % reposition 2
 mean_contourgroup2 = round(mean([index_contour_temp(6,1) index_contour_temp(7,1)...
@@ -461,23 +457,24 @@ index_contour(5,:) = correct_contour_line5;
 index_contour(9,:) = correct_contour_line9;
 
 contour_repositions = [repo_to_contour_line1; repo_to_contour_line5; repo_to_contour_line9];
+% \ 7°
 
-clear Posicao_mudanca a bloco_1 cont Duration flag i j num_amostras_minimo
+clear Posicao_mudanca a bloco_1 cont Duration flag i j minimum_sampleValue Duration
 clear position_Initial position_Final soma ultima_mudanca valor_x valor_y
 
-%% Segmentação do padrão interno
+%% Internal pattern segmentation
 
-%Aqui não há necessidade de verificar se há o problema de muitas linhas de
-%transição juntas, dado que no padrão interno há segmentos muito pequenos
-%de linhas. Isto poderia causar alguns problemas, então é assinado o valor
-%falso ao result_problem
+% 8° Obtaining first duration matrix for the internal pattern
+% There is no need to check for the problem of too many consecutive transition lines here
+% since there are very small line segments in the internal pattern. On the cobtrary, 
+% this could cause some issues. So the result_problem value is set to false.
 result_problem = false;
 
-
-
-%Obtem vetor de duração
+% Obtaining duration matrix
 Duration = obtainDuration(sensor_signal_normalizado, Dir_X_ajustado_normalizado,...
     Dir_Y_ajustado_normalizado, result_problem);
+
+% \ 8°
 
 % % DEBUG - POI-7 - First duration for the internal analysis
 % 
@@ -492,20 +489,24 @@ Duration = obtainDuration(sensor_signal_normalizado, Dir_X_ajustado_normalizado,
 % 
 % % \ DEBUG - POI-7
 
-cont_val_8000 = 1;
-Duration_2 = zeros(3);
-filtroDuration = 8000;
+% 9° Obtaining second duration matrix for the internal pattern
 
+% Filtering the duration matrix to remove the small line segments
+cont_val_8000 = 1;
+Duration2 = zeros(3);
+alterationDuration = 8000;
 for i = 1:length(Duration(:,1))
-    if Duration(i,1) > filtroDuration
-        Duration_2(cont_val_8000,:) = Duration(i,:);
+    if Duration(i,1) > alterationDuration
+        Duration2(cont_val_8000,:) = Duration(i,:);
         cont_val_8000 = cont_val_8000 + 1;
     end
 end
 
+% \ 9°
+
 % % DEBUG - POI-8 - Second duration for the internal analysis
 % 
-% generate_standard_fig(1:length(Duration_2(:,1)), Duration_2(:,1), 1, 1,...
+% generate_standard_fig(1:length(Duration2(:,1)), Duration2(:,1), 1, 1,...
 %     'Duration', 'DEBUG - POI-8', 'Segment',...
 %     'Duration (number of samples)', 0, 0, ...
 %     0, 0, 0, 0,...
@@ -516,53 +517,54 @@ end
 % 
 % % \ DEBUG - POI-8
 
-indice_valores_abaixo_9000 = find(Duration_2(:,1) < 9000);
+% 10° Obtaining third duration matrix for the internal pattern
 
-Duration_3 = zeros(3);
-picoAnterior1 = 0;
-picoAnterior2 = 0;
-Duration_maior_raster = 310e3;
+lines_under_9000_samples = find(Duration2(:,1) < 9000);
+Duration3 = zeros(3);
+previousPeak = 0;
+previousPeak2 = 0;
+middle_rasterDuration = 310e3;
 
-for i = 1:length (indice_valores_abaixo_9000)
-    if i == length (indice_valores_abaixo_9000)
+for i = 1:length (lines_under_9000_samples)
+    if i == length (lines_under_9000_samples)
         break;
     end
-    index_ini = indice_valores_abaixo_9000(i);
-    index_fin = indice_valores_abaixo_9000(i+1);
+    index_ini = lines_under_9000_samples(i);
+    index_fin = lines_under_9000_samples(i+1);
     result = detectAnom(index_ini, index_fin);
-    picoAnterior2 = picoAnterior1;
-    picoAnterior1 = Duration_3(end-1,1);
-    if  picoAnterior1 < picoAnterior2
+    previousPeak2 = previousPeak;
+    previousPeak = Duration3(end-1,1);
+    if  previousPeak < previousPeak2 % Change of behaviour from increasing to decreasing
         break;
     end
-    if  picoAnterior1 > Duration_maior_raster
+    if  previousPeak > middle_rasterDuration % Is larger than the middle raster duration, 
+    % found the end of the increasing behaviour
         break;
     end
     if result == true % normal situation
-        Duration_obtida= isNormal(Duration_2, ...
+        tempDuration= isNormal(Duration2, ...
             index_ini, index_fin, ...
             1);
-        if Duration_3(1,1) == 0
-            Duration_3 = Duration_obtida;
-
+        if Duration3(1,1) == 0
+            Duration3 = tempDuration;
         else
-            Duration_3 = [Duration_3(1:end-1,:); Duration_obtida];
+            Duration3 = [Duration3(1:end-1,:); tempDuration];
         end
-        clear Duration_obtida
+        clear tempDuration
     else % abnormal situation
-        Duration_obtida = isAnormal(Duration_2, ...
+        tempDuration = isAnormal(Duration2, ...
             index_ini, index_fin, ...
-            picoAnterior1);
-
-        Duration_3 = [Duration_3(1:end-1,:); Duration_obtida];
-
-        clear Duration_obtida
+            previousPeak);
+        Duration3 = [Duration3(1:end-1,:); tempDuration];
+        clear tempDuration
     end
 end
 
+% \ 10°
+
 % % DEBUG - POI-9 - Third duration for the internal analysis
 % 
-% generate_standard_fig(1:length(Duration_3(:,1)), Duration_3(:,1), 1, 1,...
+% generate_standard_fig(1:length(Duration3(:,1)), Duration3(:,1), 1, 1,...
 %     'Duration', 'DEBUG - POI-9', 'Segment',...
 %     'Duration (number of samples)', 0, 0, ...
 %     0, 0, 0, 0,...
@@ -573,12 +575,14 @@ end
 % 
 % % \ DEBUG - POI-9
 
-aux1 = find (Duration_3(:,1) == picoAnterior2);
-Duration_3_v2 = Duration_3(1:end-(end-aux1)+1,:);
+% 11° Obtaining fourth duration matrix for the internal pattern
+aux1 = find (Duration3(:,1) == previousPeak2);
+Duration3_v2 = Duration3(1:end-(end-aux1)+1,:);
+% \ 11°
 
 % % DEBUG - POI-10 - Fourth duration for the internal analysis
 % 
-% generate_standard_fig(1:length(Duration_3_v2(:,1)), Duration_3_v2(:,1), 1, 1,...
+% generate_standard_fig(1:length(Duration3_v2(:,1)), Duration3_v2(:,1), 1, 1,...
 %     'Duration', 'DEBUG - POI-10', 'Segment',...
 %     'Duration (number of samples)', 0, 0, ...
 %     0, 0, 0, 0,...
@@ -589,29 +593,31 @@ Duration_3_v2 = Duration_3(1:end-(end-aux1)+1,:);
 % 
 % % \ DEBUG - POI-10
 
+% 12° Obtaining fifth duration matrix for the internal pattern
 % Raster area mirroring
 
-cont = length(Duration_3_v2(:,1));
-Duration_4 = Duration_3_v2;
+cont = length(Duration3_v2(:,1));
+Duration4 = Duration3_v2;
 
-for i = 1:length(Duration_3_v2(:,1))-2
+for i = 1:length(Duration3_v2(:,1))-2
     if i == 1
-        Duration_4(cont,1) = Duration_3_v2(length(Duration_3_v2(:,1))-i-1,1);
-        Duration_4(cont,3) = Duration_3_v2(length(Duration_3_v2(:,1))-i,2);
-        Duration_4(cont,2) = Duration_4(cont,3) + Duration_4(cont,1);
+        Duration4(cont,1) = Duration3_v2(length(Duration3_v2(:,1))-i-1,1);
+        Duration4(cont,3) = Duration3_v2(length(Duration3_v2(:,1))-i,2);
+        Duration4(cont,2) = Duration4(cont,3) + Duration4(cont,1);
         cont = cont + 1;
     end
     if i ~= 1
-        Duration_4(cont,1) = Duration_3_v2(length(Duration_3_v2(:,1))-i-1,1);
-        Duration_4(cont,3) = Duration_4(cont-1,2);
-        Duration_4(cont,2) = Duration_4(cont,3) + Duration_4(cont,1);
+        Duration4(cont,1) = Duration3_v2(length(Duration3_v2(:,1))-i-1,1);
+        Duration4(cont,3) = Duration4(cont-1,2);
+        Duration4(cont,2) = Duration4(cont,3) + Duration4(cont,1);
         cont = cont + 1;
     end
 end
+% \ 12°
 
 % % DEBUG - POI-11 - Fifith duration for the internal analysis
 % 
-% generate_standard_fig(1:length(Duration_4(:,1)), Duration_4(:,1), 1, 1,...
+% generate_standard_fig(1:length(Duration4(:,1)), Duration4(:,1), 1, 1,...
 %     'Duration', 'DEBUG - POI-11', 'Segment',...
 %     'Duration (number of samples)', 0, 0, ...
 %     0, 0, 0, 0,...
@@ -622,18 +628,22 @@ end
 % 
 % % \ DEBUG - POI-11
 
-Duration_4_v2(1,2) = Duration_4(1,3);
-Duration_4_v2(1,1) = Duration_4(2,1)-11e3;
-Duration_4_v2(1,3) = Duration_4_v2(1,2) - Duration_4_v2(1,1);
-Duration_4_v2(2:length(Duration_4(:,1))+1,:) = Duration_4;
+% 13° Obtaining sixth duration matrix for the internal pattern
+% Obtain the first raster line and add to the beggining of the duraction matrix
+Duration4_v2(1,2) = Duration4(1,3);
+Duration4_v2(1,1) = Duration4(2,1)-11e3;
+Duration4_v2(1,3) = Duration4_v2(1,2) - Duration4_v2(1,1);
+Duration4_v2(2:length(Duration4(:,1))+1,:) = Duration4;
 
-Duration_4_v2(length(Duration_4(:,1))+2,3) = Duration_4_v2(length(Duration_4(:,1))+1,2);
-Duration_4_v2(length(Duration_4(:,1))+2,1) = Duration_4_v2(length(Duration_4(:,1)),1)-11e3;
-Duration_4_v2(length(Duration_4(:,1))+2,2) = Duration_4_v2(length(Duration_4(:,1))+2,1) + Duration_4_v2(length(Duration_4(:,1))+2,3);
+% Obtain the last raster line and add to the end of the duraction matrix
+Duration4_v2(length(Duration4(:,1))+2,3) = Duration4_v2(length(Duration4(:,1))+1,2);
+Duration4_v2(length(Duration4(:,1))+2,1) = Duration4_v2(length(Duration4(:,1)),1)-11e3;
+Duration4_v2(length(Duration4(:,1))+2,2) = Duration4_v2(length(Duration4(:,1))+2,1) + Duration4_v2(length(Duration4(:,1))+2,3);
+% \ 13°
 
 % % DEBUG - POI-12 - Eleventh duration for the internal analysis
 % 
-% generate_standard_fig(1:length(Duration_4_v2(:,1)), Duration_4_v2(:,1), 1, 1,...
+% generate_standard_fig(1:length(Duration4_v2(:,1)), Duration4_v2(:,1), 1, 1,...
 %     'Duration', 'DEBUG - POI-12', 'Segment',...
 %     'Duration (number of samples)', 0, 0, ...
 %     0, 0, 0, 0,...
@@ -644,23 +654,22 @@ Duration_4_v2(length(Duration_4(:,1))+2,2) = Duration_4_v2(length(Duration_4(:,1
 % 
 % % \ DEBUG - POI-12
 
-cont_interno = 1;
-cont_trans_interno = 1;
+% 14° Obtaining seventh duration matrix for the internal pattern
+cont_internal = 1;
+cont_trans_internal = 1;
 
-for j = 1:length(Duration_4_v2(:,1))
-    if Duration_4_v2(j,1) < 8000 || Duration_4_v2(j,1) > 9000
-        index_raster(cont_interno,:) = Duration_4_v2(j,:);
-        cont_interno = cont_interno + 1;
-
+for j = 1:length(Duration4_v2(:,1))
+    if Duration4_v2(j,1) < 8000 || Duration4_v2(j,1) > 9000
+        index_raster(cont_internal,:) = Duration4_v2(j,:);
+        cont_internal = cont_internal + 1;
     else
-        index_trans_raster(cont_trans_interno,:) = Duration_4_v2(j,:);
-        cont_trans_interno = cont_trans_interno + 1;
+        index_trans_raster(cont_trans_internal,:) = Duration4_v2(j,:);
+        cont_trans_internal = cont_trans_internal + 1;
     end
-
 end
 
 contour_to_raster_reposition(1,3) = index_contour(12,3);
-contour_to_raster_reposition(1,2) = Duration_4_v2(1,3);
+contour_to_raster_reposition(1,2) = Duration4_v2(1,3);
 contour_to_raster_reposition(1,1) = contour_to_raster_reposition(1,2) -...
     contour_to_raster_reposition(1,3);
 
@@ -671,11 +680,15 @@ for i = 1:1:12
     index_contour_alt(i,3) = index_contour(i,3)-5;
 end
 
-signal_reposition = Compos3r(sensor_signal_normalizado,contour_to_raster_reposition(:,2:3),1)+...
-    Compos3r(sensor_signal_normalizado,contour_repositions(:,2:3),1);
-signal_raster = Compos3r(sensor_signal_normalizado, index_raster(:,2:3), 1);
-signal_trans_raster = Compos3r(sensor_signal_normalizado, index_trans_raster(:,2:3), 1);
-signal_contour = Compos3r(sensor_signal_normalizado, index_contour_alt(:,2:3), 1);
+signal_reposition = Compos3r(sensor_signal_normalizado,contour_to_raster_reposition(:,2:3))+...
+    Compos3r(sensor_signal_normalizado,contour_repositions(:,2:3));
+signal_raster = Compos3r(sensor_signal_normalizado, index_raster(:,2:3));
+signal_trans_raster = Compos3r(sensor_signal_normalizado, index_trans_raster(:,2:3));
+signal_contour = Compos3r(sensor_signal_normalizado, index_contour_alt(:,2:3));
+
+% \ 14°
+
+% 15° Obtain the segmentation results
 
 test_segment_choice = strcmp(segmentation_choice,'points');
 
@@ -698,6 +711,10 @@ if test_segment_choice == true
     result_transition_raster = gen_signal_segments(sensor_signal_normalizado, index_trans_raster);
 end
 
+% \ 15°
+
+% 16° Save the results and generate the graphs
+
 if save_choice == 'Y'
     save_files(result_reposition, result_contour, result_raster,...
         result_transition_raster, segmentation_choice, signal_identifier);
@@ -709,139 +726,128 @@ if graphical_choice == 'Y'
         signal_trans_raster, index_raster, figure_choice);
 end
 
+% \ 16°
+
 end
 
 % SUB1
 function result = detectAnom(initialPoint, lastPoint)
 
 if lastPoint - initialPoint == 2
-    % Encontramos uma situação normal
+    % Normal situation
     result = true;
 
 else
-    % Encontramos uma situação anormal
+    % Abnormal situation
     result = false;
 
 end
 end
 
 % SUB2
-function DurationComposta = isNormal(DurationOriginal, ...
+function composedDuration = isNormal(originalDuration, ...
     initialPoint, lastPoint, ...
     indexDuration)
 
+% Transition period (aprox 8000 samples)
+composedDuration(indexDuration, 3) =  originalDuration(initialPoint,3);
+composedDuration(indexDuration, 2) =  originalDuration(initialPoint,2);
+composedDuration(indexDuration, 1) =  composedDuration(indexDuration, 2)...
+    - composedDuration(indexDuration, 3);
 
-% Período de transição (aprox 8000 amostras)
-DurationComposta(indexDuration, 3) =  DurationOriginal(initialPoint,3);
-DurationComposta(indexDuration, 2) =  DurationOriginal(initialPoint,2);
-DurationComposta(indexDuration, 1) =  DurationComposta(indexDuration, 2)...
-    - DurationComposta(indexDuration, 3);
+% Raster period (value above 9000 samples, and that increases
+% 11e3 in relation to the previous fabrication period
+composedDuration(indexDuration+1, 3) =  originalDuration(initialPoint+1,3);
+composedDuration(indexDuration+1, 2) =  originalDuration(initialPoint+1,2);
+composedDuration(indexDuration+1, 1) =  composedDuration(indexDuration+1, 2)...
+    - composedDuration(indexDuration+1, 3);
 
-% Período de fabricação (valor acima de 9000 amostras, e que cresça
-% 11e3 em relação ao período de fabricação anterior
-DurationComposta(indexDuration+1, 3) =  DurationOriginal(initialPoint+1,3);
-DurationComposta(indexDuration+1, 2) =  DurationOriginal(initialPoint+1,2);
-DurationComposta(indexDuration+1, 1) =  DurationComposta(indexDuration+1, 2)...
-    - DurationComposta(indexDuration+1, 3);
-
-% Período de transição
-DurationComposta(indexDuration+2, 3) =  DurationOriginal(lastPoint,3);
-DurationComposta(indexDuration+2, 2) =  DurationOriginal(lastPoint,2);
-DurationComposta(indexDuration+2, 1) =  DurationComposta(indexDuration+2, 2)...
-    - DurationComposta(indexDuration+2, 3);
+% Transition period (aprox 8000 samples)
+composedDuration(indexDuration+2, 3) =  originalDuration(lastPoint,3);
+composedDuration(indexDuration+2, 2) =  originalDuration(lastPoint,2);
+composedDuration(indexDuration+2, 1) =  composedDuration(indexDuration+2, 2)...
+    - composedDuration(indexDuration+2, 3);
 end
 
 % SUB3
-function DurationComposta = isAnormal(DurationOriginal, ...
+function composedDuration = isAnormal(originalDuration, ...
     initialPoint, lastPoint, ...
     picoAnterior)
 
 cont = 1;
-
 for i = initialPoint:2:lastPoint
-
     if lastPoint - i == 1 || lastPoint == i 
         if lastPoint - initialPoint > 3
-        %transição correto
-        % Período de transição (aprox 8000 amostras)
-        DurationComposta(cont, 3) =  DurationComposta(cont-1, 2);
-        DurationComposta(cont, 2) =  DurationOriginal(lastPoint, 2);
-        DurationComposta(cont, 1) =  DurationComposta(cont, 2)...
-            - DurationComposta(cont, 3);
-
-        if DurationComposta(cont, 1) < 0 %ultrapassou o ponto
-
-            aux = length(DurationComposta(:,1));
-            DurationComposta2(:,:) = DurationComposta(1:aux-2,:);
-            clear DurationComposta
-            DurationComposta =  DurationComposta2;
-            clear DurationComposta2
-            aux = length(DurationComposta(:,1));
+        % normal transition
+        % Transition period (aprox 8000 samples)
+        composedDuration(cont, 3) =  composedDuration(cont-1, 2);
+        composedDuration(cont, 2) =  originalDuration(lastPoint, 2);
+        composedDuration(cont, 1) =  composedDuration(cont, 2)...
+            - composedDuration(cont, 3);
+        if composedDuration(cont, 1) < 0 % overlap the treshold
+            aux = length(composedDuration(:,1));
+            composedDuration2(:,:) = composedDuration(1:aux-2,:);
+            clear composedDuration
+            composedDuration =  composedDuration2;
+            clear composedDuration2
+            aux = length(composedDuration(:,1));
             if aux == 1
                 break;
             end
             cont = cont-2;
-            DurationComposta(cont, 3) =  DurationComposta(cont-1, 2);
-            DurationComposta(cont, 2) =  DurationOriginal(lastPoint, 2);
-            DurationComposta(cont, 1) =  DurationComposta(cont, 2)...
-                - DurationComposta(cont, 3);
-            if DurationComposta(cont, 1) < 0 %ultrapassou o ponto
-                aux = length(DurationComposta(:,1));
-                DurationComposta2(:,:) = DurationComposta(1:aux-2,:);
-                clear DurationComposta
-                DurationComposta =  DurationComposta2;
-                clear DurationComposta2
+            composedDuration(cont, 3) =  composedDuration(cont-1, 2);
+            composedDuration(cont, 2) =  originalDuration(lastPoint, 2);
+            composedDuration(cont, 1) =  composedDuration(cont, 2)...
+                - composedDuration(cont, 3);
+            if composedDuration(cont, 1) < 0 % overlap the treshold
+                aux = length(composedDuration(:,1));
+                composedDuration2(:,:) = composedDuration(1:aux-2,:);
+                clear composedDuration
+                composedDuration =  composedDuration2;
+                clear composedDuration2
                 cont = cont-2;
-                DurationComposta(cont, 3) =  DurationComposta(cont-1, 2);
-                DurationComposta(cont, 2) =  DurationOriginal(lastPoint, 2);
-                DurationComposta(cont, 1) =  DurationComposta(cont, 2)...
-                    - DurationComposta(cont, 3);
+                composedDuration(cont, 3) =  composedDuration(cont-1, 2);
+                composedDuration(cont, 2) =  originalDuration(lastPoint, 2);
+                composedDuration(cont, 1) =  composedDuration(cont, 2)...
+                    - composedDuration(cont, 3);
             end
         end
         break;
         end
     end
-    if i == initialPoint % caso seja o primeiro, aproveita o valor de
-        %transição correto
-        % Período de transição (aprox 8000 amostras)
-        DurationComposta(cont, 3) =  DurationOriginal(i,3); %#ok<*AGROW>
-        DurationComposta(cont, 2) =  DurationOriginal(i,2);
-        DurationComposta(cont, 1) =  DurationComposta(cont, 2)...
-            - DurationComposta(cont, 3);
+    if i == initialPoint % If it is the first case
+        % Transition period (aprox 8000 samples)
+        composedDuration(cont, 3) =  originalDuration(i,3); %#ok<*AGROW>
+        composedDuration(cont, 2) =  originalDuration(i,2);
+        composedDuration(cont, 1) =  composedDuration(cont, 2)...
+            - composedDuration(cont, 3);
         cont = cont +1;
-
-    else %transicao_normal
-        DurationComposta(cont, 3) =  DurationComposta(cont-1, 2);
-        DurationComposta(cont, 2) =  DurationComposta(cont, 3) +...
+    else % Normal transition
+        composedDuration(cont, 3) =  composedDuration(cont-1, 2);
+        composedDuration(cont, 2) =  composedDuration(cont, 3) +...
             8.4e3;
-        DurationComposta(cont, 1) =  DurationComposta(cont, 2)...
-            - DurationComposta(cont, 3);
+        composedDuration(cont, 1) =  composedDuration(cont, 2)...
+            - composedDuration(cont, 3);
         cont = cont +1;
-
     end
 
-
-    % Período de fabricação (valor acima de 9000 amostras, e que cresça
-    % 11e3 em relação ao período de fabricação anterior
-    DurationComposta(cont, 3) =  DurationComposta(cont-1, 2);
-    DurationComposta(cont, 2) =  DurationComposta(cont, 3) +...
+    % Transition period (aprox 8000 samples), and that grows
+    % 11e3 in relation to the previous fabrication period
+    composedDuration(cont, 3) =  composedDuration(cont-1, 2);
+    composedDuration(cont, 2) =  composedDuration(cont, 3) +...
         picoAnterior + 11e3;
-    DurationComposta(cont, 1) =  DurationComposta(cont, 2)...
-        - DurationComposta(cont, 3);
-    picoAnterior = DurationComposta(cont, 1);
+    composedDuration(cont, 1) =  composedDuration(cont, 2)...
+        - composedDuration(cont, 3);
+    picoAnterior = composedDuration(cont, 1);
     cont = cont +1;
 
-
-    %transicao_normal
-    DurationComposta(cont, 3) =  DurationComposta(cont-1, 2);
-    DurationComposta(cont, 2) =  DurationComposta(cont, 3) +...
+    % Normal transition
+    composedDuration(cont, 3) =  composedDuration(cont-1, 2);
+    composedDuration(cont, 2) =  composedDuration(cont, 3) +...
         8.4e3;
-    DurationComposta(cont, 1) =  DurationComposta(cont, 2)...
-        - DurationComposta(cont, 3);
-
-
+    composedDuration(cont, 1) =  composedDuration(cont, 2)...
+        - composedDuration(cont, 3);
 end
-
 end
 
 % SUB4
@@ -852,22 +858,22 @@ valor_x = 0;
 valor_y = 0;
 ultima_mudanca = 0;
 if result_problem == true
-    num_amostras_minimo = 50e3;
+    minimum_sampleValue = 50e3;
 else
-    num_amostras_minimo = 0;
+    minimum_sampleValue = 0;
 end
 
 Posicao_mudanca = zeros(size(sensor_signal_normalizado))';
 
 for i = 1:length(sensor_signal_normalizado)
     if Dir_X_ajustado_normalizado(i) ~= valor_x &&...
-            i - ultima_mudanca >= num_amostras_minimo
+            i - ultima_mudanca >= minimum_sampleValue
         valor_x = Dir_X_ajustado_normalizado(i);
         Posicao_mudanca(i) = 1;
         ultima_mudanca = i;
     else
         if Dir_Y_ajustado_normalizado(i) ~= valor_y &&...
-                i - ultima_mudanca >= num_amostras_minimo
+                i - ultima_mudanca >= minimum_sampleValue
             valor_y = Dir_Y_ajustado_normalizado(i);
             Posicao_mudanca(i) = 1;
             ultima_mudanca = i;
@@ -913,19 +919,19 @@ function result_problem = test_Minvariations(sensor_signal_normalizado, Dir_X_aj
 valor_x = 0;
 valor_y = 0;
 ultima_mudanca = 0;
-num_amostras_minimo = 0;
+minimum_sampleValue = 0;
 
 Posicao_mudanca = zeros(size(sensor_signal_normalizado))';
 
 for i = 1:length(sensor_signal_normalizado)
     if Dir_X_ajustado_normalizado(i) ~= valor_x &&...
-            i - ultima_mudanca >= num_amostras_minimo
+            i - ultima_mudanca >= minimum_sampleValue
         valor_x = Dir_X_ajustado_normalizado(i);
         Posicao_mudanca(i) = 1;
         ultima_mudanca = i;
     else
         if Dir_Y_ajustado_normalizado(i) ~= valor_y &&...
-                i - ultima_mudanca >= num_amostras_minimo
+                i - ultima_mudanca >= minimum_sampleValue
             valor_y = Dir_Y_ajustado_normalizado(i);
             Posicao_mudanca(i) = 1;
             ultima_mudanca = i;
@@ -1372,34 +1378,12 @@ vetor_normalizado = vetor_original/aux1;
 end
 
 % AUX4
-function t = obtain_time_vec(sinal,Fs)
-t = 0:(1/Fs):(length(sinal)-1)/Fs;
-end
-
-% AUX5
-function sinal_final = plota_linha(tipo, valor_constante, sinal_referencia)
-
-if (tipo == 1) % Linha vertical
-    for i = 1:(valor_constante-1)
-        sinal_final(1,i) = 0;
-    end
-    sinal_final(1,valor_constante) = max(sinal_referencia);
-    for i = (valor_constante+1):length(sinal_referencia)
-        sinal_final(1,i) = 0;
-    end
-end
-
-if (tipo == 2) % Linha horizontal
-    for i = 1:length(sinal_referencia)
-        sinal_final(1,i) = valor_constante;
-    end
-end
-
-
+function t = obtain_time_vec(signal,Fs)
+t = 0:(1/Fs):(length(signal)-1)/Fs;
 end
 
 % AUX6
-function sinal_composto = Compos3r(sinal_base, matriz_posicoes, modo)
+function composedSignal = Compos3r(sinal_base, matriz_posicoes)
 
 aux = zeros(length(sinal_base),1);
 
@@ -1413,33 +1397,13 @@ end
 
 min_situation = [1,2];
 
-if modo == 1 % cria um vetor binário indicando com 1 onde há confluência
-    % de posições entre a matriz de posições e o sinal base
-
-    for i = 1:length(matriz_posicoes)
-        aux(matriz_posicoes(i,low_column):matriz_posicoes(i,high_column)) = 1;
-        if size(matriz_posicoes) == min_situation
-            break;
-        end
+for i = 1:length(matriz_posicoes)
+    aux(matriz_posicoes(i,low_column):matriz_posicoes(i,high_column)) = 1;
+    if size(matriz_posicoes) == min_situation %#ok<BDSCI>
+        break;
     end
-
-    sinal_composto = aux;
-
 end
-
-if modo == 2 % cria um vetor que apresenta valores do sinal original
-    % onde há confluência e posições entre a matriz de posições e o sinal
-    % base, para as outras posições indica 0
-
-    for i = 1:length(matriz_posicoes)
-        aux(matriz_posicoes(i,2):matriz_posicoes(i,1)) =...
-            sinal_base(matriz_posicoes(i,2):matriz_posicoes(i,1));
-    end
-
-    sinal_composto = aux;
-
-end
-
+    composedSignal = aux;
 end
 
 % AUX7
