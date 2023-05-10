@@ -15,7 +15,7 @@ function fff_segmenter (sensor_signal, Dir_X, Dir_Y, Fs)
 clc;
 disp ("Provide the signal identification");
 prompt = "Signal name: ";
-signal_identifier = input(prompt,"s");
+signal_identifier = input(prompt,'s');
 if isempty(signal_identifier)
     signal_identifier = 'segmentation results';
 end
