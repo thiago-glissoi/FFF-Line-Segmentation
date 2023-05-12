@@ -459,9 +459,6 @@ index_contour(9,:) = correct_contour_line9;
 contour_repositions = [repo_to_contour_line1; repo_to_contour_line5; repo_to_contour_line9];
 % \ 7°
 
-clear Posicao_mudanca a bloco_1 cont Duration flag i j minimum_sampleValue Duration
-clear position_Initial position_Final soma ultima_mudanca valor_x valor_y
-
 %% Internal pattern segmentation
 
 % 8° Obtaining first duration matrix for the internal pattern
@@ -502,6 +499,7 @@ for i = 1:length(Duration(:,1))
     end
 end
 
+clear Duration
 % \ 9°
 
 % % DEBUG - POI-8 - Second duration for the internal analysis
@@ -560,6 +558,7 @@ for i = 1:length (lines_under_9000_samples)
     end
 end
 
+clear Duration2
 % \ 10°
 
 % % DEBUG - POI-9 - Third duration for the internal analysis
@@ -580,6 +579,7 @@ aux1 = find (Duration3(:,1) == previousPeak2);
 Duration3_v2 = Duration3(1:end-(end-aux1)+1,:);
 % \ 11°
 
+clear Duration3
 % % DEBUG - POI-10 - Fourth duration for the internal analysis
 % 
 % generate_standard_fig(1:length(Duration3_v2(:,1)), Duration3_v2(:,1), 1, 1,...
@@ -615,6 +615,8 @@ for i = 1:length(Duration3_v2(:,1))-2
 end
 % \ 12°
 
+clear Duration3_v2
+
 % % DEBUG - POI-11 - Fifith duration for the internal analysis
 % 
 % generate_standard_fig(1:length(Duration4(:,1)), Duration4(:,1), 1, 1,...
@@ -641,6 +643,7 @@ Duration4_v2(length(Duration4(:,1))+2,1) = Duration4_v2(length(Duration4(:,1)),1
 Duration4_v2(length(Duration4(:,1))+2,2) = Duration4_v2(length(Duration4(:,1))+2,1) + Duration4_v2(length(Duration4(:,1))+2,3);
 % \ 13°
 
+clear Duration4
 % % DEBUG - POI-12 - Eleventh duration for the internal analysis
 % 
 % generate_standard_fig(1:length(Duration4_v2(:,1)), Duration4_v2(:,1), 1, 1,...
@@ -654,7 +657,7 @@ Duration4_v2(length(Duration4(:,1))+2,2) = Duration4_v2(length(Duration4(:,1))+2
 % 
 % % \ DEBUG - POI-12
 
-% 14° Obtaining seventh duration matrix for the internal pattern
+% 14° Obtaining the index values from the last duration matrix
 cont_internal = 1;
 cont_trans_internal = 1;
 
