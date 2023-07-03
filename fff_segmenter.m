@@ -1,13 +1,12 @@
-% % LEIA-ME
-% Esta função é utilizada para segmentar de forma automática as linhas de
-% fabricação de contorno, que compõem o padrão externo, as linhas de
-% fabricação raster, que compõem o padrão interno, e demais movimentações
-% de um sinal obtido de fabricação monocamada pelo processo de fabricação
-% por filamento fundido (FFF).
+% % READ ME
+% This function is used to automatically segment the manufacturing outline lines,
+% which make up the external pattern, the raster manufacturing lines,
+% which compose the internal pattern, and other movements of a signal obtained
+% from single-layer manufacturing by the Fused Filament Fabrication (FFF) process.
 %
-% % Versão 2.4
-% Autoria: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
-% Última edição: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
+% % Version 2.4
+% Authorship: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
+% Last edit: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
 
 % CORE
 function fff_segmenter (sensor_signal, Dir_X, Dir_Y, Fs)
@@ -107,13 +106,7 @@ disp ("Save data choice: ");
 disp (save_choice);
 disp ("Wait just a few moments while we segment your FFF signal...");
 
-%% Pré-processamentos
-
-
-% generate_standard_fig(eixox, eixoy, tipo, nova_ou_sobrepor,...
-%     legenda, titulo, label_eixox, label_eixoy, x_ticks, y_ticks, ...
-%     limite_x1, limite_x2, limite_y1, limite_y2,...
-%     tipo_legenda, tipo_fonte, tamanho_fonte)
+%% Pre-processing
 
 % % DEBUG - POI-1 - Why adjust the X and Y signals?
 % 
@@ -165,27 +158,27 @@ disp ("Wait just a few moments while we segment your FFF signal...");
 % legend('off');
 % 
 %     DEBUG_ID = 'POI-1.png';
-%     salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+%     saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
 % 
 % % \ DEBUG - POI-1
 
-Dir_X_ajustado = zeros(size(Dir_X));
-Dir_Y_ajustado = zeros(size(Dir_Y));
+Dir_X_adjusted = zeros(size(Dir_X));
+Dir_Y_adjusted = zeros(size(Dir_Y));
 
 % 1° Normalize the X and Y step motor control signals between 0V and 5V
 for i = 1:length(Dir_X)
     if Dir_X(i) > 2
-        Dir_X_ajustado(i) = 5;
+        Dir_X_adjusted(i) = 5;
     else
-        Dir_X_ajustado(i) = 0;
+        Dir_X_adjusted(i) = 0;
     end
 end
 
 for i = 1:length(Dir_Y)
     if Dir_Y(i) > 2
-        Dir_Y_ajustado(i) = 5;
+        Dir_Y_adjusted(i) = 5;
     else
-        Dir_Y_ajustado(i) = 0;
+        Dir_Y_adjusted(i) = 0;
     end
 end
 % \ 1°
@@ -194,14 +187,14 @@ end
 % 
 % figure;
 % subplot(2,5,1:3);
-% generate_standard_fig(obtain_time_vec(Dir_X_ajustado,Fs), Dir_X_ajustado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_X_adjusted,Fs), Dir_X_adjusted, 1, 2,...
 %     'Adjusted direction X signal', 'DEBUG - POI-2', 'Time (s)',...
 %     'Amplitude (V)', 0, 0, ...
 %     0, 0, 0, 0,...
 %     4, 'Times New Roman', 16);
 % 
 % subplot(2,5,4);
-% generate_standard_fig(obtain_time_vec(Dir_X_ajustado,Fs), Dir_X_ajustado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_X_adjusted,Fs), Dir_X_adjusted, 1, 2,...
 %     0 , 0 , 0,...
 %     0, 0, 0, ...
 %     50, 55, -0.5, 0.5,...
@@ -209,7 +202,7 @@ end
 % legend('off');
 % 
 % subplot(2,5,5);
-% generate_standard_fig(obtain_time_vec(Dir_X_ajustado,Fs), Dir_X_ajustado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_X_adjusted,Fs), Dir_X_adjusted, 1, 2,...
 %     0 , 0 , 0,...
 %     0, 0, 0, ...
 %     50, 55, 4.5, 5.5,...
@@ -217,14 +210,14 @@ end
 % legend('off');
 % 
 % subplot(2,5,6:8);
-% generate_standard_fig(obtain_time_vec(Dir_Y_ajustado,Fs), Dir_Y_ajustado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_Y_adjusted,Fs), Dir_Y_adjusted, 1, 2,...
 %     'Adjusted direction Y signal', 0, 'Time (s)',...
 %     'Amplitude (V)', 0, 0, ...
 %     0, 0, 0, 0,...
 %     4, 'Times New Roman', 16);
 % 
 % subplot(2,5,9);
-% generate_standard_fig(obtain_time_vec(Dir_Y_ajustado,Fs), Dir_Y_ajustado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_Y_adjusted,Fs), Dir_Y_adjusted, 1, 2,...
 %     0 , 0 , 0,...
 %     0, 0, 0, ...
 %     50, 55, -0.5, 0.5,...
@@ -232,7 +225,7 @@ end
 % legend('off');
 % 
 % subplot(2,5,10);
-% generate_standard_fig(obtain_time_vec(Dir_Y_ajustado,Fs), Dir_Y_ajustado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_Y_adjusted,Fs), Dir_Y_adjusted, 1, 2,...
 %     0 , 0 , 0,...
 %     0, 0, 0, ...
 %     50, 55, 4.5, 5.5,...
@@ -240,30 +233,30 @@ end
 % legend('off');
 % 
 %     DEBUG_ID = 'POI-2.png';
-%     salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+%     saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
 % 
 % % \ DEBUG - POI-2
 
 % 2° Normalize the acoustic signal, and the X and Y step motor control
 % signals between -1 and 1 (acoustic signal) and 0 & 1 (step motor signals)
 
-sensor_signal_normalizado = Normaliz3r(sensor_signal);
-Dir_Y_ajustado_normalizado = Normaliz3r(Dir_Y_ajustado);
-Dir_X_ajustado_normalizado = Normaliz3r(Dir_X_ajustado);
+sensor_signal_normalized = Normaliz3r(sensor_signal);
+Dir_Y_adjusted_normalized = Normaliz3r(Dir_Y_adjusted);
+Dir_X_adjusted_normalized = Normaliz3r(Dir_X_adjusted);
 % \ 2°
 
 % % DEBUG - POI-3 - X and Y Normalized signals
 % 
 % figure;
 % subplot(2,5,1:3);
-% generate_standard_fig(obtain_time_vec(Dir_X_ajustado_normalizado,Fs), Dir_X_ajustado_normalizado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_X_adjusted_normalized,Fs), Dir_X_adjusted_normalized, 1, 2,...
 %     'Normalized direction X signal', 'DEBUG - POI-3', 'Time (s)',...
 %     'Amplitude (V)', 0, 0, ...
 %     0, 0, 0, 0,...
 %     4, 'Times New Roman', 16);
 % 
 % subplot(2,5,4);
-% generate_standard_fig(obtain_time_vec(Dir_X_ajustado_normalizado,Fs), Dir_X_ajustado_normalizado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_X_adjusted_normalized,Fs), Dir_X_adjusted_normalized, 1, 2,...
 %     0 , 0 , 0,...
 %     0, 0, 0, ...
 %     50, 55, -0.5, 0.5,...
@@ -271,7 +264,7 @@ Dir_X_ajustado_normalizado = Normaliz3r(Dir_X_ajustado);
 % legend('off');
 % 
 % subplot(2,5,5);
-% generate_standard_fig(obtain_time_vec(Dir_X_ajustado_normalizado,Fs), Dir_X_ajustado_normalizado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_X_adjusted_normalized,Fs), Dir_X_adjusted_normalized, 1, 2,...
 %     0 , 0 , 0,...
 %     0, 0, 0, ...
 %     50, 55, -0.5, 0.5,...
@@ -279,14 +272,14 @@ Dir_X_ajustado_normalizado = Normaliz3r(Dir_X_ajustado);
 % legend('off');
 % 
 % subplot(2,5,6:8);
-% generate_standard_fig(obtain_time_vec(Dir_Y_ajustado_normalizado,Fs), Dir_Y_ajustado_normalizado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_Y_adjusted_normalized,Fs), Dir_Y_adjusted_normalized, 1, 2,...
 %     'Normalized direction Y signal', 0, 'Time (s)',...
 %     'Amplitude (V)', 0, 0, ...
 %     0, 0, 0, 0,...
 %     4, 'Times New Roman', 16);
 % 
 % subplot(2,5,9);
-% generate_standard_fig(obtain_time_vec(Dir_Y_ajustado_normalizado,Fs), Dir_Y_ajustado_normalizado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_Y_adjusted_normalized,Fs), Dir_Y_adjusted_normalized, 1, 2,...
 %     0 , 0 , 0,...
 %     0, 0, 0, ...
 %     50, 55, -0.5, 0.5,...
@@ -294,7 +287,7 @@ Dir_X_ajustado_normalizado = Normaliz3r(Dir_X_ajustado);
 % legend('off');
 % 
 % subplot(2,5,10);
-% generate_standard_fig(obtain_time_vec(Dir_Y_ajustado_normalizado,Fs), Dir_Y_ajustado_normalizado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_Y_adjusted_normalized,Fs), Dir_Y_adjusted_normalized, 1, 2,...
 %     0 , 0 , 0,...
 %     0, 0, 0, ...
 %     50, 55, -0.5, 0.5,...
@@ -302,7 +295,7 @@ Dir_X_ajustado_normalizado = Normaliz3r(Dir_X_ajustado);
 % legend('off');
 % 
 %     DEBUG_ID = 'POI-3.png';
-%     salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+%     saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
 % 
 % % \ DEBUG - POI-3
 
@@ -311,14 +304,14 @@ Dir_X_ajustado_normalizado = Normaliz3r(Dir_X_ajustado);
 % 
 % figure;
 % subplot(2,2,1:2);
-% generate_standard_fig(obtain_time_vec(Dir_X_ajustado_normalizado,Fs), Dir_X_ajustado_normalizado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_X_adjusted_normalized,Fs), Dir_X_adjusted_normalized, 1, 2,...
 %     'Normalized direction X signal', 'DEBUG - POI-4', 'Time (s)',...
 %     'Amplitude (V)', 0, 0, ...
 %     0, 0, 0, 0,...
 %     4, 'Times New Roman', 16);
 % 
 % subplot(2,2,3);
-% generate_standard_fig(obtain_time_vec(Dir_X_ajustado_normalizado,Fs), Dir_X_ajustado_normalizado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_X_adjusted_normalized,Fs), Dir_X_adjusted_normalized, 1, 2,...
 %     0 , 0 , 'Time (s)',...
 %     'Amplitude (V)', 0, 0,...
 %     50.115, 50.155, 0, 0,...
@@ -326,7 +319,7 @@ Dir_X_ajustado_normalizado = Normaliz3r(Dir_X_ajustado);
 % legend('off');
 % 
 % subplot(2,2,4);
-% generate_standard_fig(obtain_time_vec(Dir_X_ajustado_normalizado,Fs), Dir_X_ajustado_normalizado, 1, 2,...
+% generate_standard_fig(obtain_time_vec(Dir_X_adjusted_normalized,Fs), Dir_X_adjusted_normalized, 1, 2,...
 %     0 , 0 , 'Time (s)',...
 %     0, 0, 0,...
 %     50.133, 50.135, 0, 0,...
@@ -334,24 +327,24 @@ Dir_X_ajustado_normalizado = Normaliz3r(Dir_X_ajustado);
 % legend('off');
 % 
 %     DEBUG_ID = 'POI-4.png';
-%     salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+%     saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
 % 
 % % \ DEBUG - POI-4
 
 % 3° Test for the occurence of the variation problem
-result_problem = test_Minvariations(sensor_signal_normalizado, Dir_X_ajustado_normalizado,...
-    Dir_Y_ajustado_normalizado);
+result_problem = test_Minvariations(sensor_signal_normalized, Dir_X_adjusted_normalized,...
+    Dir_Y_adjusted_normalized);
 % \ 3°
 
-clear Dir_X_ajustado Dir_X Dir_Y_ajustado Dir_Y sensor_signal
+clear Dir_X_adjusted Dir_X Dir_Y_adjusted Dir_Y sensor_signal
 
 %% External pattern segmentation
 
 % result_problem = true; % % Necessary for the May/2023 data
 
 % 4° Obtain the duration vector
-Duration = obtainDuration(sensor_signal_normalizado, Dir_X_ajustado_normalizado,...
-    Dir_Y_ajustado_normalizado, result_problem);
+Duration = obtainDuration(sensor_signal_normalized, Dir_X_adjusted_normalized,...
+    Dir_Y_adjusted_normalized, result_problem);
 % \ 4°
 
 % % DEBUG - POI-6 - Duration for the external analysis
@@ -363,25 +356,25 @@ Duration = obtainDuration(sensor_signal_normalizado, Dir_X_ajustado_normalizado,
 %     2, 'Times New Roman', 16);
 % 
 % DEBUG_ID = 'POI-6.png';
-% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
 % 
 % % \ DEBUG - POI-6
 
-% Para permitir encontrar o ponto de separacao entre padrão externo e
-% padrão interno, vou percorrer todo o vetor da Duration até encontrar um
-% valor conhecido de Duration (Duration da fabricação da linha 10). Ai
-% armazeno as posições relativas ao início da fabricação da linha 10, linha
-% 11 e linha 12. Sei que as 3 devem ser muito similares, então faço um
-% teste nas linhas 11 e 12. Se elas estiverem dentro do mesmo intervalo,
-% está identificado o final do padrão externo. Caso negativo, volto a
-% verificar na duração por este padrão.
+% To allow finding the separation point between the external pattern and
+% the internal pattern, I will traverse the entire Duration vector until
+% I find a known Duration value (the Duration of manufacturing line 10).
+% Then I store the positions relative to the beginning of the manufacture
+% of line 10, line 11, and line 12. I know that all three should be very
+% similar, so I perform a test on lines 11 and 12. If they are within the
+% same interval, the end of the external pattern is identified. If not,
+% I go back to checking the duration for this pattern.
 
 % 5° Find the separation point
-referencia_tamanho = 150e3; % known duration for the last contour printing
+duration_reference = 150e3; % known duration for the last contour printing
 
 for i = 1:length(Duration(:,1))
 
-    result_sep = encontra_ponto_separacao(Duration, i, referencia_tamanho);
+    result_sep = determin_separation_point(Duration, i, duration_reference);
 
     if result_sep == true
         ponto_signal_contour_PI = Duration(i,2);
@@ -394,16 +387,16 @@ end
 
 % 6° Contour lines obtaining
 separation_index = find(Duration(:,3) == ponto_signal_contour_PI);
-linhas_PE = zeros(1,13);
+PE_lines = zeros(1,13);
 cont = 1;
 
 for i = 1:13
-    linhas_PE(1,i) = Duration(separation_index-13+i,3);
+    PE_lines(1,i) = Duration(separation_index-13+i,3);
 end
-for i = 1:length(linhas_PE)-1
-    index_contour_temp(cont,1) = linhas_PE(i+1) - linhas_PE(i);
-    index_contour_temp(cont,2) = linhas_PE(i);
-    index_contour_temp(cont,3) = linhas_PE(i+1);
+for i = 1:length(PE_lines)-1
+    index_contour_temp(cont,1) = PE_lines(i+1) - PE_lines(i);
+    index_contour_temp(cont,2) = PE_lines(i);
+    index_contour_temp(cont,3) = PE_lines(i+1);
     cont = cont+1;
 end
 % \ 6°
@@ -470,8 +463,8 @@ contour_repositions = [repo_to_contour_line1; repo_to_contour_line5; repo_to_con
 result_problem = false;
 
 % Obtaining duration matrix
-Duration = obtainDuration(sensor_signal_normalizado, Dir_X_ajustado_normalizado,...
-    Dir_Y_ajustado_normalizado, result_problem);
+Duration = obtainDuration(sensor_signal_normalized, Dir_X_adjusted_normalized,...
+    Dir_Y_adjusted_normalized, result_problem);
 
 % \ 8°
 
@@ -484,7 +477,7 @@ Duration = obtainDuration(sensor_signal_normalizado, Dir_X_ajustado_normalizado,
 %     2, 'Times New Roman', 16);
 % 
 % DEBUG_ID = 'POI-7.png';
-% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
 % 
 % % \ DEBUG - POI-7
 
@@ -513,7 +506,7 @@ clear Duration
 %     2, 'Times New Roman', 16);
 % 
 % DEBUG_ID = 'POI-8.png';
-% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
 % 
 % % \ DEBUG - POI-8
 
@@ -572,7 +565,7 @@ clear Duration2
 %     2, 'Times New Roman', 16);
 % 
 % DEBUG_ID = 'POI-9.png';
-% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
 % 
 % % \ DEBUG - POI-9
 
@@ -591,7 +584,7 @@ clear Duration3
 %     2, 'Times New Roman', 16);
 % 
 % DEBUG_ID = 'POI-10.png';
-% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
 % 
 % % \ DEBUG - POI-10
 
@@ -628,7 +621,7 @@ clear Duration3_v2
 %     2, 'Times New Roman', 16);
 % 
 % DEBUG_ID = 'POI-11.png';
-% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
 % 
 % % \ DEBUG - POI-11
 
@@ -655,7 +648,7 @@ clear Duration4
 %     2, 'Times New Roman', 16);
 % 
 % DEBUG_ID = 'POI-12.png';
-% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
 % 
 % % \ DEBUG - POI-12
 
@@ -692,11 +685,11 @@ if length(index_raster) < 55
 end
 
 
-signal_reposition = Compos3r(sensor_signal_normalizado,contour_to_raster_reposition(:,2:3))+...
-    Compos3r(sensor_signal_normalizado,contour_repositions(:,2:3));
-signal_raster = Compos3r(sensor_signal_normalizado, index_raster(:,2:3));
-signal_trans_raster = Compos3r(sensor_signal_normalizado, index_trans_raster(:,2:3));
-signal_contour = Compos3r(sensor_signal_normalizado, index_contour_alt(:,2:3));
+signal_reposition = Compos3r(sensor_signal_normalized,contour_to_raster_reposition(:,2:3))+...
+    Compos3r(sensor_signal_normalized,contour_repositions(:,2:3));
+signal_raster = Compos3r(sensor_signal_normalized, index_raster(:,2:3));
+signal_trans_raster = Compos3r(sensor_signal_normalized, index_trans_raster(:,2:3));
+signal_contour = Compos3r(sensor_signal_normalized, index_contour_alt(:,2:3));
 
 % \ 14°
 
@@ -714,13 +707,13 @@ end
 test_segment_choice = strcmp(segmentation_choice,'segments');
 
 if test_segment_choice == true
-    result_reposition = gen_signal_segments(sensor_signal_normalizado,...
+    result_reposition = gen_signal_segments(sensor_signal_normalized,...
         contour_repositions);
-    result_reposition(1,4) = gen_signal_segments(sensor_signal_normalizado,...
+    result_reposition(1,4) = gen_signal_segments(sensor_signal_normalized,...
         contour_to_raster_reposition);
-    result_contour = gen_signal_segments(sensor_signal_normalizado, index_contour);
-    result_raster = gen_signal_segments(sensor_signal_normalizado, index_raster);
-    result_transition_raster = gen_signal_segments(sensor_signal_normalizado, index_trans_raster);
+    result_contour = gen_signal_segments(sensor_signal_normalized, index_contour);
+    result_raster = gen_signal_segments(sensor_signal_normalized, index_raster);
+    result_transition_raster = gen_signal_segments(sensor_signal_normalized, index_trans_raster);
 end
 
 % \ 15°
@@ -733,7 +726,7 @@ if save_choice == 'Y'
 end
 
 if graphical_choice == 'Y'
-    gen_graph(signal_reposition, sensor_signal_normalizado, Fs,...
+    gen_graph(signal_reposition, sensor_signal_normalized, Fs,...
         signal_identifier, signal_contour, signal_raster,...
         signal_trans_raster, index_raster, figure_choice);
 end
@@ -785,7 +778,6 @@ end
 function composedDuration = isAnormal(originalDuration, ...
     initialPoint, lastPoint, ...
     picoAnterior)
-
 
     cont = 1;
     for i = initialPoint:2:lastPoint
@@ -863,34 +855,34 @@ function composedDuration = isAnormal(originalDuration, ...
 end
 
 % SUB4
-function duration = obtainDuration (sensor_signal_normalizado, Dir_X_ajustado_normalizado,...
-    Dir_Y_ajustado_normalizado, result_problem)
+function duration = obtainDuration (sensor_signal_normalized, Dir_X_adjusted_normalized,...
+    Dir_Y_adjusted_normalized, result_problem)
 
-valor_x = 0;
-valor_y = 0;
-ultima_mudanca = 0;
+x_value = 0;
+y_value = 0;
+last_change = 0;
 if result_problem == true
     minimum_sampleValue = 50e3;
 else
     minimum_sampleValue = 0;
 end
 
-Posicao_mudanca = zeros(size(sensor_signal_normalizado))';
+change_index = zeros(size(sensor_signal_normalized))';
 
-for i = 1:length(sensor_signal_normalizado)
-    if Dir_X_ajustado_normalizado(i) ~= valor_x &&...
-            i - ultima_mudanca >= minimum_sampleValue
-        valor_x = Dir_X_ajustado_normalizado(i);
-        Posicao_mudanca(i) = 1;
-        ultima_mudanca = i;
+for i = 1:length(sensor_signal_normalized)
+    if Dir_X_adjusted_normalized(i) ~= x_value &&...
+            i - last_change >= minimum_sampleValue
+        x_value = Dir_X_adjusted_normalized(i);
+        change_index(i) = 1;
+        last_change = i;
     else
-        if Dir_Y_ajustado_normalizado(i) ~= valor_y &&...
-                i - ultima_mudanca >= minimum_sampleValue
-            valor_y = Dir_Y_ajustado_normalizado(i);
-            Posicao_mudanca(i) = 1;
-            ultima_mudanca = i;
+        if Dir_Y_adjusted_normalized(i) ~= y_value &&...
+                i - last_change >= minimum_sampleValue
+            y_value = Dir_Y_adjusted_normalized(i);
+            change_index(i) = 1;
+            last_change = i;
         else
-            Posicao_mudanca(i) = 0;
+            change_index(i) = 0;
         end
     end
 end
@@ -903,12 +895,12 @@ position_Initial = 0;
 position_Final = 0;
 cont = 1;
 
-for i = 1:length(Posicao_mudanca)
-    if Posicao_mudanca(i) == 1 && flag == 0
+for i = 1:length(change_index)
+    if change_index(i) == 1 && flag == 0
         position_Initial = i;
         flag = 1;
     else
-        if Posicao_mudanca(i) == 1 && flag == 1
+        if change_index(i) == 1 && flag == 1
             position_Final = i;
             flag = 2;
         end
@@ -925,51 +917,51 @@ end
 end
 
 % SUB5
-function result_problem = test_Minvariations(sensor_signal_normalizado, Dir_X_ajustado_normalizado,...
-    Dir_Y_ajustado_normalizado)
+function result_problem = test_Minvariations(sensor_signal_normalized, Dir_X_adjusted_normalized,...
+    Dir_Y_adjusted_normalized)
 
-% TODO Incoporar teste de se houve dados com poucas amostras entre as
-% linhas do padrão externo
+% TODO Incorporate test to see if there were data with few samples between the
+% lines of the external pattern
 
-valor_x = 0;
-valor_y = 0;
-ultima_mudanca = 0;
+x_value = 0;
+y_value = 0;
+last_change = 0;
 minimum_sampleValue = 0;
 
-Posicao_mudanca = zeros(size(sensor_signal_normalizado))';
+change_index = zeros(size(sensor_signal_normalized))';
 
-for i = 1:length(sensor_signal_normalizado)
-    if Dir_X_ajustado_normalizado(i) ~= valor_x &&...
-            i - ultima_mudanca >= minimum_sampleValue
-        valor_x = Dir_X_ajustado_normalizado(i);
-        Posicao_mudanca(i) = 1;
-        ultima_mudanca = i;
+for i = 1:length(sensor_signal_normalized)
+    if Dir_X_adjusted_normalized(i) ~= x_value &&...
+            i - last_change >= minimum_sampleValue
+        x_value = Dir_X_adjusted_normalized(i);
+        change_index(i) = 1;
+        last_change = i;
     else
-        if Dir_Y_ajustado_normalizado(i) ~= valor_y &&...
-                i - ultima_mudanca >= minimum_sampleValue
-            valor_y = Dir_Y_ajustado_normalizado(i);
-            Posicao_mudanca(i) = 1;
-            ultima_mudanca = i;
+        if Dir_Y_adjusted_normalized(i) ~= y_value &&...
+                i - last_change >= minimum_sampleValue
+            y_value = Dir_Y_adjusted_normalized(i);
+            change_index(i) = 1;
+            last_change = i;
         else
-            Posicao_mudanca(i) = 0;
+            change_index(i) = 0;
         end
     end
 end
 
-% Agora vamos obter um vetor de duração, o qual exprimirá, em número de
-% amostras, a duração entre cada mudança de direção.
+% Now we will obtain a duration vector, which will express, in number of
+% samples, the duration between each change of direction.
 
 flag = 0;
 position_Initial = 0;
 position_Final = 0;
 cont = 1;
 
-for i = 1:length(Posicao_mudanca)
-    if Posicao_mudanca(i) == 1 && flag == 0
+for i = 1:length(change_index)
+    if change_index(i) == 1 && flag == 0
         position_Initial = i;
         flag = 1;
     else
-        if Posicao_mudanca(i) == 1 && flag == 1
+        if change_index(i) == 1 && flag == 1
             position_Final = i;
             flag = 2;
         end
@@ -1001,7 +993,7 @@ end
 %     2, 'Times New Roman', 16);
 % 
 % DEBUG_ID = 'POI-5.png';
-% salvarFigura(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
+% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
 % 
 % % \ DEBUG - POI-5
 
@@ -1010,9 +1002,6 @@ if cont_low_dur > 50
 else
     result_problem = false;
 end
-
-
-
 
 end
 
@@ -1146,7 +1135,7 @@ xticklabels (ticks);
 
 if figure_choice == 'Y'
     signal_identifier2 = ['Segmentation results ',signal_identifier, '.png'];
-    salvarFigura(gca,'centimeters',[13 11]*1.8,600,signal_identifier2)
+    saveFig(gca,'centimeters',[13 11]*1.8,600,signal_identifier2)
 end
 
 end
@@ -1162,107 +1151,109 @@ save ([segmentation_choice,' segmentation results ',signal_identifier],...
 end
 
 % AUX1
-function generate_standard_fig(eixox, eixoy, tipo, nova_ou_sobrepor,...
-    legenda, titulo, label_eixox, label_eixoy, x_ticks, y_ticks, ...
-    limite_x1, limite_x2, limite_y1, limite_y2,...
-    tipo_legenda, tipo_fonte, tamanho_fonte)
-%Desenvolvida por Thiago Glissoi Lopes
-%Laboratório de Aquisição de Dados e Processamento Digital de Sinais(LADAPS)
-%FEB - UNESP - Bauru
-%08/2019 - update 05/2020 - update 04/2023
+function generate_standard_fig(xaxis, yaxis, type, new_or_superimpose,...
+    leg, tit, xaxis_label, yaxis_label, x_ticks, y_ticks, ...
+    x_limit1, x_limit2, y_limit1, y_limit2,...
+    legend_type, font_type, font_size)
+
+% Developed by Thiago Glissoi Lopes
+% Data Acquisition and Digital Signal Processing Laboratory (LADAPS)
+% FEB - UNESP - Bauru
+% 08/2019 - update 05/2020 - update 04/2023
 %
-%generate_standard_fig(eixox, eixoy, tipo, nova_ou_sobrepor,...
-%    legenda, titulo, label_eixox, label_eixoy, x_ticks,...
-%    y_ticks, limite_x1, limite_x2, limite_y1, limite_y2,...
-%    salvar, nome_do_arquivo, tipo_legenda)
+% generate_standard_fig(xaxis, yaxis, type, new_or_superimpose,...
+% legend, title, xaxis_label, yaxis_label, x_ticks,...
+% y_ticks, x_limit1, x_limit2, y_limit1, y_limit2,...
+% save, file_name, legend_type)
 %
-% - % - % - tipo - % - % - :
-%1 = normal; 2 = bar; 3 = stem;
-% - % - % - nova_ou_sobrepor - % - % - :
-%1 = figura nova; 2 = sobrepor figura atual;
-% - % - % - legenda - % - % - :
-%lengenda para a figura. Escrever da seguinte maneira: 'exemplo';
-% - % - % - titulo - % - % - :
-%titulo para a figura. Escrever da seguinte maneira: 'exemplo';
-% - % - % - label_eixox - % - % - :
-%Label para o eixo X da figura. Escrever da seguinte maneira: 'exemplo';
-% - % - % - label_eixoy - % - % - :
-%Label para o eixo Y da figura. Escrever da seguinte maneira: 'exemplo';
+% - % - % - type - % - % - :
+% 1 = normal; 2 = bar; 3 = stem;
+% - % - % - new_or_superimpose - % - % - :
+% 1 = new figure; 2 = superimpose on current figure;
+% - % - % - legend - % - % - :
+% Legend for the figure. Write as follows: 'example';
+% - % - % - title - % - % - :
+% Title for the figure. Write as follows: 'example';
+% - % - % - xaxis_label - % - % - :
+% Label for the X axis of the figure. Write as follows: 'example';
+% - % - % - yaxis_label - % - % - :
+% Label for the Y axis of the figure. Write as follows: 'example';
 % - % - % - x_ticks - % - % - :
-%'ticks' usados no eixo X da figura. Escrever da seguinte maneira:...
-%[0 10 30 50];
+% 'ticks' used on the X axis of the figure. Write as follows:...
+% [0 10 30 50];
 % - % - % - y_ticks - % - % - :
-%'ticks' usados no eixo Y da figura. Escrever da seguinte maneira:...
-%[0 10 30 50];
-% - % - % - limite_x1 - % - % - :
-%Limite inferior a ser aplicado no eixo X da figura;
-% - % - % - limite_x2 - % - % - :
-%Limite superior a ser aplicado no eixo X da figura;
-% - % - % - limite_y1 - % - % - :
-%Limite inferior a ser aplicado no eixo Y da figura;
-% - % - % - limite_y2 - % - % - :
-%Limite superior a ser aplicado no eixo Y da figura;
-% - % - % - tipo_legenda - % - % - :
-%Localização da legenda na figura
-%1 = Melhor localização automática; 2 = Canto superior direito;
-%3 = Canto superior esquerdo; 4 = Canto inferior esquerdo;
-%5 = Canto inferior direito
-% - % - % - tipo_fonte - % - % - :
-%Define o tipo da fonte a ser empregada.
-%Escrever da seguinte maneira: 'Times New Roman';
-% - % - % - tamanho_fonte - % - % - :
-%Define o tamanho da fonte a ser empregada nos textos.
-%Escrever da seguinte maneira: 12;
-%Exemplo
-if (nova_ou_sobrepor == 1)
+% 'ticks' used on the Y axis of the figure. Write as follows:...
+% [0 10 30 50];
+% - % - % - x_limit1 - % - % - :
+% Lower limit to be applied on the X axis of the figure;
+% - % - % - x_limit2 - % - % - :
+% Upper limit to be applied on the X axis of the figure;
+% - % - % - y_limit1 - % - % - :
+% Lower limit to be applied on the Y axis of the figure;
+% - % - % - y_limit2 - % - % - :
+% Upper limit to be applied on the Y axis of the figure;
+% - % - % - legend_type - % - % - :
+% Location of the legend in the figure
+% 1 = Best automatic location; 2 = Top right corner;
+% 3 = Top left corner; 4 = Bottom left corner;
+% 5 = Bottom right corner
+% - % - % - font_type - % - % - :
+% Defines the type of font to be used.
+% Write as follows: 'Times New Roman';
+% - % - % - font_size - % - % - :
+% Defines the size of the font to be used in the texts.
+% Write as follows: 12;
+
+
+if (new_or_superimpose == 1)
     figure;
 end
 
-if (nova_ou_sobrepor == 2)
+if (new_or_superimpose == 2)
     hold on;
 end
 
-if (tipo == 1)
-    if legenda ~= 0
-        p = plot (eixox, eixoy, 'DisplayName', legenda); %PLA
+if (type == 1)
+    if leg ~= 0
+        p = plot (xaxis, yaxis, 'DisplayName', leg); %PLA
     else
-        p = plot(eixox, eixoy); %PLA
+        p = plot(xaxis, yaxis); %PLA
     end
     p.LineWidth = 1;
 end
 
-if (tipo == 2)
-    if (legenda ~= 0)
-        bar (eixox, eixoy,'DisplayName', legenda) %PLA
-        %         bar (eixox, eixoy,'DisplayName', legenda, 'Color', [212,175,55]/255) %PETG
+if (type == 2)
+    if (leg ~= 0)
+        bar (xaxis, yaxis,'DisplayName', leg) %PLA
+        %         bar (xaxis, yaxis,'DisplayName', leg, 'Color', [212,175,55]/255) %PETG
     else
-        bar (eixox, eixoy) %PLA
-        %         bar (eixox, eixoy, 'Color', [212,175,55]/255) %PETG
+        bar (xaxis, yaxis) %PLA
+        %         bar (xaxis, yaxis, 'Color', [212,175,55]/255) %PETG
     end
 end
-if (tipo == 3)
-    if (legenda ~= 0)
-        stem (eixox, eixoy,'DisplayName', legenda) %PLA
-        %         stem (eixox, eixoy,'DisplayName', legenda, 'Color', [212,175,55]/255) %PETG
+if (type == 3)
+    if (leg ~= 0)
+        stem (xaxis, yaxis,'DisplayName', leg) %PLA
+        %         stem (xaxis, yaxis,'DisplayName', leg, 'Color', [212,175,55]/255) %PETG
     else
-        stem (eixox, eixoy) %PLA
-        %         stem (eixox, eixo, 'Color', [212,175,55]/255) %PETG
+        stem (xaxis, yaxis) %PLA
+        %         stem (xaxis, eixo, 'Color', [212,175,55]/255) %PETG
     end
 end
 
-if (titulo ~= 0)
-    title (titulo);
+if (tit ~= 0)
+    title (tit);
 end
 
-if (label_eixox ~= 0)
-    xlabel (label_eixox);
+if (xaxis_label ~= 0)
+    xlabel (xaxis_label);
 end
 
-if (label_eixoy ~= 0)
-    ylabel (label_eixoy);
+if (yaxis_label ~= 0)
+    ylabel (yaxis_label);
 end
 
-if (legenda ~= 0)
+if (leg ~= 0)
     legend ('show');
 end
 
@@ -1278,36 +1269,36 @@ if (aux_y_ticks ~= 1)
     yticks (y_ticks);
 end
 
-if (limite_x2 ~= 0)
-    xlim ([limite_x1 limite_x2]);
+if (x_limit2 ~= 0)
+    xlim ([x_limit1 x_limit2]);
 end
 
-if (limite_y2 ~= 0)
-    ylim ([limite_y1 limite_y2]);
+if (y_limit2 ~= 0)
+    ylim ([y_limit1 y_limit2]);
 end
 
-if (tipo_fonte ~= 0)
-    set(gca,'fontname', tipo_fonte, 'fontsize', tamanho_fonte);
+if (font_type ~= 0)
+    set(gca,'fontname', font_type, 'fontsize', font_size);
 end
 
-if (legenda ~= 0)
-    if (tipo_legenda == 1)
+if (leg ~= 0)
+    if (legend_type == 1)
         legend('Location','best');
     end
 
-    if (tipo_legenda == 2 || tipo_legenda == 0)
+    if (legend_type == 2 || legend_type == 0)
         legend('Location','northeast');
     end
 
-    if (tipo_legenda == 3)
+    if (legend_type == 3)
         legend('Location','northwest');
     end
 
-    if (tipo_legenda == 4)
+    if (legend_type == 4)
         legend('Location','southwest');
     end
 
-    if (tipo_legenda == 5)
+    if (legend_type == 5)
         legend('Location','southeast');
     end
 end
@@ -1316,7 +1307,7 @@ set(gcf, 'Position', get(0, 'Screensize'));
 grid on;
 grid minor;
 
-if (nova_ou_sobrepor == 2)
+if (new_or_superimpose == 2)
     hold on;
     numb_fig = size(allchild(gca));
     numb_fig_v = numb_fig(1,1);
@@ -1340,30 +1331,30 @@ end
 end
 
 % AUX2
-function salvarFigura(hFigure, unit, size, res, fileName)
+function saveFig(hFigure, unit, size, res, fileName)
 
 try
     if strcmp(get(hFigure,'Type'),'axes')
         hFigure = get(hFigure,'Parent');
     elseif ~strcmp(get(hFigure,'Type'),'figure')
-        error('Error:salvarFigura','O handler informado não é do tipo ''figure''.')
+        error('Error:saveFig','The informed handler is not of type ''figure''.')
     end
 catch me
-    error('Error:salvarFigura','O handler informado não é válido.')
+    error('Error:saveFig','The informed handler is not valid.')
 end
 
 unitVal = strcmp(unit, {'normalized' 'inches' 'centimeters' 'points'});
 if sum(unitVal) == 0
-    error('Error:salvarFigura', ['A unidade informada não é válida.\nValores aceitos:\n\t- normalized'...
+    error('Error:saveFig', ['The informed unit is not valid.\nValores aceitos:\n\t- normalized'...
         '\n\t- points\n\t- centimeters\n\t- inches']);
 elseif sum(unitVal) > 1
-    error('Error:salvarFigura', 'Deve ser informada apenas uma unidade.')
+    error('Error:saveFig', 'Please, inform only one unit.')
 end
 
 if strcmp(class(res),'double') %#ok<*STISA>
     res = ['-r' num2str(res)];
 elseif strncmp('-r', res, 2) == 0
-    error('Error:salvarFigura', 'O valor informado para a resolução não é válido.')
+    error('Error:saveFig', 'The value informed for the resolution is not valid.')
 end
 
 pos_ = [0 0 size(1) size(2)];
@@ -1379,16 +1370,16 @@ print(hFigure, '-loose', res, '-djpeg', fileName);
 end
 
 % AUX3
-function vetor_normalizado = Normaliz3r (vetor_original)
-aux1 = max(vetor_original);
-aux2 = vetor_original*-1;
+function vetor_normalized = Normaliz3r (original_vector)
+aux1 = max(original_vector);
+aux2 = original_vector*-1;
 aux3 = max(aux2);
 
 if aux3 >= aux1
     aux1 = aux3;
 end
 
-vetor_normalizado = vetor_original/aux1;
+vetor_normalized = original_vector/aux1;
 
 end
 
@@ -1422,32 +1413,32 @@ end
 end
 
 % AUX7
-function result_sep = encontra_ponto_separacao(Duration, i,...
-    referencia_tamanho)
+function result_sep = determin_separation_point(Duration, i,...
+    duration_reference)
 
-val_atual = Duration(i,1);
-val_seguinte1 = Duration(i+1,1);
-val_seguinte2 = Duration(i+2,1);
-val_seguinte3 = Duration(i+3,1);
-val_seguinte4 = Duration(i+4,1);
-val_seguinte5 = Duration(i+5,1);
+current_value = Duration(i,1);
+next_value1 = Duration(i+1,1);
+next_value2 = Duration(i+2,1);
+next_value3 = Duration(i+3,1);
+next_value4 = Duration(i+4,1);
+next_value5 = Duration(i+5,1);
 
-sub_seguinte1 = val_atual - val_seguinte1;
-sub_seguinte2 = val_atual - val_seguinte2;
-sub_seguinte3 = val_atual - val_seguinte3;
-sub_seguinte4 = val_atual - val_seguinte4;
-sub_seguinte5 = val_atual - val_seguinte5;
+next_sub1 = current_value - next_value1;
+next_sub2 = current_value - next_value2;
+next_sub3 = current_value - next_value3;
+next_sub4 = current_value - next_value4;
+next_sub5 = current_value - next_value5;
 
-if sub_seguinte1 >= referencia_tamanho && ...
-        sub_seguinte2 >= referencia_tamanho && ...
-        sub_seguinte3 >= referencia_tamanho && ...
-        sub_seguinte4 >= referencia_tamanho && ...
-        sub_seguinte5 >= referencia_tamanho && ...
-        val_seguinte1 < referencia_tamanho && ...
-        val_seguinte2 < referencia_tamanho && ...
-        val_seguinte3 < referencia_tamanho && ...
-        val_seguinte4 < referencia_tamanho && ...
-        val_seguinte5 < referencia_tamanho
+if next_sub1 >= duration_reference && ...
+        next_sub2 >= duration_reference && ...
+        next_sub3 >= duration_reference && ...
+        next_sub4 >= duration_reference && ...
+        next_sub5 >= duration_reference && ...
+        next_value1 < duration_reference && ...
+        next_value2 < duration_reference && ...
+        next_value3 < duration_reference && ...
+        next_value4 < duration_reference && ...
+        next_value5 < duration_reference
     result_sep = true;
 else
     result_sep = false;
@@ -1501,7 +1492,6 @@ index_raster_alt = [0 0 0];
 
 for j = 1:length(ind_id)
 
-
     index_raster_alt = [index_raster_alt;...
         index_raster(aux1:ind_id(j)-1,1:3)];
 
@@ -1513,18 +1503,12 @@ for j = 1:length(ind_id)
             temp_mat(k,1) = last_peak(1,1) + 11e3;
             temp_mat(k,3) = last_peak(1,2) + 8.4e3;
             temp_mat(k,2) = temp_mat(k,3) + temp_mat(k,1);
-
-
-
         else
             temp_mat(k,1) = last_peak(1,1) - 11e3;
             temp_mat(k,3) = last_peak(1,2) + 8.4e3;
             temp_mat(k,2) = temp_mat(k,3) + temp_mat(k,1);
 
         end
-
-
-        
         last_peak = temp_mat(end,1:3);
 
     end
@@ -1535,21 +1519,18 @@ for j = 1:length(ind_id)
     aux1 = ind_id(j);
 
     if j == length(ind_id)
-
         index_raster_alt = [index_raster_alt;...
             index_raster(aux1:end,1:3)];
     end
 
 
 end
+
 index_raster_alt = index_raster_alt(2:end,:);
-
 b = find(index_raster_alt(:,1)==max(index_raster_alt(:,1)));
-
 index_raster_alt = index_raster_alt(1:b,:);
 
 % mirror in the middle
-
 middle = length(index_raster_alt);
 
 for i = 1:middle
@@ -1572,6 +1553,5 @@ for i = 1:middle
 end
 
 index_raster_alt = [index_raster_alt;index_raster_alt_2];
-
 
 end
