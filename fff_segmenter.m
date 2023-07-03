@@ -5,7 +5,7 @@
 % de um sinal obtido de fabricação monocamada pelo processo de fabricação
 % por filamento fundido (FFF).
 %
-% % Versão 2.3
+% % Versão 2.4
 % Autoria: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
 % Última edição: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
 
@@ -347,6 +347,9 @@ clear Dir_X_ajustado Dir_X Dir_Y_ajustado Dir_Y sensor_signal
 
 %% External pattern segmentation
 
+result_problem = true; % Adicionado para permitir rodar os dados do ensaio
+% 43 enquanto não se incorpora o elemento mencionado no test_Minvariations
+
 % 4° Obtain the duration vector
 Duration = obtainDuration(sensor_signal_normalizado, Dir_X_ajustado_normalizado,...
     Dir_Y_ajustado_normalizado, result_problem);
@@ -683,6 +686,13 @@ for i = 1:1:12
     index_contour_alt(i,3) = index_contour(i,3)-5;
 end
 
+if length(index_raster) < 55
+    [index_raster,index_trans_raster] =...
+        adjust_internal(index_raster,index_trans_raster);
+
+end
+
+
 signal_reposition = Compos3r(sensor_signal_normalizado,contour_to_raster_reposition(:,2:3))+...
     Compos3r(sensor_signal_normalizado,contour_repositions(:,2:3));
 signal_raster = Compos3r(sensor_signal_normalizado, index_raster(:,2:3));
@@ -779,25 +789,10 @@ function composedDuration = isAnormal(originalDuration, ...
 
 cont = 1;
 for i = initialPoint:2:lastPoint
-    if lastPoint - i == 1 || lastPoint == i 
+    if lastPoint - i == 1 || lastPoint == i
         if lastPoint - initialPoint > 3
-        % normal transition
-        % Transition period (aprox 8000 samples)
-        composedDuration(cont, 3) =  composedDuration(cont-1, 2);
-        composedDuration(cont, 2) =  originalDuration(lastPoint, 2);
-        composedDuration(cont, 1) =  composedDuration(cont, 2)...
-            - composedDuration(cont, 3);
-        if composedDuration(cont, 1) < 0 % overlap the treshold
-            aux = length(composedDuration(:,1));
-            composedDuration2(:,:) = composedDuration(1:aux-2,:);
-            clear composedDuration
-            composedDuration =  composedDuration2;
-            clear composedDuration2
-            aux = length(composedDuration(:,1));
-            if aux == 1
-                break;
-            end
-            cont = cont-2;
+            % normal transition
+            % Transition period (aprox 8000 samples)
             composedDuration(cont, 3) =  composedDuration(cont-1, 2);
             composedDuration(cont, 2) =  originalDuration(lastPoint, 2);
             composedDuration(cont, 1) =  composedDuration(cont, 2)...
@@ -808,14 +803,38 @@ for i = initialPoint:2:lastPoint
                 clear composedDuration
                 composedDuration =  composedDuration2;
                 clear composedDuration2
+                aux = length(composedDuration(:,1));
+                if aux == 1
+                    break;
+                end
                 cont = cont-2;
                 composedDuration(cont, 3) =  composedDuration(cont-1, 2);
                 composedDuration(cont, 2) =  originalDuration(lastPoint, 2);
                 composedDuration(cont, 1) =  composedDuration(cont, 2)...
                     - composedDuration(cont, 3);
+
+                if composedDuration(cont, 1) < 0 % overlap the treshold
+                    if length(composedDuration) > 4
+                        aux = length(composedDuration(:,1));
+                        composedDuration2(:,:) = composedDuration(1:aux-2,:);
+                        clear composedDuration
+                        composedDuration =  composedDuration2;
+                        clear composedDuration2
+                        cont = cont-2;
+                        composedDuration(cont, 3) =  composedDuration(cont-1, 2);
+                        composedDuration(cont, 2) =  originalDuration(lastPoint, 2);
+                        composedDuration(cont, 1) =  composedDuration(cont, 2)...
+                            - composedDuration(cont, 3);
+                    else
+                        composedDuration(3, 3) =  originalDuration(lastPoint, 3);
+                        composedDuration(3, 2) =  originalDuration(lastPoint, 2);
+                        composedDuration(3, 1) =  composedDuration(3, 2) - composedDuration(3, 3);
+                        break;
+                    end
+
+                end
             end
-        end
-        break;
+            break;
         end
     end
     if i == initialPoint % If it is the first case
@@ -844,13 +863,30 @@ for i = initialPoint:2:lastPoint
     picoAnterior = composedDuration(cont, 1);
     cont = cont +1;
 
+    if lastPoint - initialPoint == 3
+        composedDuration(cont, 3) =  composedDuration(cont-1, 2); %#ok<*AGROW>
+        composedDuration(cont, 2) =  originalDuration(lastPoint,2);
+        composedDuration(cont, 1) =  composedDuration(cont, 2)...
+            - composedDuration(cont, 3);
+        break;
+    else
     % Normal transition
     composedDuration(cont, 3) =  composedDuration(cont-1, 2);
     composedDuration(cont, 2) =  composedDuration(cont, 3) +...
         8.4e3;
     composedDuration(cont, 1) =  composedDuration(cont, 2)...
         - composedDuration(cont, 3);
+    end
+
+%         % Normal transition
+%     composedDuration(cont, 3) =  composedDuration(cont-1, 2);
+%     composedDuration(cont, 2) =  composedDuration(cont, 3) +...
+%         8.4e3;
+%     composedDuration(cont, 1) =  composedDuration(cont, 2)...
+%         - composedDuration(cont, 3);
+% 
 end
+
 end
 
 % SUB4
@@ -918,6 +954,9 @@ end
 % SUB5
 function result_problem = test_Minvariations(sensor_signal_normalizado, Dir_X_ajustado_normalizado,...
     Dir_Y_ajustado_normalizado)
+
+% TODO Incoporar teste de se houve dados com poucas amostras entre as
+% linhas do padrão externo
 
 valor_x = 0;
 valor_y = 0;
@@ -1463,3 +1502,103 @@ end
 
 end
 
+% AUX9
+
+function [index_raster_alt,index_trans_raster_alt] =...
+    adjust_internal(index_raster,index_trans_raster)
+
+index_trans_raster_alt = index_trans_raster; % TODO adjust the 
+% trans_raster for this situation
+
+id_index_raster = 0;
+
+for i = 2:length(index_raster)
+    if (abs(index_raster(i,1)-index_raster(i-1,1))) > 12e3
+        qnt = floor(abs((index_raster(i,1)-index_raster(i-1,1)))/11e3);
+        id_index_raster(i,1) = qnt-1;
+    else
+        id_index_raster(i,1) = 0;
+    end
+end
+
+ind_id = find(id_index_raster > 0);
+
+aux1 = 1;
+index_raster_alt = [0 0 0];
+
+for j = 1:length(ind_id)
+
+
+    index_raster_alt = [index_raster_alt;...
+        index_raster(aux1:ind_id(j)-1,1:3)];
+
+    last_peak = index_raster_alt(end,1:3);
+
+    for k = 1:id_index_raster(ind_id(j))
+
+        if ind_id(j) < 27
+            temp_mat(k,1) = last_peak(1,1) + 11e3;
+            temp_mat(k,3) = last_peak(1,2) + 8.4e3;
+            temp_mat(k,2) = temp_mat(k,3) + temp_mat(k,1);
+
+
+
+        else
+            temp_mat(k,1) = last_peak(1,1) - 11e3;
+            temp_mat(k,3) = last_peak(1,2) + 8.4e3;
+            temp_mat(k,2) = temp_mat(k,3) + temp_mat(k,1);
+
+        end
+
+
+        
+        last_peak = temp_mat(end,1:3);
+
+    end
+    index_raster_alt = [index_raster_alt;...
+        temp_mat];
+    clear temp_mat last_peak
+
+    aux1 = ind_id(j);
+
+    if j == length(ind_id)
+
+        index_raster_alt = [index_raster_alt;...
+            index_raster(aux1:end,1:3)];
+    end
+
+
+end
+index_raster_alt = index_raster_alt(2:end,:);
+
+b = find(index_raster_alt(:,1)==max(index_raster_alt(:,1)));
+
+index_raster_alt = index_raster_alt(1:b,:);
+
+% mirror in the middle
+
+middle = length(index_raster_alt);
+
+for i = 1:middle
+   if i < middle
+    index_raster_alt_2(i,1) = index_raster_alt(middle-i,1);
+   else
+       break;
+   end
+   if i == 1
+   index_raster_alt_2(i,3) =...
+       index_raster_alt(middle,2)+...
+       8.4e3;
+   else
+   index_raster_alt_2(i,3) =...
+       index_raster_alt_2(end-1,2) + 8.4e3;
+   end
+   index_raster_alt_2(i,2) =...
+       index_raster_alt_2(i,1)+index_raster_alt_2(i,3);
+
+end
+
+index_raster_alt = [index_raster_alt;index_raster_alt_2];
+
+
+end
