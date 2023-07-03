@@ -347,8 +347,7 @@ clear Dir_X_ajustado Dir_X Dir_Y_ajustado Dir_Y sensor_signal
 
 %% External pattern segmentation
 
-result_problem = true; % Adicionado para permitir rodar os dados do ensaio
-% 43 enquanto não se incorpora o elemento mencionado no test_Minvariations
+% result_problem = true; % % Necessary for the May/2023 data
 
 % 4° Obtain the duration vector
 Duration = obtainDuration(sensor_signal_normalizado, Dir_X_ajustado_normalizado,...
@@ -787,10 +786,11 @@ function composedDuration = isAnormal(originalDuration, ...
     initialPoint, lastPoint, ...
     picoAnterior)
 
-cont = 1;
-for i = initialPoint:2:lastPoint
-    if lastPoint - i == 1 || lastPoint == i
-        if lastPoint - initialPoint > 3
+
+    cont = 1;
+    for i = initialPoint:2:lastPoint
+        if lastPoint - i == 1 || lastPoint == i 
+            if lastPoint - initialPoint > 3
             % normal transition
             % Transition period (aprox 8000 samples)
             composedDuration(cont, 3) =  composedDuration(cont-1, 2);
@@ -811,82 +811,55 @@ for i = initialPoint:2:lastPoint
                 composedDuration(cont, 3) =  composedDuration(cont-1, 2);
                 composedDuration(cont, 2) =  originalDuration(lastPoint, 2);
                 composedDuration(cont, 1) =  composedDuration(cont, 2)...
-                    - composedDuration(cont, 3);
-
-                if composedDuration(cont, 1) < 0 % overlap the treshold
-                    if length(composedDuration) > 4
-                        aux = length(composedDuration(:,1));
-                        composedDuration2(:,:) = composedDuration(1:aux-2,:);
-                        clear composedDuration
-                        composedDuration =  composedDuration2;
-                        clear composedDuration2
-                        cont = cont-2;
-                        composedDuration(cont, 3) =  composedDuration(cont-1, 2);
-                        composedDuration(cont, 2) =  originalDuration(lastPoint, 2);
-                        composedDuration(cont, 1) =  composedDuration(cont, 2)...
-                            - composedDuration(cont, 3);
-                    else
-                        composedDuration(3, 3) =  originalDuration(lastPoint, 3);
-                        composedDuration(3, 2) =  originalDuration(lastPoint, 2);
-                        composedDuration(3, 1) =  composedDuration(3, 2) - composedDuration(3, 3);
-                        break;
-                    end
-
+                   - composedDuration(cont, 3);
+               if composedDuration(cont, 1) < 0 % overlap the treshold
+                   aux = length(composedDuration(:,1));
+                   composedDuration2(:,:) = composedDuration(1:aux-2,:);
+                    clear composedDuration
+                    composedDuration =  composedDuration2;
+                    clear composedDuration2
+                    cont = cont-2;
+                    composedDuration(cont, 3) =  composedDuration(cont-1, 2);
+                    composedDuration(cont, 2) =  originalDuration(lastPoint, 2);
+                    composedDuration(cont, 1) =  composedDuration(cont, 2)...
+                        - composedDuration(cont, 3);
                 end
             end
             break;
+            end
         end
-    end
-    if i == initialPoint % If it is the first case
-        % Transition period (aprox 8000 samples)
-        composedDuration(cont, 3) =  originalDuration(i,3); %#ok<*AGROW>
-        composedDuration(cont, 2) =  originalDuration(i,2);
-        composedDuration(cont, 1) =  composedDuration(cont, 2)...
-            - composedDuration(cont, 3);
+        if i == initialPoint % If it is the first case
+           % Transition period (aprox 8000 samples)
+           composedDuration(cont, 3) =  originalDuration(i,3); %#ok<*AGROW>
+           composedDuration(cont, 2) =  originalDuration(i,2);
+           composedDuration(cont, 1) =  composedDuration(cont, 2)...
+               - composedDuration(cont, 3);
+           cont = cont +1;
+       else % Normal transition
+           composedDuration(cont, 3) =  composedDuration(cont-1, 2);
+           composedDuration(cont, 2) =  composedDuration(cont, 3) +...
+               8.4e3;
+           composedDuration(cont, 1) =  composedDuration(cont, 2)...
+               - composedDuration(cont, 3);
+           cont = cont +1;
+       end
+       % Transition period (aprox 8000 samples), and that grows
+       % 11e3 in relation to the previous fabrication period
+       composedDuration(cont, 3) =  composedDuration(cont-1, 2);
+       composedDuration(cont, 2) =  composedDuration(cont, 3) +...
+           picoAnterior + 11e3;
+       composedDuration(cont, 1) =  composedDuration(cont, 2)...
+           - composedDuration(cont, 3);
+        picoAnterior = composedDuration(cont, 1);
         cont = cont +1;
-    else % Normal transition
+   
+        % Normal transition
         composedDuration(cont, 3) =  composedDuration(cont-1, 2);
         composedDuration(cont, 2) =  composedDuration(cont, 3) +...
             8.4e3;
         composedDuration(cont, 1) =  composedDuration(cont, 2)...
             - composedDuration(cont, 3);
-        cont = cont +1;
     end
-
-    % Transition period (aprox 8000 samples), and that grows
-    % 11e3 in relation to the previous fabrication period
-    composedDuration(cont, 3) =  composedDuration(cont-1, 2);
-    composedDuration(cont, 2) =  composedDuration(cont, 3) +...
-        picoAnterior + 11e3;
-    composedDuration(cont, 1) =  composedDuration(cont, 2)...
-        - composedDuration(cont, 3);
-    picoAnterior = composedDuration(cont, 1);
-    cont = cont +1;
-
-    if lastPoint - initialPoint == 3
-        composedDuration(cont, 3) =  composedDuration(cont-1, 2); %#ok<*AGROW>
-        composedDuration(cont, 2) =  originalDuration(lastPoint,2);
-        composedDuration(cont, 1) =  composedDuration(cont, 2)...
-            - composedDuration(cont, 3);
-        break;
-    else
-    % Normal transition
-    composedDuration(cont, 3) =  composedDuration(cont-1, 2);
-    composedDuration(cont, 2) =  composedDuration(cont, 3) +...
-        8.4e3;
-    composedDuration(cont, 1) =  composedDuration(cont, 2)...
-        - composedDuration(cont, 3);
-    end
-
-%         % Normal transition
-%     composedDuration(cont, 3) =  composedDuration(cont-1, 2);
-%     composedDuration(cont, 2) =  composedDuration(cont, 3) +...
-%         8.4e3;
-%     composedDuration(cont, 1) =  composedDuration(cont, 2)...
-%         - composedDuration(cont, 3);
-% 
-end
-
 end
 
 % SUB4
