@@ -9,30 +9,30 @@
 % Last edit: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
 
 % CORE
-function fff_segmenter (sensor_signal, Dir_X, Dir_Y, Fs)
+function fff_segmenter(sensorSignal, dirX, dirY, Fs)
 %% Input prompts
 clc;
 disp ("Provide the signal identification");
 prompt = "Signal name: ";
-signal_identifier = input(prompt,'s');
-if isempty(signal_identifier)
-    signal_identifier = 'segmentation results';
+signalIdentifier = input(prompt,"s");
+if isempty(signalIdentifier)
+    signalIdentifier = 'segmentation results';
 end
 clear prompt
 clc;
 
 disp ("Would you like to obtain the segmentation index (points) or the segments of signal (segments)? ");
 prompt = "Response points/segments [points]: ";
-segmentation_choice = input(prompt,'s');
-if isempty(segmentation_choice)
-    segmentation_choice = 'points';
+segmentationChoice = input(prompt,"s");
+if isempty(segmentationChoice)
+    segmentationChoice = 'points';
 end
 
-test_segment_choice_points = strcmp(segmentation_choice,'points');
-test_segment_choice_segments = strcmp(segmentation_choice,'segments');
+testSegmentChoicePoints = strcmp(segmentationChoice,'points');
+testSegmentChoiceSegments = strcmp(segmentationChoice,'segments');
 
-if test_segment_choice_points ~= 1 && test_segment_choice_segments ~= 1
-    segmentation_choice = 'points';
+if testSegmentChoicePoints ~= 1 && testSegmentChoiceSegments ~= 1
+    segmentationChoice = 'points';
 end
 
 
@@ -41,51 +41,51 @@ clc;
 
 disp ("Would you like to obtain graphical visualization of the segmentation?");
 prompt = "Response Y/N [Y]: ";
-graphical_choice = input(prompt,'s');
-if isempty(graphical_choice)
-    graphical_choice = 'Y';
+graphical = input(prompt, "s");
+if isempty(graphical)
+    graphical = 'Y';
 end
 
-test_graphical_choice_Y = strcmp(graphical_choice,'Y');
-test_graphical_choice_N = strcmp(graphical_choice,'N');
+testGraphicalChoiceY = strcmp(graphical,'Y');
+testGraphicalChoiceN = strcmp(graphical,'N');
 
-if test_graphical_choice_Y ~= 1 && test_graphical_choice_N ~= 1
-    segmentation_choice = 'Y';
+if testGraphicalChoiceY ~= 1 && testGraphicalChoiceN ~= 1
+    segmentationChoice = 'Y';
 end
 
 clear prompt
 clc;
-if graphical_choice == 'Y'
-    disp ("Would you like to autosave the figures?");
+if graphical == 'Y'
+    disp("Would you like to autosave the figures?");
     prompt = "Response Y/N [Y]: ";
-    figure_choice = input(prompt,'s');
-    if isempty(figure_choice)
-        figure_choice = 'Y';
+    figureChoice = input(prompt, "s");
+    if isempty(figureChoice)
+        figureChoice = 'Y';
     end
 
-    test_figure_choice_Y = strcmp(figure_choice,'Y');
-    test_figure_choice_N = strcmp(figure_choice,'N');
+    testFigureChoiceY = strcmp(figureChoice,'Y');
+    testFigureChoiceN = strcmp(figureChoice,'N');
 
-    if test_figure_choice_Y ~= 1 && test_figure_choice_N ~= 1
-        figure_choice = 'Y';
+    if testFigureChoiceY ~= 1 && testFigureChoiceN ~= 1
+        figureChoice = 'Y';
     end
 
     clc;
     clear prompt
 end
 
-disp ("Would you like to obtain automatic .mat files of the segmentation results?");
+disp("Would you like to obtain automatic .mat files of the segmentation results?");
 prompt = "Response Y/N [Y]: ";
-save_choice = input(prompt,'s');
-if isempty(save_choice)
-    save_choice = 'Y';
+saveChoice = input(prompt,'s');
+if isempty(saveChoice)
+    saveChoice = 'Y';
 end
 
-test_save_choice_Y = strcmp(save_choice,'Y');
-test_save_choice_N = strcmp(save_choice,'N');
+testSaveChoiceY = strcmp(saveChoice,'Y');
+testSaveChoiceN = strcmp(saveChoice,'N');
 
-if test_save_choice_Y ~= 1 && test_save_choice_N ~= 1
-    save_choice = 'Y';
+if testSaveChoiceY ~= 1 && testSaveChoiceN ~= 1
+    saveChoice = 'Y';
 end
 
 clc;
@@ -93,365 +93,147 @@ clear prompt
 
 disp ("Choices");
 disp ("Signal name: ");
-disp (signal_identifier);
+disp (signalIdentifier);
 disp ("Segmentation choice: ");
-disp (segmentation_choice);
+disp (segmentationChoice);
 disp ("Graphical choice: ");
-disp (graphical_choice);
-if graphical_choice == 'Y'
+disp (graphical);
+if graphical == 'Y'
     disp ("Save figure choice: ");
-    disp (figure_choice);
+    disp (figureChoice);
 end
 disp ("Save data choice: ");
-disp (save_choice);
+disp (saveChoice);
 disp ("Wait just a few moments while we segment your FFF signal...");
 
 %% Pre-processing
 
-% % DEBUG - POI-1 - Why adjust the X and Y signals?
-% 
-% figure;
-% subplot(2,5,1:3);
-% generate_standard_fig(obtain_time_vec(Dir_X,Fs), Dir_X, 1, 2,...
-%     'Raw direction X signal', 'DEBUG - POI-1', 'Time (s)',...
-%     'Amplitude (V)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     4, 'Times New Roman', 16);
-% 
-% subplot(2,5,4);
-% generate_standard_fig(obtain_time_vec(Dir_X,Fs), Dir_X, 1, 2,...
-%     0 , 0 , 0,...
-%     0, 0, 0, ...
-%     50, 55, -0.5, 0.5,...
-%     2, 'Times New Roman', 16);
-% legend('off');
-% 
-% subplot(2,5,5);
-% generate_standard_fig(obtain_time_vec(Dir_X,Fs), Dir_X, 1, 2,...
-%     0 , 0 , 0,...
-%     0, 0, 0, ...
-%     50, 55, 4.5, 5.5,...
-%     2, 'Times New Roman', 16);
-% legend('off');
-% 
-% subplot(2,5,6:8);
-% generate_standard_fig(obtain_time_vec(Dir_Y,Fs), Dir_Y, 1, 2,...
-%     'Raw direction Y signal', 0, 'Time (s)',...
-%     'Amplitude (V)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     4, 'Times New Roman', 16);
-% 
-% subplot(2,5,9);
-% generate_standard_fig(obtain_time_vec(Dir_Y,Fs), Dir_Y, 1, 2,...
-%     0 , 0 , 0,...
-%     0, 0, 0, ...
-%     50, 55, -0.5, 0.5,...
-%     2, 'Times New Roman', 16);
-% legend('off');
-% 
-% subplot(2,5,10);
-% generate_standard_fig(obtain_time_vec(Dir_Y,Fs), Dir_Y, 1, 2,...
-%     0 , 0 , 0,...
-%     0, 0, 0, ...
-%     50, 55, 4.5, 5.5,...
-%     2, 'Times New Roman', 16);
-% legend('off');
-% 
-%     DEBUG_ID = 'POI-1.png';
-%     saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
-% 
-% % \ DEBUG - POI-1
-
-Dir_X_adjusted = zeros(size(Dir_X));
-Dir_Y_adjusted = zeros(size(Dir_Y));
+dirXAdjusted = zeros(size(dirX));
+dirYAdjusted = zeros(size(dirY));
 
 % 1° Normalize the X and Y step motor control signals between 0V and 5V
-for i = 1:length(Dir_X)
-    if Dir_X(i) > 2
-        Dir_X_adjusted(i) = 5;
+for i = 1:length(dirX)
+    if dirX(i) > 2
+        dirXAdjusted(i) = 5;
     else
-        Dir_X_adjusted(i) = 0;
+        dirXAdjusted(i) = 0;
     end
 end
 
-for i = 1:length(Dir_Y)
-    if Dir_Y(i) > 2
-        Dir_Y_adjusted(i) = 5;
+for i = 1:length(dirY)
+    if dirY(i) > 2
+        dirYAdjusted(i) = 5;
     else
-        Dir_Y_adjusted(i) = 0;
+        dirYAdjusted(i) = 0;
     end
 end
-% \ 1°
-
-% % DEBUG - POI-2 - X and Y adjusted signals
-% 
-% figure;
-% subplot(2,5,1:3);
-% generate_standard_fig(obtain_time_vec(Dir_X_adjusted,Fs), Dir_X_adjusted, 1, 2,...
-%     'Adjusted direction X signal', 'DEBUG - POI-2', 'Time (s)',...
-%     'Amplitude (V)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     4, 'Times New Roman', 16);
-% 
-% subplot(2,5,4);
-% generate_standard_fig(obtain_time_vec(Dir_X_adjusted,Fs), Dir_X_adjusted, 1, 2,...
-%     0 , 0 , 0,...
-%     0, 0, 0, ...
-%     50, 55, -0.5, 0.5,...
-%     2, 'Times New Roman', 16);
-% legend('off');
-% 
-% subplot(2,5,5);
-% generate_standard_fig(obtain_time_vec(Dir_X_adjusted,Fs), Dir_X_adjusted, 1, 2,...
-%     0 , 0 , 0,...
-%     0, 0, 0, ...
-%     50, 55, 4.5, 5.5,...
-%     2, 'Times New Roman', 16);
-% legend('off');
-% 
-% subplot(2,5,6:8);
-% generate_standard_fig(obtain_time_vec(Dir_Y_adjusted,Fs), Dir_Y_adjusted, 1, 2,...
-%     'Adjusted direction Y signal', 0, 'Time (s)',...
-%     'Amplitude (V)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     4, 'Times New Roman', 16);
-% 
-% subplot(2,5,9);
-% generate_standard_fig(obtain_time_vec(Dir_Y_adjusted,Fs), Dir_Y_adjusted, 1, 2,...
-%     0 , 0 , 0,...
-%     0, 0, 0, ...
-%     50, 55, -0.5, 0.5,...
-%     2, 'Times New Roman', 16);
-% legend('off');
-% 
-% subplot(2,5,10);
-% generate_standard_fig(obtain_time_vec(Dir_Y_adjusted,Fs), Dir_Y_adjusted, 1, 2,...
-%     0 , 0 , 0,...
-%     0, 0, 0, ...
-%     50, 55, 4.5, 5.5,...
-%     2, 'Times New Roman', 16);
-% legend('off');
-% 
-%     DEBUG_ID = 'POI-2.png';
-%     saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
-% 
-% % \ DEBUG - POI-2
 
 % 2° Normalize the acoustic signal, and the X and Y step motor control
 % signals between -1 and 1 (acoustic signal) and 0 & 1 (step motor signals)
 
-sensor_signal_normalized = Normaliz3r(sensor_signal);
-Dir_Y_adjusted_normalized = Normaliz3r(Dir_Y_adjusted);
-Dir_X_adjusted_normalized = Normaliz3r(Dir_X_adjusted);
-% \ 2°
+sensorSignalNormalized = Normaliz3r(sensorSignal);
+dirYAdjustedNormalized = Normaliz3r(dirYAdjusted);
+dirXAdjustedNormalized = Normaliz3r(dirXAdjusted);
 
-% % DEBUG - POI-3 - X and Y Normalized signals
-% 
-% figure;
-% subplot(2,5,1:3);
-% generate_standard_fig(obtain_time_vec(Dir_X_adjusted_normalized,Fs), Dir_X_adjusted_normalized, 1, 2,...
-%     'Normalized direction X signal', 'DEBUG - POI-3', 'Time (s)',...
-%     'Amplitude (V)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     4, 'Times New Roman', 16);
-% 
-% subplot(2,5,4);
-% generate_standard_fig(obtain_time_vec(Dir_X_adjusted_normalized,Fs), Dir_X_adjusted_normalized, 1, 2,...
-%     0 , 0 , 0,...
-%     0, 0, 0, ...
-%     50, 55, -0.5, 0.5,...
-%     2, 'Times New Roman', 16);
-% legend('off');
-% 
-% subplot(2,5,5);
-% generate_standard_fig(obtain_time_vec(Dir_X_adjusted_normalized,Fs), Dir_X_adjusted_normalized, 1, 2,...
-%     0 , 0 , 0,...
-%     0, 0, 0, ...
-%     50, 55, -0.5, 0.5,...
-%     2, 'Times New Roman', 16);
-% legend('off');
-% 
-% subplot(2,5,6:8);
-% generate_standard_fig(obtain_time_vec(Dir_Y_adjusted_normalized,Fs), Dir_Y_adjusted_normalized, 1, 2,...
-%     'Normalized direction Y signal', 0, 'Time (s)',...
-%     'Amplitude (V)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     4, 'Times New Roman', 16);
-% 
-% subplot(2,5,9);
-% generate_standard_fig(obtain_time_vec(Dir_Y_adjusted_normalized,Fs), Dir_Y_adjusted_normalized, 1, 2,...
-%     0 , 0 , 0,...
-%     0, 0, 0, ...
-%     50, 55, -0.5, 0.5,...
-%     2, 'Times New Roman', 16);
-% legend('off');
-% 
-% subplot(2,5,10);
-% generate_standard_fig(obtain_time_vec(Dir_Y_adjusted_normalized,Fs), Dir_Y_adjusted_normalized, 1, 2,...
-%     0 , 0 , 0,...
-%     0, 0, 0, ...
-%     50, 55, -0.5, 0.5,...
-%     2, 'Times New Roman', 16);
-% legend('off');
-% 
-%     DEBUG_ID = 'POI-3.png';
-%     saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
-% 
-% % \ DEBUG - POI-3
-
-
-% % DEBUG - POI-4 - why verify the minimum variation number?
-% 
-% figure;
-% subplot(2,2,1:2);
-% generate_standard_fig(obtain_time_vec(Dir_X_adjusted_normalized,Fs), Dir_X_adjusted_normalized, 1, 2,...
-%     'Normalized direction X signal', 'DEBUG - POI-4', 'Time (s)',...
-%     'Amplitude (V)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     4, 'Times New Roman', 16);
-% 
-% subplot(2,2,3);
-% generate_standard_fig(obtain_time_vec(Dir_X_adjusted_normalized,Fs), Dir_X_adjusted_normalized, 1, 2,...
-%     0 , 0 , 'Time (s)',...
-%     'Amplitude (V)', 0, 0,...
-%     50.115, 50.155, 0, 0,...
-%     2, 'Times New Roman', 16);
-% legend('off');
-% 
-% subplot(2,2,4);
-% generate_standard_fig(obtain_time_vec(Dir_X_adjusted_normalized,Fs), Dir_X_adjusted_normalized, 1, 2,...
-%     0 , 0 , 'Time (s)',...
-%     0, 0, 0,...
-%     50.133, 50.135, 0, 0,...
-%     2, 'Times New Roman', 16);
-% legend('off');
-% 
-%     DEBUG_ID = 'POI-4.png';
-%     saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
-% 
-% % \ DEBUG - POI-4
 
 % 3° Test for the occurence of the variation problem
-result_problem = test_Minvariations(sensor_signal_normalized, Dir_X_adjusted_normalized,...
-    Dir_Y_adjusted_normalized);
+resultProblem = test_Minvariations(sensorSignalNormalized, dirXAdjustedNormalized,...
+    dirYAdjustedNormalized);
 % \ 3°
 
-clear Dir_X_adjusted Dir_X Dir_Y_adjusted Dir_Y sensor_signal
+clear dirXAdjusted dirX dirYAdjusted dirY sensorSignal
 
 %% External pattern segmentation
 
 % result_problem = true; % % Necessary for the May/2023 data
 
 % 4° Obtain the duration vector
-Duration = obtainDuration(sensor_signal_normalized, Dir_X_adjusted_normalized,...
-    Dir_Y_adjusted_normalized, result_problem);
-% \ 4°
+Duration = obtainDuration(sensorSignalNormalized, dirXAdjustedNormalized,...
+    dirYAdjustedNormalized, resultProblem);
 
-% % DEBUG - POI-6 - Duration for the external analysis
-% 
-% generate_standard_fig(1:length(Duration(:,1)), Duration(:,1), 1, 1,...
-%     'Duration', 'DEBUG - POI-6', 'Segment',...
-%     'Duration (number of samples)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     2, 'Times New Roman', 16);
-% 
-% DEBUG_ID = 'POI-6.png';
-% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
-% 
-% % \ DEBUG - POI-6
-
-% To allow finding the separation point between the external pattern and
-% the internal pattern, I will traverse the entire Duration vector until
-% I find a known Duration value (the Duration of manufacturing line 10).
-% Then I store the positions relative to the beginning of the manufacture
-% of line 10, line 11, and line 12. I know that all three should be very
-% similar, so I perform a test on lines 11 and 12. If they are within the
-% same interval, the end of the external pattern is identified. If not,
-% I go back to checking the duration for this pattern.
 
 % 5° Find the separation point
-duration_reference = 150e3; % known duration for the last contour printing
+durationReference = 150e3; % known duration for the last contour printing
 
 for i = 1:length(Duration(:,1))
 
-    result_sep = determin_separation_point(Duration, i, duration_reference);
+    resultSep = determin_separation_point(Duration, i, durationReference);
 
-    if result_sep == true
-        ponto_signal_contour_PI = Duration(i,2);
+    if resultSep == true
+        patternVariationPoint = Duration(i,2);
         break;
     else
-        clear result_sep
+        clear resultSep
     end
 end
 % \ 5°
 
 % 6° Contour lines obtaining
-separation_index = find(Duration(:,3) == ponto_signal_contour_PI);
-PE_lines = zeros(1,13);
-cont = 1;
+separationIndex = find(Duration(:,3) == patternVariationPoint);
+externalLines = zeros(1,13);
+duration3Length = 1;
 
 for i = 1:13
-    PE_lines(1,i) = Duration(separation_index-13+i,3);
+    externalLines(1,i) = Duration(separationIndex-13+i,3);
 end
-for i = 1:length(PE_lines)-1
-    index_contour_temp(cont,1) = PE_lines(i+1) - PE_lines(i);
-    index_contour_temp(cont,2) = PE_lines(i);
-    index_contour_temp(cont,3) = PE_lines(i+1);
-    cont = cont+1;
+for i = 1:length(externalLines)-1
+    indexCountourTemp(duration3Length,1) = externalLines(i+1) - externalLines(i);
+    indexCountourTemp(duration3Length,2) = externalLines(i);
+    indexCountourTemp(duration3Length,3) = externalLines(i+1);
+    duration3Length = duration3Length+1;
 end
-% \ 6°
 
 % 7° Repositioning evaluation and contour lines correction
 
 % reposition 1
-mean_contourgroup1 = round(mean([index_contour_temp(2,1) index_contour_temp(3,1)...
-    index_contour_temp(4,1)]),0);
+meanCountourGroup1 = round(mean([indexCountourTemp(2,1) indexCountourTemp(3,1)...
+    indexCountourTemp(4,1)]),0);
 
-correct_contour_line1(1,1) = mean_contourgroup1;
-correct_contour_line1(1,3) = index_contour_temp(1,3);
-correct_contour_line1(1,2) = index_contour_temp(1,3) - mean_contourgroup1;
+adjustedContourLine1(1,1) = meanCountourGroup1;
+adjustedContourLine1(1,3) = indexCountourTemp(1,3);
+adjustedContourLine1(1,2) = indexCountourTemp(1,3) - meanCountourGroup1;
 
-if index_contour_temp(1,1) - mean_contourgroup1 < 1
-repo_to_contour_line1(1,1) = abs(index_contour_temp(1,1) - mean_contourgroup1);
-repo_to_contour_line1(1,3) = correct_contour_line1(1,2);
-repo_to_contour_line1(1,2) = repo_to_contour_line1(1,3)...
-    - repo_to_contour_line1(1,1);
+if indexCountourTemp(1,1) - meanCountourGroup1 < 1
+repoToContour1(1,1) = abs(indexCountourTemp(1,1) - meanCountourGroup1);
+repoToContour1(1,3) = adjustedContourLine1(1,2);
+repoToContour1(1,2) = repoToContour1(1,3)...
+    - repoToContour1(1,1);
 else
-repo_to_contour_line1(1,1) = index_contour_temp(1,1) - mean_contourgroup1;
-repo_to_contour_line1(1,3) = correct_contour_line1(1,2);
-repo_to_contour_line1(1,2) = index_contour_temp(1,2);
+repoToContour1(1,1) = indexCountourTemp(1,1) - meanCountourGroup1;
+repoToContour1(1,3) = adjustedContourLine1(1,2);
+repoToContour1(1,2) = indexCountourTemp(1,2);
 end
 
 % reposition 2
-mean_contourgroup2 = round(mean([index_contour_temp(6,1) index_contour_temp(7,1)...
-    index_contour_temp(8,1)]),0);
+meanContourGroup2 = round(mean([indexCountourTemp(6,1) indexCountourTemp(7,1)...
+    indexCountourTemp(8,1)]),0);
 
-correct_contour_line5(1,1) = mean_contourgroup2;
-correct_contour_line5(1,3) = index_contour_temp(5,3);
-correct_contour_line5(1,2) = index_contour_temp(5,3) - mean_contourgroup2;
+adjustedContourLine2(1,1) = meanContourGroup2;
+adjustedContourLine2(1,3) = indexCountourTemp(5,3);
+adjustedContourLine2(1,2) = indexCountourTemp(5,3) - meanContourGroup2;
 
-repo_to_contour_line5(1,1) = index_contour_temp(5,1) - mean_contourgroup2;
-repo_to_contour_line5(1,3) = correct_contour_line5(1,2);
-repo_to_contour_line5(1,2) = index_contour_temp(5,2);
+repoToContour2(1,1) = indexCountourTemp(5,1) - meanContourGroup2;
+repoToContour2(1,3) = adjustedContourLine2(1,2);
+repoToContour2(1,2) = indexCountourTemp(5,2);
 
 % reposition 3
-mean_contourgroup3 = round(mean([index_contour_temp(10,1) index_contour_temp(11,1)...
-    index_contour_temp(12,1)]),0);
+meanContourGroup3 = round(mean([indexCountourTemp(10,1) indexCountourTemp(11,1)...
+    indexCountourTemp(12,1)]),0);
 
-correct_contour_line9(1,1) = mean_contourgroup3;
-correct_contour_line9(1,3) = index_contour_temp(9,3);
-correct_contour_line9(1,2) = index_contour_temp(9,3) - mean_contourgroup3;
+adjustedContourLine3(1,1) = meanContourGroup3;
+adjustedContourLine3(1,3) = indexCountourTemp(9,3);
+adjustedContourLine3(1,2) = indexCountourTemp(9,3) - meanContourGroup3;
 
-repo_to_contour_line9(1,1) = index_contour_temp(9,1) - mean_contourgroup3;
-repo_to_contour_line9(1,3) = correct_contour_line9(1,2);
-repo_to_contour_line9(1,2) = index_contour_temp(9,2);
+repoToContour3(1,1) = indexCountourTemp(9,1) - meanContourGroup3;
+repoToContour3(1,3) = adjustedContourLine3(1,2);
+repoToContour3(1,2) = indexCountourTemp(9,2);
 
-index_contour = index_contour_temp;
-index_contour(1,:) = correct_contour_line1;
-index_contour(5,:) = correct_contour_line5;
-index_contour(9,:) = correct_contour_line9;
+indexContour = indexCountourTemp;
+indexContour(1,:) = adjustedContourLine1;
+indexContour(5,:) = adjustedContourLine2;
+indexContour(9,:) = adjustedContourLine3;
 
-contour_repositions = [repo_to_contour_line1; repo_to_contour_line5; repo_to_contour_line9];
+contourRepositions = [repoToContour1; repoToContour2; repoToContour3];
 % \ 7°
 
 %% Internal pattern segmentation
@@ -460,93 +242,76 @@ contour_repositions = [repo_to_contour_line1; repo_to_contour_line5; repo_to_con
 % There is no need to check for the problem of too many consecutive transition lines here
 % since there are very small line segments in the internal pattern. On the cobtrary, 
 % this could cause some issues. So the result_problem value is set to false.
-result_problem = false;
+resultProblem = false;
 
 % Obtaining duration matrix
-Duration = obtainDuration(sensor_signal_normalized, Dir_X_adjusted_normalized,...
-    Dir_Y_adjusted_normalized, result_problem);
-
-% \ 8°
-
-% % DEBUG - POI-7 - First duration for the internal analysis
-% 
-% generate_standard_fig(1:length(Duration(:,1)), Duration(:,1), 1, 1,...
-%     'Duration', 'DEBUG - POI-7', 'Segment',...
-%     'Duration (number of samples)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     2, 'Times New Roman', 16);
-% 
-% DEBUG_ID = 'POI-7.png';
-% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
-% 
-% % \ DEBUG - POI-7
+Duration = obtainDuration(sensorSignalNormalized, ...
+    dirXAdjustedNormalized,...
+    dirYAdjustedNormalized, ...
+    resultProblem);
 
 % 9° Obtaining second duration matrix for the internal pattern
 
 % Filtering the duration matrix to remove the small line segments
-cont_val_8000 = 1;
+indexValuesAbv8000 = 1;
 Duration2 = zeros(3);
 alterationDuration = 8000;
 for i = 1:length(Duration(:,1))
     if Duration(i,1) > alterationDuration
-        Duration2(cont_val_8000,:) = Duration(i,:);
-        cont_val_8000 = cont_val_8000 + 1;
+        Duration2(indexValuesAbv8000,:) = Duration(i,:);
+        indexValuesAbv8000 = indexValuesAbv8000 + 1;
     end
 end
 
 clear Duration
-% \ 9°
 
-% % DEBUG - POI-8 - Second duration for the internal analysis
-% 
-% generate_standard_fig(1:length(Duration2(:,1)), Duration2(:,1), 1, 1,...
-%     'Duration', 'DEBUG - POI-8', 'Segment',...
-%     'Duration (number of samples)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     2, 'Times New Roman', 16);
-% 
-% DEBUG_ID = 'POI-8.png';
-% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
-% 
-% % \ DEBUG - POI-8
+
+
 
 % 10° Obtaining third duration matrix for the internal pattern
 
-lines_under_9000_samples = find(Duration2(:,1) < 9000);
+linesUdr9000 = find(Duration2(:,1) < 9000);
 Duration3 = zeros(3);
 previousPeak = 0;
 previousPeak2 = 0;
-middle_rasterDuration = 310e3;
+middleRasterDuration = 310e3;
 
-for i = 1:length (lines_under_9000_samples)
-    if i == length (lines_under_9000_samples)
+for i = 1:length (linesUdr9000)
+    if i == length (linesUdr9000)
         break;
     end
-    index_ini = lines_under_9000_samples(i);
-    index_fin = lines_under_9000_samples(i+1);
-    result = detectAnom(index_ini, index_fin);
+    initialIndex = linesUdr9000(i);
+    finalIndex = linesUdr9000(i+1);
+    result = detectAnom(initialIndex, finalIndex);
     previousPeak2 = previousPeak;
     previousPeak = Duration3(end-1,1);
     if  previousPeak < previousPeak2 % Change of behaviour from increasing to decreasing
         break;
     end
-    if  previousPeak > middle_rasterDuration % Is larger than the middle raster duration, 
+    if  previousPeak > middleRasterDuration % Is larger than the middle raster duration, 
     % found the end of the increasing behaviour
         break;
     end
     if result == true % normal situation
-        tempDuration= isNormal(Duration2, ...
-            index_ini, index_fin, ...
+        tempDuration= isNormal( ...
+            Duration2, ...
+            initialIndex, ...
+            finalIndex, ...
             1);
+
         if Duration3(1,1) == 0
             Duration3 = tempDuration;
+
         else
             Duration3 = [Duration3(1:end-1,:); tempDuration];
         end
         clear tempDuration
+
     else % abnormal situation
-        tempDuration = isAnormal(Duration2, ...
-            index_ini, index_fin, ...
+        tempDuration = isAnormal( ...
+            Duration2, ...
+            initialIndex, ...
+            finalIndex, ...
             previousPeak);
         Duration3 = [Duration3(1:end-1,:); tempDuration];
         clear tempDuration
@@ -554,76 +319,39 @@ for i = 1:length (lines_under_9000_samples)
 end
 
 clear Duration2
-% \ 10°
-
-% % DEBUG - POI-9 - Third duration for the internal analysis
-% 
-% generate_standard_fig(1:length(Duration3(:,1)), Duration3(:,1), 1, 1,...
-%     'Duration', 'DEBUG - POI-9', 'Segment',...
-%     'Duration (number of samples)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     2, 'Times New Roman', 16);
-% 
-% DEBUG_ID = 'POI-9.png';
-% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
-% 
-% % \ DEBUG - POI-9
 
 % 11° Obtaining fourth duration matrix for the internal pattern
-aux1 = find (Duration3(:,1) == previousPeak2);
-Duration3_v2 = Duration3(1:end-(end-aux1)+1,:);
+indexPreviousPeak2 = find (Duration3(:,1) == previousPeak2);
+Duration3_v2 = Duration3(1:end-(end-indexPreviousPeak2)+1,:);
 % \ 11°
 
 clear Duration3
-% % DEBUG - POI-10 - Fourth duration for the internal analysis
-% 
-% generate_standard_fig(1:length(Duration3_v2(:,1)), Duration3_v2(:,1), 1, 1,...
-%     'Duration', 'DEBUG - POI-10', 'Segment',...
-%     'Duration (number of samples)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     2, 'Times New Roman', 16);
-% 
-% DEBUG_ID = 'POI-10.png';
-% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
-% 
-% % \ DEBUG - POI-10
 
 % 12° Obtaining fifth duration matrix for the internal pattern
 % Raster area mirroring
 
-cont = length(Duration3_v2(:,1));
+duration3Length = length(Duration3_v2(:,1));
 Duration4 = Duration3_v2;
 
 for i = 1:length(Duration3_v2(:,1))-2
     if i == 1
-        Duration4(cont,1) = Duration3_v2(length(Duration3_v2(:,1))-i-1,1);
-        Duration4(cont,3) = Duration3_v2(length(Duration3_v2(:,1))-i,2);
-        Duration4(cont,2) = Duration4(cont,3) + Duration4(cont,1);
-        cont = cont + 1;
+        Duration4(duration3Length,1) = Duration3_v2(length(Duration3_v2(:,1))-i-1,1);
+        Duration4(duration3Length,3) = Duration3_v2(length(Duration3_v2(:,1))-i,2);
+        Duration4(duration3Length,2) = Duration4(duration3Length,3) + Duration4(duration3Length,1);
+        duration3Length = duration3Length + 1;
     end
     if i ~= 1
-        Duration4(cont,1) = Duration3_v2(length(Duration3_v2(:,1))-i-1,1);
-        Duration4(cont,3) = Duration4(cont-1,2);
-        Duration4(cont,2) = Duration4(cont,3) + Duration4(cont,1);
-        cont = cont + 1;
+        Duration4(duration3Length,1) = Duration3_v2(length(Duration3_v2(:,1))-i-1,1);
+        Duration4(duration3Length,3) = Duration4(duration3Length-1,2);
+        Duration4(duration3Length,2) = Duration4(duration3Length,3) + Duration4(duration3Length,1);
+        duration3Length = duration3Length + 1;
     end
 end
 % \ 12°
 
 clear Duration3_v2
 
-% % DEBUG - POI-11 - Fifith duration for the internal analysis
-% 
-% generate_standard_fig(1:length(Duration4(:,1)), Duration4(:,1), 1, 1,...
-%     'Duration', 'DEBUG - POI-11', 'Segment',...
-%     'Duration (number of samples)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     2, 'Times New Roman', 16);
-% 
-% DEBUG_ID = 'POI-11.png';
-% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
-% 
-% % \ DEBUG - POI-11
+
 
 % 13° Obtaining sixth duration matrix for the internal pattern
 % Obtain the first raster line and add to the beggining of the duraction matrix
@@ -639,43 +367,32 @@ Duration4_v2(length(Duration4(:,1))+2,2) = Duration4_v2(length(Duration4(:,1))+2
 % \ 13°
 
 clear Duration4
-% % DEBUG - POI-12 - Eleventh duration for the internal analysis
-% 
-% generate_standard_fig(1:length(Duration4_v2(:,1)), Duration4_v2(:,1), 1, 1,...
-%     'Duration', 'DEBUG - POI-12', 'Segment',...
-%     'Duration (number of samples)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     2, 'Times New Roman', 16);
-% 
-% DEBUG_ID = 'POI-12.png';
-% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
-% 
-% % \ DEBUG - POI-12
+
 
 % 14° Obtaining the index values from the last duration matrix
-cont_internal = 1;
-cont_trans_internal = 1;
+rasterLineCount = 1;
+transitionLineCount = 1;
 
 for j = 1:length(Duration4_v2(:,1))
     if Duration4_v2(j,1) < 8000 || Duration4_v2(j,1) > 9000
-        index_raster(cont_internal,:) = Duration4_v2(j,:);
-        cont_internal = cont_internal + 1;
+        index_raster(rasterLineCount,:) = Duration4_v2(j,:);
+        rasterLineCount = rasterLineCount + 1;
     else
-        index_trans_raster(cont_trans_internal,:) = Duration4_v2(j,:);
-        cont_trans_internal = cont_trans_internal + 1;
+        index_trans_raster(transitionLineCount,:) = Duration4_v2(j,:);
+        transitionLineCount = transitionLineCount + 1;
     end
 end
 
-contour_to_raster_reposition(1,3) = index_contour(12,3);
-contour_to_raster_reposition(1,2) = Duration4_v2(1,3);
-contour_to_raster_reposition(1,1) = contour_to_raster_reposition(1,2) -...
-    contour_to_raster_reposition(1,3);
+contourToRasterReposition(1,3) = indexContour(12,3);
+contourToRasterReposition(1,2) = Duration4_v2(1,3);
+contourToRasterReposition(1,1) = contourToRasterReposition(1,2) -...
+    contourToRasterReposition(1,3);
 
-index_contour_alt = index_contour;
+indexContourAlt = indexContour;
 
 for i = 1:1:12
-    index_contour_alt(i,2) = index_contour(i,2);
-    index_contour_alt(i,3) = index_contour(i,3)-5;
+    indexContourAlt(i,2) = indexContour(i,2);
+    indexContourAlt(i,3) = indexContour(i,3)-5;
 end
 
 if length(index_raster) < 55
@@ -685,50 +402,50 @@ if length(index_raster) < 55
 end
 
 
-signal_reposition = Compos3r(sensor_signal_normalized,contour_to_raster_reposition(:,2:3))+...
-    Compos3r(sensor_signal_normalized,contour_repositions(:,2:3));
-signal_raster = Compos3r(sensor_signal_normalized, index_raster(:,2:3));
-signal_trans_raster = Compos3r(sensor_signal_normalized, index_trans_raster(:,2:3));
-signal_contour = Compos3r(sensor_signal_normalized, index_contour_alt(:,2:3));
+signalReposition = Compos3r(sensorSignalNormalized,contourToRasterReposition(:,2:3))+...
+    Compos3r(sensorSignalNormalized,contourRepositions(:,2:3));
+signalRaster = Compos3r(sensorSignalNormalized, index_raster(:,2:3));
+signalTransRaster = Compos3r(sensorSignalNormalized, index_trans_raster(:,2:3));
+signalContour = Compos3r(sensorSignalNormalized, indexContourAlt(:,2:3));
 
 % \ 14°
 
 % 15° Obtain the segmentation results
 
-test_segment_choice = strcmp(segmentation_choice,'points');
+testSegmentChoice = strcmp(segmentationChoice,'points');
 
-if test_segment_choice == true
-    result_reposition = [contour_repositions; contour_to_raster_reposition];
-    result_contour = index_contour;
-    result_raster = index_raster;
-    result_transition_raster = index_trans_raster;
+if testSegmentChoice == true
+    resultReposition = [contourRepositions; contourToRasterReposition];
+    resultContour = indexContour;
+    resultRaster = index_raster;
+    resultTransitionRaster = index_trans_raster;
 end
 
-test_segment_choice = strcmp(segmentation_choice,'segments');
+testSegmentChoice = strcmp(segmentationChoice,'segments');
 
-if test_segment_choice == true
-    result_reposition = gen_signal_segments(sensor_signal_normalized,...
-        contour_repositions);
-    result_reposition(1,4) = gen_signal_segments(sensor_signal_normalized,...
-        contour_to_raster_reposition);
-    result_contour = gen_signal_segments(sensor_signal_normalized, index_contour);
-    result_raster = gen_signal_segments(sensor_signal_normalized, index_raster);
-    result_transition_raster = gen_signal_segments(sensor_signal_normalized, index_trans_raster);
+if testSegmentChoice == true
+    resultReposition = gen_signal_segments(sensorSignalNormalized,...
+        contourRepositions);
+    resultReposition(1,4) = gen_signal_segments(sensorSignalNormalized,...
+        contourToRasterReposition);
+    resultContour = gen_signal_segments(sensorSignalNormalized, indexContour);
+    resultRaster = gen_signal_segments(sensorSignalNormalized, index_raster);
+    resultTransitionRaster = gen_signal_segments(sensorSignalNormalized, index_trans_raster);
 end
 
 % \ 15°
 
 % 16° Save the results and generate the graphs
 
-if save_choice == 'Y'
-    save_files(result_reposition, result_contour, result_raster,...
-        result_transition_raster, segmentation_choice, signal_identifier);
+if saveChoice == 'Y'
+    save_files(resultReposition, resultContour, resultRaster,...
+        resultTransitionRaster, segmentationChoice, signalIdentifier);
 end
 
-if graphical_choice == 'Y'
-    gen_graph(signal_reposition, sensor_signal_normalized, Fs,...
-        signal_identifier, signal_contour, signal_raster,...
-        signal_trans_raster, index_raster, figure_choice);
+if graphical == 'Y'
+    gen_graph(signalReposition, sensorSignalNormalized, Fs,...
+        signalIdentifier, signalContour, signalRaster,...
+        signalTransRaster, index_raster, figureChoice);
 end
 
 % \ 16°
@@ -762,16 +479,16 @@ composedDuration(indexDuration, 1) =  composedDuration(indexDuration, 2)...
 
 % Raster period (value above 9000 samples, and that increases
 % 11e3 in relation to the previous fabrication period
-composedDuration(indexDuration+1, 3) =  originalDuration(initialPoint+1,3);
-composedDuration(indexDuration+1, 2) =  originalDuration(initialPoint+1,2);
-composedDuration(indexDuration+1, 1) =  composedDuration(indexDuration+1, 2)...
-    - composedDuration(indexDuration+1, 3);
+composedDuration(indexDuration + 1, 3) =  originalDuration(initialPoint + 1,3);
+composedDuration(indexDuration + 1, 2) =  originalDuration(initialPoint + 1,2);
+composedDuration(indexDuration + 1, 1) =  composedDuration(indexDuration + 1, 2)...
+    - composedDuration(indexDuration + 1, 3);
 
 % Transition period (aprox 8000 samples)
-composedDuration(indexDuration+2, 3) =  originalDuration(lastPoint,3);
-composedDuration(indexDuration+2, 2) =  originalDuration(lastPoint,2);
-composedDuration(indexDuration+2, 1) =  composedDuration(indexDuration+2, 2)...
-    - composedDuration(indexDuration+2, 3);
+composedDuration(indexDuration + 2, 3) =  originalDuration(lastPoint, 3);
+composedDuration(indexDuration + 2, 2) =  originalDuration(lastPoint, 2);
+composedDuration(indexDuration + 2, 1) =  composedDuration(indexDuration + 2, 2)...
+    - composedDuration(indexDuration + 2, 3);
 end
 
 % SUB3
@@ -855,8 +572,11 @@ function composedDuration = isAnormal(originalDuration, ...
 end
 
 % SUB4
-function duration = obtainDuration (sensor_signal_normalized, Dir_X_adjusted_normalized,...
-    Dir_Y_adjusted_normalized, result_problem)
+function duration = obtainDuration ( ...
+    sensor_signal_normalized, ...
+    Dir_X_adjusted_normalized,...
+    Dir_Y_adjusted_normalized, ...
+    result_problem)
 
 x_value = 0;
 y_value = 0;
@@ -920,8 +640,6 @@ end
 function result_problem = test_Minvariations(sensor_signal_normalized, Dir_X_adjusted_normalized,...
     Dir_Y_adjusted_normalized)
 
-% TODO Incorporate test to see if there were data with few samples between the
-% lines of the external pattern
 
 x_value = 0;
 y_value = 0;
@@ -1156,54 +874,6 @@ function generate_standard_fig(xaxis, yaxis, type, new_or_superimpose,...
     x_limit1, x_limit2, y_limit1, y_limit2,...
     legend_type, font_type, font_size)
 
-% Developed by Thiago Glissoi Lopes
-% Data Acquisition and Digital Signal Processing Laboratory (LADAPS)
-% FEB - UNESP - Bauru
-% 08/2019 - update 05/2020 - update 04/2023
-%
-% generate_standard_fig(xaxis, yaxis, type, new_or_superimpose,...
-% legend, title, xaxis_label, yaxis_label, x_ticks,...
-% y_ticks, x_limit1, x_limit2, y_limit1, y_limit2,...
-% save, file_name, legend_type)
-%
-% - % - % - type - % - % - :
-% 1 = normal; 2 = bar; 3 = stem;
-% - % - % - new_or_superimpose - % - % - :
-% 1 = new figure; 2 = superimpose on current figure;
-% - % - % - legend - % - % - :
-% Legend for the figure. Write as follows: 'example';
-% - % - % - title - % - % - :
-% Title for the figure. Write as follows: 'example';
-% - % - % - xaxis_label - % - % - :
-% Label for the X axis of the figure. Write as follows: 'example';
-% - % - % - yaxis_label - % - % - :
-% Label for the Y axis of the figure. Write as follows: 'example';
-% - % - % - x_ticks - % - % - :
-% 'ticks' used on the X axis of the figure. Write as follows:...
-% [0 10 30 50];
-% - % - % - y_ticks - % - % - :
-% 'ticks' used on the Y axis of the figure. Write as follows:...
-% [0 10 30 50];
-% - % - % - x_limit1 - % - % - :
-% Lower limit to be applied on the X axis of the figure;
-% - % - % - x_limit2 - % - % - :
-% Upper limit to be applied on the X axis of the figure;
-% - % - % - y_limit1 - % - % - :
-% Lower limit to be applied on the Y axis of the figure;
-% - % - % - y_limit2 - % - % - :
-% Upper limit to be applied on the Y axis of the figure;
-% - % - % - legend_type - % - % - :
-% Location of the legend in the figure
-% 1 = Best automatic location; 2 = Top right corner;
-% 3 = Top left corner; 4 = Bottom left corner;
-% 5 = Bottom right corner
-% - % - % - font_type - % - % - :
-% Defines the type of font to be used.
-% Write as follows: 'Times New Roman';
-% - % - % - font_size - % - % - :
-% Defines the size of the font to be used in the texts.
-% Write as follows: 12;
-
 
 if (new_or_superimpose == 1)
     figure;
@@ -1351,7 +1021,7 @@ elseif sum(unitVal) > 1
     error('Error:saveFig', 'Please, inform only one unit.')
 end
 
-if strcmp(class(res),'double') %#ok<*STISA>
+if strcmp(class(res),'double')
     res = ['-r' num2str(res)];
 elseif strncmp('-r', res, 2) == 0
     error('Error:saveFig', 'The value informed for the resolution is not valid.')
@@ -1471,8 +1141,7 @@ end
 function [index_raster_alt,index_trans_raster_alt] =...
     adjust_internal(index_raster,index_trans_raster)
 
-index_trans_raster_alt = index_trans_raster; % TODO adjust the 
-% trans_raster for this situation
+index_trans_raster_alt = index_trans_raster; 
 
 id_index_raster = 0;
 
