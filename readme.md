@@ -2,7 +2,7 @@
 The fff_segmenter algorithm is used to segment a acoustic signal obtained from a first layer 3D print into multiple acoustic blocks related to specific geometrical elements of the printed part, such as contour lines, raster lines, and transition between raster lines. The fff_segmenter algorithm uses the direction control signal of the X and Y axis stepper motors. In order to use the fff_segmenter algorithm, the acoustic signal must be collected synchronously with the X and Y direction control signals at a specified sampling frequency. We strongly encourage the user to read the ```Documentation``` pdf file in order to completely comprehend the fff_segmenter algorithm inner workings, and how it was built with a specific part geometry in consideration.
 
 # Clone the repository
-git clone https://github.com/thiago-glissoi/FDM-Line-Segmentation.git
+git clone https://github.com/thiago-glissoi/FFF-Line-Segmentation.git
 
 # Example (run in Matlab)
 Let's load the data into the Matlab workspace
