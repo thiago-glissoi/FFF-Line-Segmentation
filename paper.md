@@ -53,7 +53,7 @@ Current research on the FFF process utilizes different methods to segment the ac
 `fff_segmenter` takes a programming approach that allows for the automatic segmentation of the printing lines in an acoustic signal, utilizing the direction control signal of the X and Y step motor axes of the FFF printer, and the signal's sampling frequency. This feature allows for accurate segmentation of the contour and raster printing lines from the acoustic signal data, thus enabling the extraction of relevant information for process monitoring and control.
 A consequence of this programming approach is that the FFF signal segmentation in `fff_segmenter`, in contrast to other methods that have a manual component, is fully automatic and less prone to errors due to human mistakes. The process operator only needs to input the acoustic signal, the direction control signal of the X and Y step motor axes of the FFF printer, and the signal's sampling frequency. In return, the operator receives the start and end points in the number of samples for each printing line, along with other relevant process information. 
 
-![Segmentation example with `fff_segmenter`. (a) signal with raster lines; (b) signal with transition between raster lines](/images/segmentationImage.png){width=100%}
+![Segmentation example with `fff_segmenter`. (a) signal with raster lines; (b) signal with transition between raster lines](images/segmentationImage.png){width=100%}
 
 ### Result orientated
 
