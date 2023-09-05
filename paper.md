@@ -16,18 +16,24 @@ authors:
     orcid: 0000-0002-7093-1754
     affiliation: 1
   - name: Paulo Roberto de Aguiar
-    TODO orcid:
+    orcid: 0000-0002-9934-4465
     affiliation: 1
     corresponding: true
   - name: Reinaldo Götz de Oliveira Junior
     orcid: 0000-0002-2843-528X
     affiliation: 1
+  - name: Pedro Oliveira Conceição Junior 
+    orcid: 0000-0002-8476-3333
+    affiliation: 2
 
 affiliations:
   - name: Department of Electrical Engineering, São Paulo State University, Brazil
     index: 1
 
-date: 16 April 2023 
+  - name: Department of Electrical and Computer Engineering, Sao Carlos School of Engineering (EESC),University of Sao Paulo (USP), Sao Carlos 13566-590, Sao Paulo, Brazil
+    index: 2
+
+date: 5 September 2023 
 bibliography: paper.bib 
 
 ---
@@ -62,6 +68,6 @@ The algorithms in `fff_segmenter` were developed with a focus on cartesian [RepR
 In summary, `fff_segmenter` fulfills the need in FFF process monitoring research for a signal segmentation script that is automatic, result-oriented, and scalable, as well as providing a framework for the community to scale the script to cater to other FFF printers and parts.
 
 # Acknowledgements
-The authors are thankful to the National Council for Scientific and Technological Development (CNPq) for supporting this research under the Grant # 306774/2021-6.
+The authors are thankful to the National Council for Scientific and Technological Development (CNPq) for supporting this research under the Grant # 306774/2021-6, and to the Coordenação de Aperfeiçoamento de Pessoal de Nível Superior – Brasil (CAPES) – Finance Code 001
 
 # References
