@@ -4,7 +4,7 @@
 % which compose the internal pattern, and other movements of a signal obtained
 % from single-layer manufacturing by the Fused Filament Fabrication (FFF) process.
 %
-% % Version 2.4
+% % Version 2.5
 % Authorship: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
 % Last edit: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
 
