@@ -194,14 +194,14 @@ adjustedContourLine1(1,3) = indexCountourTemp(1,3);
 adjustedContourLine1(1,2) = indexCountourTemp(1,3) - meanCountourGroup1;
 
 if indexCountourTemp(1,1) - meanCountourGroup1 < 1
-repoToContour1(1,1) = abs(indexCountourTemp(1,1) - meanCountourGroup1);
-repoToContour1(1,3) = adjustedContourLine1(1,2);
-repoToContour1(1,2) = repoToContour1(1,3)...
-    - repoToContour1(1,1);
+    repoToContour1(1,1) = abs(indexCountourTemp(1,1) - meanCountourGroup1);
+    repoToContour1(1,3) = adjustedContourLine1(1,2);
+    repoToContour1(1,2) = repoToContour1(1,3)...
+        - repoToContour1(1,1);
 else
-repoToContour1(1,1) = indexCountourTemp(1,1) - meanCountourGroup1;
-repoToContour1(1,3) = adjustedContourLine1(1,2);
-repoToContour1(1,2) = indexCountourTemp(1,2);
+    repoToContour1(1,1) = indexCountourTemp(1,1) - meanCountourGroup1;
+    repoToContour1(1,3) = adjustedContourLine1(1,2);
+    repoToContour1(1,2) = indexCountourTemp(1,2);
 end
 
 % reposition 2
@@ -240,7 +240,7 @@ contourRepositions = [repoToContour1; repoToContour2; repoToContour3];
 
 % 8° Obtaining first duration matrix for the internal pattern
 % There is no need to check for the problem of too many consecutive transition lines here
-% since there are very small line segments in the internal pattern. On the cobtrary, 
+% since there are very small line segments in the internal pattern. On the cobtrary,
 % this could cause some issues. So the result_problem value is set to false.
 resultProblem = false;
 
@@ -288,8 +288,8 @@ for i = 1:length (linesUdr9000)
     if  previousPeak < previousPeak2 % Change of behaviour from increasing to decreasing
         break;
     end
-    if  previousPeak > middleRasterDuration % Is larger than the middle raster duration, 
-    % found the end of the increasing behaviour
+    if  previousPeak > middleRasterDuration % Is larger than the middle raster duration,
+        % found the end of the increasing behaviour
         break;
     end
     if result == true % normal situation
@@ -401,6 +401,35 @@ if length(index_raster) < 55
 
 end
 
+% Verify external pattern integrity
+
+square1ExternalPattern = mean (indexContourAlt(1:4,1));
+square2ExternalPattern = mean (indexContourAlt(5:8,1));
+
+if abs(square2ExternalPattern - square1ExternalPattern) > 15e3
+    [contourRepositions, indexContourAlt] = adjustExternalPattern(contourRepositions, indexContourAlt);
+end
+
+%
+
+% Verify internal pattern integrity
+rasterAuxMatrix = index_raster;
+rasterAuxMatrix(1,4) = 0;
+
+for i = 2:length(index_raster(:,1))
+rasterAuxMatrix(i,4) = abs(index_raster(i,3) - index_raster(i-1,2));
+end
+
+maxRasterAux = max(rasterAuxMatrix(:,4));
+
+indexAdjust = find (rasterAuxMatrix(:,4) > 10e3);
+
+if maxRasterAux > 9e3
+    [index_raster, index_trans_raster] = adjustInternalPattern(index_raster, index_trans_raster, indexAdjust);
+end
+
+%
+
 
 signalReposition = Compos3r(sensorSignalNormalized,contourToRasterReposition(:,2:3))+...
     Compos3r(sensorSignalNormalized,contourRepositions(:,2:3));
@@ -416,9 +445,14 @@ testSegmentChoice = strcmp(segmentationChoice,'points');
 
 if testSegmentChoice == true
     resultReposition = [contourRepositions; contourToRasterReposition];
-    resultContour = indexContour;
+    resultContour = indexContourAlt;
     resultRaster = index_raster;
     resultTransitionRaster = index_trans_raster;
+
+resultWholeWorkpiece = [resultContour(1,2) resultRaster(55,2)];
+resultExternalPattern = [resultContour(1,2) resultContour(12,3)];
+resultInternalPattern = [resultRaster(1,3) resultRaster(55,2)];
+
 end
 
 testSegmentChoice = strcmp(segmentationChoice,'segments');
@@ -496,10 +530,10 @@ function composedDuration = isAnormal(originalDuration, ...
     initialPoint, lastPoint, ...
     picoAnterior)
 
-    cont = 1;
-    for i = initialPoint:2:lastPoint
-        if lastPoint - i == 1 || lastPoint == i 
-            if lastPoint - initialPoint > 3
+cont = 1;
+for i = initialPoint:2:lastPoint
+    if lastPoint - i == 1 || lastPoint == i
+        if lastPoint - initialPoint > 3
             % normal transition
             % Transition period (aprox 8000 samples)
             composedDuration(cont, 3) =  composedDuration(cont-1, 2);
@@ -520,10 +554,10 @@ function composedDuration = isAnormal(originalDuration, ...
                 composedDuration(cont, 3) =  composedDuration(cont-1, 2);
                 composedDuration(cont, 2) =  originalDuration(lastPoint, 2);
                 composedDuration(cont, 1) =  composedDuration(cont, 2)...
-                   - composedDuration(cont, 3);
-               if composedDuration(cont, 1) < 0 % overlap the treshold
-                   aux = length(composedDuration(:,1));
-                   composedDuration2(:,:) = composedDuration(1:aux-2,:);
+                    - composedDuration(cont, 3);
+                if composedDuration(cont, 1) < 0 && cont > 3% overlap the treshold
+                    aux = length(composedDuration(:,1));
+                    composedDuration2(:,:) = composedDuration(1:aux-2,:);
                     clear composedDuration
                     composedDuration =  composedDuration2;
                     clear composedDuration2
@@ -535,40 +569,40 @@ function composedDuration = isAnormal(originalDuration, ...
                 end
             end
             break;
-            end
         end
-        if i == initialPoint % If it is the first case
-           % Transition period (aprox 8000 samples)
-           composedDuration(cont, 3) =  originalDuration(i,3); %#ok<*AGROW>
-           composedDuration(cont, 2) =  originalDuration(i,2);
-           composedDuration(cont, 1) =  composedDuration(cont, 2)...
-               - composedDuration(cont, 3);
-           cont = cont +1;
-       else % Normal transition
-           composedDuration(cont, 3) =  composedDuration(cont-1, 2);
-           composedDuration(cont, 2) =  composedDuration(cont, 3) +...
-               8.4e3;
-           composedDuration(cont, 1) =  composedDuration(cont, 2)...
-               - composedDuration(cont, 3);
-           cont = cont +1;
-       end
-       % Transition period (aprox 8000 samples), and that grows
-       % 11e3 in relation to the previous fabrication period
-       composedDuration(cont, 3) =  composedDuration(cont-1, 2);
-       composedDuration(cont, 2) =  composedDuration(cont, 3) +...
-           picoAnterior + 11e3;
-       composedDuration(cont, 1) =  composedDuration(cont, 2)...
-           - composedDuration(cont, 3);
-        picoAnterior = composedDuration(cont, 1);
+    end
+    if i == initialPoint % If it is the first case
+        % Transition period (aprox 8000 samples)
+        composedDuration(cont, 3) =  originalDuration(i,3); %#ok<*AGROW>
+        composedDuration(cont, 2) =  originalDuration(i,2);
+        composedDuration(cont, 1) =  composedDuration(cont, 2)...
+            - composedDuration(cont, 3);
         cont = cont +1;
-   
-        % Normal transition
+    else % Normal transition
         composedDuration(cont, 3) =  composedDuration(cont-1, 2);
         composedDuration(cont, 2) =  composedDuration(cont, 3) +...
             8.4e3;
         composedDuration(cont, 1) =  composedDuration(cont, 2)...
             - composedDuration(cont, 3);
+        cont = cont +1;
     end
+    % Transition period (aprox 8000 samples), and that grows
+    % 11e3 in relation to the previous fabrication period
+    composedDuration(cont, 3) =  composedDuration(cont-1, 2);
+    composedDuration(cont, 2) =  composedDuration(cont, 3) +...
+        picoAnterior + 11e3;
+    composedDuration(cont, 1) =  composedDuration(cont, 2)...
+        - composedDuration(cont, 3);
+    picoAnterior = composedDuration(cont, 1);
+    cont = cont +1;
+
+    % Normal transition
+    composedDuration(cont, 3) =  composedDuration(cont-1, 2);
+    composedDuration(cont, 2) =  composedDuration(cont, 3) +...
+        8.4e3;
+    composedDuration(cont, 1) =  composedDuration(cont, 2)...
+        - composedDuration(cont, 3);
+end
 end
 
 % SUB4
@@ -703,16 +737,16 @@ for i = 1:length(duration(:,1))
 end
 
 % % DEBUG - POI-5 - why the min value of 50?
-% 
+%
 % generate_standard_fig(1:length(duration(:,1)), duration(:,1), 1, 1,...
 %     'Duration', 'DEBUG - POI-5', 'Segment',...
 %     'Duration (number of samples)', 0, 0, ...
 %     0, 0, 0, 0,...
 %     2, 'Times New Roman', 16);
-% 
+%
 % DEBUG_ID = 'POI-5.png';
 % saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
-% 
+%
 % % \ DEBUG - POI-5
 
 if cont_low_dur > 50
@@ -852,8 +886,15 @@ grid minor;
 xticklabels (ticks);
 
 if figure_choice == 'Y'
+    checkFolder = isfolder('Segmentation results');
+    if checkFolder == 0
+        mkdir('Segmentation results');
+    end
+    oldFolder = cd('Segmentation results/');
+
     signal_identifier2 = ['Segmentation results ',signal_identifier, '.png'];
     saveFig(gca,'centimeters',[13 11]*1.8,600,signal_identifier2)
+        cd(oldFolder);
 end
 
 end
@@ -862,11 +903,15 @@ end
 function save_files(result_reposition, result_contour, result_raster,...
     result_transition_raster, segmentation_choice, signal_identifier)
 
-cd('results/');
+checkFolder = isfolder('Segmentation results');
+if checkFolder == 0
+    mkdir('Segmentation results');
+end
+oldFolder = cd('Segmentation results/');
 save ([segmentation_choice,' segmentation results ',signal_identifier],...
     'result_reposition', 'result_contour',...
     'result_raster', 'result_transition_raster');
-
+cd(oldFolder);
 end
 
 % AUX1
@@ -1080,7 +1125,7 @@ for i = 1:length(matriz_posicoes)
         break;
     end
 end
-    composedSignal = aux;
+composedSignal = aux;
 end
 
 % AUX7
@@ -1142,7 +1187,7 @@ end
 function [index_raster_alt,index_trans_raster_alt] =...
     adjust_internal(index_raster,index_trans_raster)
 
-index_trans_raster_alt = index_trans_raster; 
+index_trans_raster_alt = index_trans_raster;
 
 id_index_raster = 0;
 
@@ -1204,24 +1249,83 @@ index_raster_alt = index_raster_alt(1:b,:);
 middle = length(index_raster_alt);
 
 for i = 1:middle
-   if i < middle
-    index_raster_alt_2(i,1) = index_raster_alt(middle-i,1);
-   else
-       break;
-   end
-   if i == 1
-   index_raster_alt_2(i,3) =...
-       index_raster_alt(middle,2)+...
-       8.4e3;
-   else
-   index_raster_alt_2(i,3) =...
-       index_raster_alt_2(end-1,2) + 8.4e3;
-   end
-   index_raster_alt_2(i,2) =...
-       index_raster_alt_2(i,1)+index_raster_alt_2(i,3);
+    if i < middle
+        index_raster_alt_2(i,1) = index_raster_alt(middle-i,1);
+    else
+        break;
+    end
+    if i == 1
+        index_raster_alt_2(i,3) =...
+            index_raster_alt(middle,2)+...
+            8.4e3;
+    else
+        index_raster_alt_2(i,3) =...
+            index_raster_alt_2(end-1,2) + 8.4e3;
+    end
+    index_raster_alt_2(i,2) =...
+        index_raster_alt_2(i,1)+index_raster_alt_2(i,3);
 
 end
 
 index_raster_alt = [index_raster_alt;index_raster_alt_2];
+
+end
+
+% AUX10
+
+function [contourRepositions, indexContour] =...
+    adjustExternalPattern(contourRepositions, indexContour)
+
+med_quad_ext = mean(indexContour(5:8,1));
+
+dif_quad = indexContour(8,1) - indexContour(9,1);
+
+dif_ini = med_quad_ext - dif_quad;
+
+correct_square = zeros(4,3);
+
+correct_square(4,3) = contourRepositions(2,2);
+correct_square(4,2) = floor(correct_square(4,3) - dif_ini);
+correct_square(4,1) = floor(abs(correct_square(4,2) - correct_square(4,3)));
+
+correct_square(3,3) = correct_square(4,2) - 4;
+correct_square(3,2) = floor(correct_square(3,3) - dif_ini - 6);
+correct_square(3,1) = floor(abs(correct_square(3,2) - correct_square(3,3)));
+
+correct_square(2,3) = correct_square(3,2) - 4;
+correct_square(2,2) = floor(correct_square(2,3) - dif_ini - 3);
+correct_square(2,1) = floor(abs(correct_square(2,2) - correct_square(2,3)));
+
+correct_square(1,3) = correct_square(2,2) - 4;
+correct_square(1,2) = floor(correct_square(1,3) - dif_ini + 4);
+correct_square(1,1) = floor(abs(correct_square(1,2) - correct_square(1,3)));
+
+contourRepositions(1,3) = correct_square(1,2) - 4; 
+contourRepositions(1,2) = floor(contourRepositions(1,3) - contourRepositions(1,1));
+
+indexContour(1:4,:) = correct_square;
+
+end
+
+% AUX11
+
+function [index_raster, index_trans_raster] =...
+    adjustInternalPattern(index_raster, index_trans_raster, indexAdjust)
+
+index_rasterAdj = index_raster;
+index_trans_rasterAdj = index_trans_raster;
+
+for i = indexAdjust(1):indexAdjust(end)
+
+index_rasterAdj(i,3) = index_rasterAdj(i-1,2) + index_trans_rasterAdj(i-1,1);
+index_rasterAdj(i,2) = index_rasterAdj(i,3) + index_rasterAdj(i,1);
+
+index_trans_rasterAdj(i-1,3) = index_rasterAdj(i-1,2);
+index_trans_rasterAdj(i-1,2) = index_trans_rasterAdj(i-1,3) + index_trans_rasterAdj(i-1,1);
+
+end
+
+index_raster = index_rasterAdj;
+index_trans_raster = index_trans_rasterAdj;
 
 end
