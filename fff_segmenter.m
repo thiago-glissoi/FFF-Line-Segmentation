@@ -4,9 +4,8 @@
 % which compose the internal pattern, and other movements of a signal obtained
 % from single-layer manufacturing by the Fused Filament Fabrication (FFF) process.
 %
-% % Version 2.5
-% Authorship: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
-% Last edit: Thiago Glissoi Lopes - LADAPS - UNESP BAURU
+% MIT License
+% Copyright (c) 2023 Thiago Glissoi Lopes, Paulo Monteiro de Carvalho Monson, Paulo Roberto de Aguiar, Reinaldo Götz de Oliveira Junior, Pedro Oliveira Conceição Junior
 
 % CORE
 function fff_segmenter(sensorSignal, dirX, dirY, Fs)
@@ -35,6 +34,26 @@ if testSegmentChoicePoints ~= 1 && testSegmentChoiceSegments ~= 1
     segmentationChoice = 'points';
 end
 
+clear prompt
+clc;
+
+testSegmentChoice = strcmp(segmentationChoice,'points');
+
+if testSegmentChoice == true
+    disp ("Would you like to obtain the segmentation index (points)");
+    disp ("in number of samples or in seconds? ");
+    prompt = "Response number of samples/seconds [number of samples]: ";
+    xticksChoice = input(prompt,"s");
+    if isempty(xticksChoice)
+        xticksChoice = 'number of samples';
+    end
+    testxticksChoiceNumber = strcmp(xticksChoice,'number of samples');
+    testxticksChoiceSeconds = strcmp(xticksChoice,'seconds');
+    if testxticksChoiceNumber ~= 1 && testxticksChoiceSeconds ~= 1
+        xticksChoice = 'number of samples';
+    end
+
+end
 
 clear prompt
 clc;
@@ -96,6 +115,14 @@ disp ("Signal name: ");
 disp (signalIdentifier);
 disp ("Segmentation choice: ");
 disp (segmentationChoice);
+
+testSegmentChoice = strcmp(segmentationChoice,'points');
+
+if testSegmentChoice == true
+disp ("xticksChoice: ");
+disp (xticksChoice);
+end
+
 disp ("Graphical choice: ");
 disp (graphical);
 if graphical == 'Y'
@@ -388,6 +415,11 @@ contourToRasterReposition(1,2) = Duration4_v2(1,3);
 contourToRasterReposition(1,1) = contourToRasterReposition(1,2) -...
     contourToRasterReposition(1,3);
 
+contourToRasterRepositionAux = contourToRasterReposition;
+
+contourToRasterReposition(1,2) = contourToRasterRepositionAux(1,3);
+contourToRasterReposition(1,3) = contourToRasterRepositionAux(1,2);
+
 indexContourAlt = indexContour;
 
 for i = 1:1:12
@@ -417,7 +449,7 @@ rasterAuxMatrix = index_raster;
 rasterAuxMatrix(1,4) = 0;
 
 for i = 2:length(index_raster(:,1))
-rasterAuxMatrix(i,4) = abs(index_raster(i,3) - index_raster(i-1,2));
+    rasterAuxMatrix(i,4) = abs(index_raster(i,3) - index_raster(i-1,2));
 end
 
 maxRasterAux = max(rasterAuxMatrix(:,4));
@@ -443,15 +475,47 @@ signalContour = Compos3r(sensorSignalNormalized, indexContourAlt(:,2:3));
 
 testSegmentChoice = strcmp(segmentationChoice,'points');
 
+testxticksChoice = strcmp(xticksChoice,'seconds');
+
 if testSegmentChoice == true
     resultReposition = [contourRepositions; contourToRasterReposition];
     resultContour = indexContourAlt;
     resultRaster = index_raster;
     resultTransitionRaster = index_trans_raster;
+    resultWholeWorkpiece = [resultContour(1,2) resultRaster(55,2)];
+    resultExternalPattern = [resultContour(1,2) resultContour(12,3)];
+    resultInternalPattern = [resultRaster(1,3) resultRaster(55,2)];
 
-resultWholeWorkpiece = [resultContour(1,2) resultRaster(55,2)];
-resultExternalPattern = [resultContour(1,2) resultContour(12,3)];
-resultInternalPattern = [resultRaster(1,3) resultRaster(55,2)];
+    if testxticksChoice == true
+        resultReposition = convUni(sensorSignalNormalized, resultReposition, Fs);
+        resultContour = convUni(sensorSignalNormalized, resultContour, Fs);
+        resultRaster = convUni(sensorSignalNormalized, resultRaster, Fs);
+        resultTransitionRaster = convUni(sensorSignalNormalized, resultTransitionRaster, Fs);
+        resultWholeWorkpiece = convUni(sensorSignalNormalized, resultWholeWorkpiece, Fs);
+        resultExternalPattern = convUni(sensorSignalNormalized, resultExternalPattern, Fs);
+        resultInternalPattern = convUni(sensorSignalNormalized, resultInternalPattern, Fs);
+    end
+
+    resultReposition = obtainTable(resultReposition(:,1),...
+        resultReposition(:,2), resultReposition(:,3));
+    resultContour = obtainTable(resultContour(:,1),...
+        resultContour(:,2), resultContour(:,3));
+    resultRaster = obtainTable(resultRaster(:,1),...
+        resultRaster(:,3), resultRaster(:,2));
+    resultTransitionRaster = obtainTable(resultTransitionRaster(:,1),...
+        resultTransitionRaster(:,3), resultTransitionRaster(:,2));
+
+    StartPoint = resultWholeWorkpiece(1);
+    EndPoint = resultWholeWorkpiece(2);
+    resultWholeWorkpiece = table(StartPoint,EndPoint);
+
+    StartPoint = resultExternalPattern(1);
+    EndPoint = resultExternalPattern(2);
+    resultExternalPattern = table(StartPoint,EndPoint);
+
+    StartPoint = resultInternalPattern(1);
+    EndPoint = resultInternalPattern(2);
+    resultInternalPattern = table(StartPoint,EndPoint);
 
 end
 
@@ -465,6 +529,9 @@ if testSegmentChoice == true
     resultContour = gen_signal_segments(sensorSignalNormalized, indexContour);
     resultRaster = gen_signal_segments(sensorSignalNormalized, index_raster);
     resultTransitionRaster = gen_signal_segments(sensorSignalNormalized, index_trans_raster);
+    resultWholeWorkpiece = gen_signal_segments(sensorSignalNormalized, [resultContour(1,2) resultRaster(55,2)]);
+    resultExternalPattern = gen_signal_segments(sensorSignalNormalized, [resultContour(1,2) resultContour(12,3)]);
+    resultInternalPattern = gen_signal_segments(sensorSignalNormalized, [resultRaster(1,3) resultRaster(55,2)]);
 end
 
 % \ 15°
@@ -473,7 +540,8 @@ end
 
 if saveChoice == 'Y'
     save_files(resultReposition, resultContour, resultRaster,...
-        resultTransitionRaster, segmentationChoice, signalIdentifier);
+        resultTransitionRaster, resultWholeWorkpiece, resultExternalPattern,...
+        resultInternalPattern, segmentationChoice, signalIdentifier);
 end
 
 if graphical == 'Y'
@@ -894,14 +962,15 @@ if figure_choice == 'Y'
 
     signal_identifier2 = ['Segmentation results ',signal_identifier, '.png'];
     saveFig(gca,'centimeters',[13 11]*1.8,600,signal_identifier2)
-        cd(oldFolder);
+    cd(oldFolder);
 end
 
 end
 
 % OP2
 function save_files(result_reposition, result_contour, result_raster,...
-    result_transition_raster, segmentation_choice, signal_identifier)
+    result_transition_raster, resultWholeWorkpiece, resultExternalPattern,...
+    resultInternalPattern, segmentation_choice, signal_identifier)
 
 checkFolder = isfolder('Segmentation results');
 if checkFolder == 0
@@ -910,7 +979,9 @@ end
 oldFolder = cd('Segmentation results/');
 save ([segmentation_choice,' segmentation results ',signal_identifier],...
     'result_reposition', 'result_contour',...
-    'result_raster', 'result_transition_raster');
+    'result_raster', 'result_transition_raster',...
+    'resultWholeWorkpiece', 'resultExternalPattern',...
+    'resultInternalPattern');
 cd(oldFolder);
 end
 
@@ -1300,7 +1371,7 @@ correct_square(1,3) = correct_square(2,2) - 4;
 correct_square(1,2) = floor(correct_square(1,3) - dif_ini + 4);
 correct_square(1,1) = floor(abs(correct_square(1,2) - correct_square(1,3)));
 
-contourRepositions(1,3) = correct_square(1,2) - 4; 
+contourRepositions(1,3) = correct_square(1,2) - 4;
 contourRepositions(1,2) = floor(contourRepositions(1,3) - contourRepositions(1,1));
 
 indexContour(1:4,:) = correct_square;
@@ -1317,15 +1388,38 @@ index_trans_rasterAdj = index_trans_raster;
 
 for i = indexAdjust(1):indexAdjust(end)
 
-index_rasterAdj(i,3) = index_rasterAdj(i-1,2) + index_trans_rasterAdj(i-1,1);
-index_rasterAdj(i,2) = index_rasterAdj(i,3) + index_rasterAdj(i,1);
+    index_rasterAdj(i,3) = index_rasterAdj(i-1,2) + index_trans_rasterAdj(i-1,1);
+    index_rasterAdj(i,2) = index_rasterAdj(i,3) + index_rasterAdj(i,1);
 
-index_trans_rasterAdj(i-1,3) = index_rasterAdj(i-1,2);
-index_trans_rasterAdj(i-1,2) = index_trans_rasterAdj(i-1,3) + index_trans_rasterAdj(i-1,1);
+    index_trans_rasterAdj(i-1,3) = index_rasterAdj(i-1,2);
+    index_trans_rasterAdj(i-1,2) = index_trans_rasterAdj(i-1,3) + index_trans_rasterAdj(i-1,1);
 
 end
 
 index_raster = index_rasterAdj;
 index_trans_raster = index_trans_rasterAdj;
+
+end
+
+% AXU12
+
+function valueSeconds = convUni(Ref, valueNumberofSamples, Fs)
+
+lengthRef = length(Ref);
+duration = lengthRef/Fs;
+
+valueSeconds = ((duration*valueNumberofSamples)/lengthRef);
+
+end
+
+% AUX13
+
+function resultTable = obtainTable(DurationMat, startPointMat, endPointMat)
+
+Duration = DurationMat;
+StartPoint = startPointMat;
+EndPoint = endPointMat;
+
+resultTable = table(Duration,StartPoint,EndPoint);
 
 end
