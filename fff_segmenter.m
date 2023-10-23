@@ -292,9 +292,6 @@ end
 
 clear Duration
 
-
-
-
 % 10° Obtaining third duration matrix for the internal pattern
 
 linesUdr9000 = find(Duration2(:,1) < 9000);
