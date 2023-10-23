@@ -65,7 +65,7 @@ As a result of running the fff_segmentation algorithm with default parameters, t
 
 ![Figure 1 - Points segmentation results in the workspace](Example/Segmentation%20index%20mode%20workspace.png)
 
-Opening each table, it is possible to observe that the point segmentation mode generates three columns for each geometric feature, and two columns for the pattern's separation. In regard to the geometric features tables, the first column is the ```duration``` of the feature fabrication, the second column is the first instant index, identified as ```StartPoint```, of the feature fabrication, and the third column is the ```EndPoint``` of the feature fabrication in the default number of samples mode.
+Opening each table, it is possible to observe that the point segmentation mode generates three columns for each geometric feature, and two columns for the pattern's separation. In regard to the geometric features tables, the first column is the ```Duration``` of the feature fabrication, the second column is the first instant index, identified as ```StartPoint```, of the feature fabrication, and the third column is the ```EndPoint``` of the feature fabrication in the default number of samples mode.
 
 ![Figure 2 - Points segmentation results](Example/Segmentation%20index%20mode%20results.png)
 
