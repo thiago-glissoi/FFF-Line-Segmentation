@@ -6,13 +6,13 @@ We strongly encourage the user to read the [Documentation](Documentation.pdf) pd
 git clone https://github.com/thiago-glissoi/FFF-Line-Segmentation.git
 
 # Example (run in Matlab)
-Let's load the [Test1.mat](Data/Test1.mat) dataset into the Matlab workspace
+First load the [Test1.mat](Data/Test1.mat) dataset into the Matlab workspace
 
 ```Matlab
 load("Data/Test1.mat");
 ```
 
-Now, we run the fff_segmenter algorithm using the workspace variables of Test1.mat and the sampling frequency of 200 kHz
+Now, run the fff_segmenter algorithm using the workspace variables of Test1.mat and the sampling frequency of 200 kHz
 
 ```Matlab
 fff_segmenter(Acoustic_signal,Dir_X,Dir_Y,200e3);
@@ -31,7 +31,7 @@ Response points/segments [points]
 ```
 
 After that, if the user opted for the points mode of segmentation, the user will be prompted to choose between obtaining the segmentation index in number of samples or in seconds.
-```Would you like to obtain the segmentation index (points) in number of samples or in seconds??```
+```Would you like to obtain the segmentation index (points) in number of samples or in seconds?```
 
 ```Matlab
 Response number of samples/seconds [number of samples]
@@ -51,7 +51,7 @@ If the users respond 'Y', the user will be prompted to choose if the graphical v
 Response Y/N [Y]
 ```
 Next, the user will be prompted to choose if it would like to automatically save the segmentation results. 
-```Would you like to autosave the figures?```
+```Would you like to obtain a .mat file of the segmentation results?```
 ```Matlab
 Response Y/N [Y]
 ```
