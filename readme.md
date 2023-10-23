@@ -44,7 +44,7 @@ After that, the user will be prompted to choose between obtaining a graphical vi
 Response Y/N [Y]
 ```
 
-If the users respond 'Y', the user will be prompted to choose if the graphical visualization of the segmentation will be automatically saved in the current folder with a predetermined resolution and formatting. 
+If the users respond 'Y', the user will be prompted to choose if the graphical visualization of the segmentation will be automatically saved in the Segmentation results folder in the Matlab's current path with a predetermined resolution and formatting. 
 ```Would you like to autosave the figures?```
 
 ```Matlab
@@ -65,14 +65,14 @@ As a result of running the fff_segmentation algorithm with default parameters, t
 
 ![Figure 1 - Points segmentation results in the workspace](Example/Segmentation%20index%20mode%20workspace.png)
 
-Opening each table, it is possible to observe that the point segmentation mode generates three columns for each geometric feature, and two columns for the pattern's separation. In regard to the geometric features tables, the first column is the ```duration``` of the feature fabrication, the second column is the first instant index, identified as ```StartPoint```, of the feature fabrication, and the third column is the ```EndPoint``` of the feature fabrication.
+Opening each table, it is possible to observe that the point segmentation mode generates three columns for each geometric feature, and two columns for the pattern's separation. In regard to the geometric features tables, the first column is the ```duration``` of the feature fabrication, the second column is the first instant index, identified as ```StartPoint```, of the feature fabrication, and the third column is the ```EndPoint``` of the feature fabrication in the default number of samples mode.
 
 ![Figure 2 - Points segmentation results](Example/Segmentation%20index%20mode%20results.png)
 
 The second file, named 'Segmentation results 'Test1'.png', is the automatically saved figure with the predetermined resolution and formatting. The image obtained for this example is represented in Figure 3.
 
-![Figure 3 - Saved figure](Example/Segmentation%20results%20'Test1'.png){width=100%}
+![Figure 3 - Saved figure](Example/Segmentation%20results%20'Test1'.png)
 
-As a result of using the fff_segmenter algorithm, the user now possess the ability to more precisely examine the acoustic signal in specified moments. An example of such application is represented in Figure 4, where the frequency content of the complete acoustic signal is represented in comparison to the frequency content of the acoustic signal related to just the middle raster line of the internal infill pattern. 
+As a result of using the fff_segmenter algorithm, the user now possess the ability to more precisely examine the acoustic signal in specified moments. An example of such application is represented in Figure 4, where the frequency content of the complete acoustic signal is represented in comparison to the frequency content of the acoustic signal related to just the middle raster line of the internal infill pattern fabrication period. 
 
 ![Figure 4 - Application example](Example/Application%20example.tiff)
