@@ -1,14 +1,60 @@
-% % READ ME
-% This function is used to automatically segment the manufacturing outline lines,
-% which make up the external pattern, the raster manufacturing lines,
-% which compose the internal pattern, and other movements of a signal obtained
-% from single-layer manufacturing by the Fused Filament Fabrication (FFF) process.
+function fff_segmenter(sensorSignal, dirX, dirY, Fs)
+%   fff_segmenter Is the main function of the FFF Line Segmentation script.
+%
+%% READ ME
+%   To verify the readmed, alonside a example run, check <a href="matlab: 
+%   web('https://github.com/thiago-glissoi/FFF-Line-Segmentation')">FFF-Line-Segmentation</a> for the FFF-Line-Segmentation script on Github.
 %
 % MIT License
 % Copyright (c) 2023 Thiago Glissoi Lopes, Paulo Monteiro de Carvalho Monson, Paulo Roberto de Aguiar, Reinaldo Götz de Oliveira Junior, Pedro Oliveira Conceição Junior
+%
+% The function performs the following steps:
+% 1. Obtains the output options based on user inputs.
+% 2. Performs the main data segmentation operations.
+% 3. Calls specific subfunctions to perform secondary tasks
+%    necessary to complete the segmentation operations.
+%
+%   For more information regarding the segmentation logic, see <a href="matlab: 
+%   web('https://github.com/thiago-glissoi/FFF-Line-Segmentation/blob/main/Documentation.pdf')">Documentation</a> for the FFF-Line-Segmentation script on Github.
+%
+% Inputs:
+% - sensorSignal (array): The acoustic signal obtained from the FFF process.
+% - dirX (array): The signal obtained from the X-axis step motor control.
+% - dirY (array): The signal obtained from the Y-axis step motor control.
+% - Fs (double): The sampling frequency of the signals.
+%
+% Outputs:
+% - The main outputs of the function are the segmentation results, which can be 
+%   the segmentation index (points), in seconds or in or the segments of signal (segments), based
+%   on the user's choice. These segmentation results are stored in the user current
+%   matlab workspace.
+% - Additionally, if the user opted for it, the segmentation results can be automatically 
+%   saved in .mat files in the user current matlab directory. Also, if the user opted for it,
+%   the function can generate a graphical visualization of the segmentation results and 
+%   automatically save it to the user current matlab directory.
+%
+% Called subfunctions (in alphabetical order):
+% <a href="matlab: disp('adjustExternalPattern: Adjust the external pattern segmentation results for a specific scenario. Please read the comments under the subfunction for further details.') ">adjustExternalPattern</a>
+% <a href="matlab: disp('adjustInternalPattern: Adjust the internal pattern segmentation results for a specific scenario. Please read the comments under the subfunction for further details.') ">adjustInternalPattern</a>
+% <a href="matlab: disp('adjust_internal: Adjust the internal pattern segmentation results for a specific scenario. Please read the comments under the subfunction for further details.') ">adjust_internal</a>
+% <a href="matlab: disp('Compos3r: Compose a signal based on the original acoustic signal and on specific segmentation indexes. Please read the comments under the subfunction for further details.') ">Compos3r</a>
+% <a href="matlab: disp('convUni: convUni Obtain a time (s) value based on a number of samples value, a reference signal, and on the sampling frequency. Please read the comments under the subfunction for further details.') ">convUni</a>
+% <a href="matlab: disp('detectAnom: Detect the anomaly verified in the Test1.mat dataset. Please read the comments under the subfunction for further details.') ">detectAnom</a>
+% <a href="matlab: disp('determin_separation_point: Determine the separation point based on the duration matrix and on a reference duration value. Please read the comments under the subfunction for further details.') ">determin_separation_point</a>
+% <a href="matlab: disp('gen_graph: Generate the graphical visualization of the segmentation results. Please read the comments under the subfunction for further details.') ">gen_graph</a>
+% <a href="matlab: disp('gen_signal_segments: Generate the signal segments based on the original signal and on specific segmentation indexes. Please read the comments under the subfunction for further details.') ">gen_signal_segments</a>
+% <a href="matlab: disp('generate_standard_fig: Plot the graphics with the segmentation results in a predefined format. Please read the comments under the subfunction for further details.') ">generate_standard_fig</a>
+% <a href="matlab: disp('isAnormal: Obtain the duration matrix for the internal pattern in an abnormal segmentation situation. Please read the comments under the subfunction for further details.') ">isAnormal</a>
+% <a href="matlab: disp('isNormal: Obtain the duration matrix for the internal pattern in a normal segmentation situation. Please read the comments under the subfunction for further details.') ">isNormal</a>
+% <a href="matlab: disp('Normaliz3r: Normalize the amplitude of a signal between -1 and 1. Please read the comments under the subfunction for further details.') ">Normaliz3r</a>
+% <a href="matlab: disp('obtainDuration: Obtain the duration matrix based on the acoustic signal and on the step motor control signals. Please read the comments under the subfunction for further details.') ">obtainDuration</a>
+% <a href="matlab: disp('obtainTable: Obtain a table with the segmentation results. Please read the comments under the subfunction for further details.') ">obtainTable</a>
+% <a href="matlab: disp('obtain_time_vec: Obtain a time (s) vector based on the signal's number of samples length and on the sampling frequency. Please read the comments under the subfunction for further details.') ">obtain_time_vec</a>
+% <a href="matlab: disp('saveFig: Save the graphical visualization of the segmentation results in a predefined format and resolution. Please read the comments under the subfunction for further details.') ">saveFig</a>
+% <a href="matlab: disp('save_files: Save the segmentation results in .mat files. Please read the comments under the subfunction for further details.') ">save_files</a>
+% <a href="matlab: disp('test_Minvariations: Test for the occurence of the variation problem observed for the Test1.mat data. Please read the comments under the subfunction for further details.') ">test_Minvariations</a>
 
-% CORE
-function fff_segmenter(sensorSignal, dirX, dirY, Fs)
+
 %% Input prompts
 clc;
 disp ("Provide the signal identification");
@@ -553,15 +599,26 @@ end
 
 % SUB1
 function result = detectAnom(initialPoint, lastPoint)
+% detectAnom  Detects if an anormal segmentation situation is present while in the internal 
+% printing pattern segmentation logic. 
+    % The anormal segmentation situation is verified where multiple low duration segments are verified between two
+    % high duration segments. In the case of the specific part geometry and sampling frequency employed 
+    % for the three datasets of signals collected from a first layer 3D print, these anormal low duration segments
+    % are below 8000 samples.
+%   
+%   result = detectAnom(initialPoint, lastPoint) test if the anomaly is present between the indexes 
+%   initialPoint and lastPoint. 
+%   The anormal segmentation situation is present when the difference between lastPoint and initialPoint is not equal to 2.
+%
+%   result returns true if the anormal segmentation situation is not present, and false if it is present.
+
 
 if lastPoint - initialPoint == 2
     % Normal situation
     result = true;
-
 else
-    % Abnormal situation
+    % Anormal situation
     result = false;
-
 end
 end
 
@@ -569,6 +626,17 @@ end
 function composedDuration = isNormal(originalDuration, ...
     initialPoint, lastPoint, ...
     indexDuration)
+    % isNormal  Obtain the duration matrix for the internal pattern in a normal segmentation situation.
+    % The normal segmentation situation is verified where a low duration segment is verified between two
+    % high duration segments. In the case of the specific part geometry and sampling frequency employed 
+    % for the three datasets of signals collected from a first layer 3D print, the low duration segment
+    % is around 8000 samples.
+%
+%   composedDuration = isNormal(originalDuration, initialPoint, lastPoint, indexDuration) 
+%
+%   where composedDuration is the resulting duration matrix, originalDuration is the original duration matrix,
+%   initialPoint is the initial index of interest in this segmentation logic, lastPoint is the last point of interest
+%   in this segmentation logic, and indexDuration is the reference index of the duration matrix to be composed.
 
 % Transition period (aprox 8000 samples)
 composedDuration(indexDuration, 3) =  originalDuration(initialPoint,3);
@@ -593,7 +661,18 @@ end
 % SUB3
 function composedDuration = isAnormal(originalDuration, ...
     initialPoint, lastPoint, ...
-    picoAnterior)
+    previousPeak)
+    % isAnormal  Obtain the duration matrix for the internal pattern in an anormal segmentation situation.
+    % The anormal segmentation situation is verified where multiple low duration segments are verified between two
+    % high duration segments. In the case of the specific part geometry and sampling frequency employed 
+    % for the three datasets of signals collected from a first layer 3D print, these anormal low duration segments
+    % are below 8000 samples.
+%
+%   composedDuration = isAnormal(originalDuration, initialPoint, lastPoint, previousPeak) 
+%
+%   where composedDuration is the resulting duration matrix, originalDuration is the original duration matrix,
+%   initialPoint is the initial index of interest in this segmentation logic, lastPoint is the last point of interest
+%   in this segmentation logic, and previousPeak is the duration value from the last high duration segment.
 
 cont = 1;
 for i = initialPoint:2:lastPoint
@@ -655,10 +734,10 @@ for i = initialPoint:2:lastPoint
     % 11e3 in relation to the previous fabrication period
     composedDuration(cont, 3) =  composedDuration(cont-1, 2);
     composedDuration(cont, 2) =  composedDuration(cont, 3) +...
-        picoAnterior + 11e3;
+        previousPeak + 11e3;
     composedDuration(cont, 1) =  composedDuration(cont, 2)...
         - composedDuration(cont, 3);
-    picoAnterior = composedDuration(cont, 1);
+    previousPeak = composedDuration(cont, 1);
     cont = cont +1;
 
     % Normal transition
@@ -676,6 +755,13 @@ function duration = obtainDuration ( ...
     Dir_X_adjusted_normalized,...
     Dir_Y_adjusted_normalized, ...
     result_problem)
+    % obtainDuration  Obtain the duration matrix from the acoustic signal and the X and Y step motor control signals.
+%
+%   duration = obtainDuration (sensor_signal_normalized, Dir_X_adjusted_normalized, Dir_Y_adjusted_normalized, result_problem) 
+%
+%   where duration is the resulting duration matrix, sensor_signal_normalized is the normalized acoustic signal,
+%   Dir_X_adjusted_normalized is the normalized X step motor control signal, Dir_Y_adjusted_normalized is the normalized Y step motor control signal,
+%   and result_problem is a boolean value that indicates if the anomaly that the detectAnom function verifies is present.
 
 x_value = 0;
 y_value = 0;
@@ -706,9 +792,6 @@ for i = 1:length(sensor_signal_normalized)
     end
 end
 
-% Agora vamos obter um vetor de duração, o qual exprimirá, em número de
-% amostras, a duração entre cada mudança de direção.
-
 flag = 0;
 position_Initial = 0;
 position_Final = 0;
@@ -738,7 +821,13 @@ end
 % SUB5
 function result_problem = test_Minvariations(sensor_signal_normalized, Dir_X_adjusted_normalized,...
     Dir_Y_adjusted_normalized)
-
+% test_Minvariations  detects the anomaly verified in the Test1.mat dataset. The anomaly present in the Test1.mat dataset
+% was that of unexpected low duration segments appearing throughout the dirX signal. This was caused by interference, and was fixed
+% for the Test2.mat and Test3.mat datasets printing procedures.
+%   
+%   result_problem = test_Minvariations(sensor_signal_normalized, Dir_X_adjusted_normalized, Dir_Y_adjusted_normalized)
+%
+%   where result_problem returns the boolean value true if the anomaly is present, and false if it is not.
 
 x_value = 0;
 y_value = 0;
@@ -826,6 +915,17 @@ end
 function gen_graph(signal_reposition, sensor_signal, Fs,...
     signal_identifier, signal_contour, signal_raster,...
     signal_trans_raster, index_raster, figure_choice)
+% gen_graph  Generate the graphical visualization of the segmentation results. The graphical visualization is generated
+% in a figure using predefined ploting parameters in order to represent the segmentation results.
+%   
+%   gen_graph(signal_reposition, sensor_signal, Fs, signal_identifier, signal_contour, signal_raster,
+%   signal_trans_raster, index_raster, figure_choice)
+%
+%   where signal_reposition is the signal for the reposition geometrical element, sensor_signal is the acoustic signal,
+%   Fs is the sampling frequency of the signals, signal_identifier is the identifier of the figure (used for naming purposes),
+%   signal_contour is the signal for the contour geometrical element, signal_raster is the signal for the raster geometrical element,
+%   signal_trans_raster is the signal for the transition raster geometrical element, index_raster is the index values for the raster geometrical element,
+%   and figure_choice is indicator of the choice of saving the figure in a predifed format and resolution.
 
 sensor_signal = Normaliz3r(sensor_signal);
 
@@ -968,6 +1068,17 @@ end
 function save_files(result_reposition, result_contour, result_raster,...
     result_transition_raster, resultWholeWorkpiece, resultExternalPattern,...
     resultInternalPattern, segmentation_choice, signal_identifier)
+% save_files  Save the segmentation results in a .mat file on the user current directory.
+%
+%   save_files(result_reposition, result_contour, result_raster,...
+%   result_transition_raster, resultWholeWorkpiece, resultExternalPattern,...
+%   resultInternalPattern, segmentation_choice, signal_identifier)
+%
+%   where result_reposition is the segmentation results for the reposition geometrical element, result_contour is the segmentation results for the contour geometrical element,
+%   result_raster is the segmentation results for the raster geometrical element, result_transition_raster is the segmentation results for the transition raster geometrical element,
+%   resultWholeWorkpiece is the segmentation results for the whole workpiece, resultExternalPattern is the segmentation results for the external pattern,
+%   resultInternalPattern is the segmentation results for the internal pattern, segmentation_choice is the choice of segmentation logic,
+%   and signal_identifier is the identifier of the signal (for naming purposes).
 
 checkFolder = isfolder('Segmentation results');
 if checkFolder == 0
@@ -987,7 +1098,19 @@ function generate_standard_fig(xaxis, yaxis, type, new_or_superimpose,...
     leg, tit, xaxis_label, yaxis_label, x_ticks, y_ticks, ...
     x_limit1, x_limit2, y_limit1, y_limit2,...
     legend_type, font_type, font_size)
-
+% generate_standard_fig  Generate the figure for the graphical visualization using predefined ploting parameters. The figure is generated
+% using predefined ploting parameters in order to represent the segmentation results in a standardized way, making it easy to spot segmentation
+% inconsistencies.
+%   
+%   generate_standard_fig(xaxis, yaxis, type, new_or_superimpose, leg, tit, xaxis_label, yaxis_label, x_ticks, y_ticks, x_limit1, x_limit2,
+%   y_limit1, y_limit2, legend_type, font_type, font_size)
+%
+%   where xaxis is the signal that will be plotted in the X axis of the figure, yaxis is the signal that will be plotted in the Y axis of the figure,
+%   type is the type of the figure, new_or_superimpose is the indicator if the plot will be new or superimposed to a existing figure,
+%   leg is the legend for the figure, tit is the title for the figure, xaxis_label is the x axis label, yaxis_label is the y axis label, x_ticks
+%   are the ticks of the figure's x axis, y_ticks are the ticks of the figure's y axis, x_limit1 is the lower limit in the x axis for the figure,
+%   x_limit2 is the upper limit in the x axis for the figure, y_limit1 is the lower limit in the y axis for the figure, y_limit2 is the upper limit
+%   in the y axis for the figure
 
 if (new_or_superimpose == 1)
     figure;
@@ -999,29 +1122,25 @@ end
 
 if (type == 1)
     if leg ~= 0
-        p = plot (xaxis, yaxis, 'DisplayName', leg); %PLA
+        p = plot (xaxis, yaxis, 'DisplayName', leg);
     else
-        p = plot(xaxis, yaxis); %PLA
+        p = plot(xaxis, yaxis);
     end
     p.LineWidth = 1;
 end
 
 if (type == 2)
     if (leg ~= 0)
-        bar (xaxis, yaxis,'DisplayName', leg) %PLA
-        %         bar (xaxis, yaxis,'DisplayName', leg, 'Color', [212,175,55]/255) %PETG
+        bar (xaxis, yaxis,'DisplayName', leg)
     else
-        bar (xaxis, yaxis) %PLA
-        %         bar (xaxis, yaxis, 'Color', [212,175,55]/255) %PETG
+        bar (xaxis, yaxis)
     end
 end
 if (type == 3)
     if (leg ~= 0)
-        stem (xaxis, yaxis,'DisplayName', leg) %PLA
-        %         stem (xaxis, yaxis,'DisplayName', leg, 'Color', [212,175,55]/255) %PETG
+        stem (xaxis, yaxis,'DisplayName', leg)
     else
-        stem (xaxis, yaxis) %PLA
-        %         stem (xaxis, eixo, 'Color', [212,175,55]/255) %PETG
+        stem (xaxis, yaxis)
     end
 end
 
@@ -1116,6 +1235,12 @@ end
 
 % AUX2
 function saveFig(hFigure, unit, size, res, fileName)
+% saveFig  Save the graphical visualization figure in a predetermined format and resolution on the user current directory.
+%
+%   saveFig(hFigure, unit, size, res, fileName)
+%
+%   where hFigure is the handler of the figure, unit is the unit of the figure, size is the size of the figure, res is the resolution of the figure,
+%   and fileName is the name of the file that the figure will be saved.
 
 try
     if strcmp(get(hFigure,'Type'),'axes')
@@ -1135,7 +1260,7 @@ elseif sum(unitVal) > 1
     error('Error:saveFig', 'Please, inform only one unit.')
 end
 
-if strcmp(class(res),'double')
+if strcmp(class(res),'double') %#ok<STISA>
     res = ['-r' num2str(res)];
 elseif strncmp('-r', res, 2) == 0
     error('Error:saveFig', 'The value informed for the resolution is not valid.')
@@ -1154,7 +1279,14 @@ print(hFigure, '-loose', res, '-djpeg', fileName);
 end
 
 % AUX3
-function vetor_normalized = Normaliz3r (original_vector)
+function vector_normalized = Normaliz3r (original_vector)
+% vector_normalized  Normalize the amplitude of a signal between -1 and 1, or between 0 and 1 (if its an 
+% signal which the amplitude variates between 0 and 1).
+%
+%   vector_normalized = Normaliz3r (original_vector)
+%
+%   where vector_normalized is the normalized signal, and original_vector is the original signal.
+
 aux1 = max(original_vector);
 aux2 = original_vector*-1;
 aux3 = max(aux2);
@@ -1163,21 +1295,34 @@ if aux3 >= aux1
     aux1 = aux3;
 end
 
-vetor_normalized = original_vector/aux1;
+vector_normalized = original_vector/aux1;
 
 end
 
 % AUX4
-function t = obtain_time_vec(signal,Fs)
-t = 0:(1/Fs):(length(signal)-1)/Fs;
+function vector_t = obtain_time_vec(signal,Fs)
+% obtain_time_vec  Obtain a time (s) vector based on the signal's number of samples length and on the sampling frequency.
+%
+%   vector_t = obtain_time_vec(signal,Fs)
+%
+%   where vector_t is the time vector (in seconds), signal is the reference signal, and Fs is the sampling frequency of the reference signal.
+
+
+vector_t = 0:(1/Fs):(length(signal)-1)/Fs;
 end
 
 % AUX6
-function composedSignal = Compos3r(sinal_base, matriz_posicoes)
+function composedSignal = Compos3r(original_signal, position_matrix)
+% Compos3r  Compose a signal based on the original acoustic signal and on specific segmentation indexes.
+%
+%   composedSignal = Compos3r(original_signal, position_matrix)
+%
+%   where composedSignal is the resulting composed signal, original_signal is the original signal, and
+%   position_matrix holds the specific segmentation indexes.
 
-aux = zeros(length(sinal_base),1);
+aux = zeros(length(original_signal),1);
 
-if matriz_posicoes(1,1) > matriz_posicoes(1,2)
+if position_matrix(1,1) > position_matrix(1,2)
     low_column = 2;
     high_column = 1;
 else
@@ -1187,9 +1332,9 @@ end
 
 min_situation = [1,2];
 
-for i = 1:length(matriz_posicoes)
-    aux(matriz_posicoes(i,low_column):matriz_posicoes(i,high_column)) = 1;
-    if size(matriz_posicoes) == min_situation %#ok<BDSCI>
+for i = 1:length(position_matrix)
+    aux(position_matrix(i,low_column):position_matrix(i,high_column)) = 1;
+    if size(position_matrix) == min_situation %#ok<BDSCI>
         break;
     end
 end
@@ -1199,6 +1344,13 @@ end
 % AUX7
 function result_sep = determin_separation_point(Duration, i,...
     duration_reference)
+    % determin_separation_point  Determine the separation point between internal and external patterns based on the 
+    % duration matrix and on a reference duration value.
+%
+%   result_sep = determin_separation_point(Duration, i, duration_reference)
+%
+%   where result_sep is the separation point between internal and external patterns, Duration is the duration matrix,
+%   i is the index of the duration matrix, and duration_reference is the reference duration value
 
 current_value = Duration(i,1);
 next_value1 = Duration(i+1,1);
@@ -1231,6 +1383,12 @@ end
 
 % AUX8
 function signal_segments = gen_signal_segments(raw_signal, index_matrix)
+    % gen_signal_segments  Generate the signal segments based on the original signal and on specific segmentation indexes.
+%
+%   signal_segments = gen_signal_segments(raw_signal, index_matrix)
+%
+%   where signal_segments is the resulting signal segments, raw_signal is the original signal, and index_matrix holds
+%   the specific segmentation indexes.
 
 num_interactions = size (index_matrix,1);
 
@@ -1254,6 +1412,14 @@ end
 
 function [index_raster_alt,index_trans_raster_alt] =...
     adjust_internal(index_raster,index_trans_raster)
+        % adjust_internal Adjust the internal pattern segmentation results for a specific scenario. The adjustment is made
+        % when small duration segments are present at the beggining or end of the internal printing pattern, which would affect
+        % the number of raster lines and the overall segmentation process in regard to the internal printing pattern.
+%
+%   [index_raster_alt,index_trans_raster_alt] = adjust_internal(index_raster,index_trans_raster)
+%
+%   where index_raster_alt is the adjusted raster line, index_trans_raster_alt is the adjusted transition raster line,
+%   index_raster is the original raster line, and index_trans_raster is the original transition raster line.
 
 index_trans_raster_alt = index_trans_raster;
 
@@ -1341,8 +1507,17 @@ end
 
 % AUX10
 
-function [contourRepositions, indexContour] =...
+function [contourRepositions_corr, indexContour_corr] =...
     adjustExternalPattern(contourRepositions, indexContour)
+        % adjustExternalPattern Adjust the external pattern segmentation results for a specific scenario. The adjustment is made
+        % when small duration segments are present between the movements without deposition (reposition), which would affect the identification of 
+        % the contours geometrical features in regard to the movements without deposition and the overall segmentation process in regard 
+        % to the external printing pattern.
+%
+%   [contourRepositions_corr, indexContour_corr] = adjustExternalPattern(contourRepositions, indexContour)
+%
+%   where contourRepositions_corr is the adjusted reposition geometrical element, indexContour_corr is the adjusted index of the contour geometrical element,
+%   contourRepositions is the original reposition geometrical element, and indexContour is the original index of the contour geometrical element.
 
 med_quad_ext = mean(indexContour(5:8,1));
 
@@ -1369,9 +1544,9 @@ correct_square(1,2) = floor(correct_square(1,3) - dif_ini + 4);
 correct_square(1,1) = floor(abs(correct_square(1,2) - correct_square(1,3)));
 
 contourRepositions(1,3) = correct_square(1,2) - 4;
-contourRepositions(1,2) = floor(contourRepositions(1,3) - contourRepositions(1,1));
+contourRepositions_corr(1,2) = floor(contourRepositions(1,3) - contourRepositions(1,1));
 
-indexContour(1:4,:) = correct_square;
+indexContour_corr(1:4,:) = correct_square;
 
 end
 
@@ -1379,6 +1554,15 @@ end
 
 function [index_raster, index_trans_raster] =...
     adjustInternalPattern(index_raster, index_trans_raster, indexAdjust)
+        % adjustInternalPattern Adjust the internal pattern segmentation results for a specific scenario. The adjustment is made
+        % when there are multiple small duration segments mixed with the middle raster duration segmenter and both previous and subsequent
+        % transition raster , which would affect the identification of the middle raster index in regard to the previous and subsequent transition 
+        % between raster and the overall segmentation process in regard to the internal printing pattern.
+%
+%   [index_raster, index_trans_raster] = adjustInternalPattern(index_raster, index_trans_raster, indexAdjust)
+%
+%   where index_raster is the adjusted raster index, index_trans_raster is the adjusted transition raster index,
+%   index_raster is the original raster index, index_trans_raster is the original transition raster index, and indexAdjust is a reference index of adjustment.
 
 index_rasterAdj = index_raster;
 index_trans_rasterAdj = index_trans_raster;
@@ -1401,6 +1585,12 @@ end
 % AXU12
 
 function valueSeconds = convUni(Ref, valueNumberofSamples, Fs)
+    % convUni Obtain a time (s) value based on a number of samples value, a reference signal, and on the sampling frequency. 
+%
+%   valueSeconds = convUni(Ref, valueNumberofSamples, Fs)
+%
+%   where valueSeconds is the time value (in seconds), Ref is the reference signal, valueNumberofSamples is the number of samples value,
+%   and Fs is the sampling frequency of the reference signal.
 
 lengthRef = length(Ref);
 duration = lengthRef/Fs;
@@ -1412,6 +1602,12 @@ end
 % AUX13
 
 function resultTable = obtainTable(DurationMat, startPointMat, endPointMat)
+    % resultTable Obtain a table with the segmentation results.
+%
+%   resultTable = obtainTable(DurationMat, startPointMat, endPointMat)
+%
+%   where resultTable is obtained table, DurationMat is the duration matrix, startPointMat is the start point matrix, 
+%   and endPointMat is the end point matrix.
 
 Duration = DurationMat;
 StartPoint = startPointMat;
