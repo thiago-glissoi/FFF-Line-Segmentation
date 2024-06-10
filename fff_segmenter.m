@@ -54,6 +54,17 @@ function fff_segmenter(sensorSignal, dirX, dirY, Fs)
 % <a href="matlab: disp('save_files: Save the segmentation results in .mat files. Please read the comments under the subfunction for further details.') ">save_files</a>
 % <a href="matlab: disp('test_Minvariations: Test for the occurence of the variation problem observed for the Test1.mat data. Please read the comments under the subfunction for further details.') ">test_Minvariations</a>
 
+%% Attributing values that are due to the specific part geometry to necessary variables
+lowRefTransRaster = 8e3; % Lower Number of samples reference value for the transition raster
+uppRefTransRaster = 9e3; % Upper Number of samples reference value for the transition raster
+varDurRaster = 11e3; % Variation of the duration between raster lines
+adpDurTranRaster = 8.4e3; % Adopted duration for the transition raster
+numofRasterLines = 55; % Number of raster lines
+numofContourSides = 4; % Number of contour sides
+numofContourLoops = 3; % Number of contour loops
+numofContourLines = numofContourSides * numofContourLoops; % Number of contour lines
+durationReference = 150e3; % known duration for the last contour printing
+refminimum_sampleValue = 50e3; % Minimum number of samples reference for the test_Minvariations subfunction
 
 %% Input prompts
 clc;
@@ -211,7 +222,7 @@ dirXAdjustedNormalized = Normaliz3r(dirXAdjusted);
 
 % 3° Test for the occurence of the variation problem
 resultProblem = test_Minvariations(sensorSignalNormalized, dirXAdjustedNormalized,...
-    dirYAdjustedNormalized);
+    dirYAdjustedNormalized, lowRefTransRaster);
 % \ 3°
 
 clear dirXAdjusted dirX dirYAdjusted dirY sensorSignal
@@ -222,11 +233,10 @@ clear dirXAdjusted dirX dirYAdjusted dirY sensorSignal
 
 % 4° Obtain the duration vector
 Duration = obtainDuration(sensorSignalNormalized, dirXAdjustedNormalized,...
-    dirYAdjustedNormalized, resultProblem);
+    dirYAdjustedNormalized, resultProblem, refminimum_sampleValue);
 
 
 % 5° Find the separation point
-durationReference = 150e3; % known duration for the last contour printing
 
 for i = 1:length(Duration(:,1))
 
@@ -259,8 +269,8 @@ end
 % 7° Repositioning evaluation and contour lines correction
 
 % reposition 1
-meanCountourGroup1 = round(mean([indexCountourTemp(2,1) indexCountourTemp(3,1)...
-    indexCountourTemp(4,1)]),0);
+meanCountourGroup1 = round(mean([indexCountourTemp(numofContourSides-2,1) indexCountourTemp(numofContourSides-1,1)...
+    indexCountourTemp(numofContourSides,1)]),0);
 
 adjustedContourLine1(1,1) = meanCountourGroup1;
 adjustedContourLine1(1,3) = indexCountourTemp(1,3);
@@ -291,7 +301,7 @@ repoToContour2(1,2) = indexCountourTemp(5,2);
 
 % reposition 3
 meanContourGroup3 = round(mean([indexCountourTemp(10,1) indexCountourTemp(11,1)...
-    indexCountourTemp(12,1)]),0);
+    indexCountourTemp(numofContourLines,1)]),0);
 
 adjustedContourLine3(1,1) = meanContourGroup3;
 adjustedContourLine3(1,3) = indexCountourTemp(9,3);
@@ -321,18 +331,18 @@ resultProblem = false;
 Duration = obtainDuration(sensorSignalNormalized, ...
     dirXAdjustedNormalized,...
     dirYAdjustedNormalized, ...
-    resultProblem);
+    resultProblem, refminimum_sampleValue);
 
 % 9° Obtaining second duration matrix for the internal pattern
 
 % Filtering the duration matrix to remove the small line segments
-indexValuesAbv8000 = 1;
+indexValuesAbvRef = 1;
 Duration2 = zeros(3);
-alterationDuration = 8000;
+alterationDuration = lowRefTransRaster;
 for i = 1:length(Duration(:,1))
     if Duration(i,1) > alterationDuration
-        Duration2(indexValuesAbv8000,:) = Duration(i,:);
-        indexValuesAbv8000 = indexValuesAbv8000 + 1;
+        Duration2(indexValuesAbvRef,:) = Duration(i,:);
+        indexValuesAbvRef = indexValuesAbvRef + 1;
     end
 end
 
@@ -340,18 +350,18 @@ clear Duration
 
 % 10° Obtaining third duration matrix for the internal pattern
 
-linesUdr9000 = find(Duration2(:,1) < 9000);
+linesUdrUppVal = find(Duration2(:,1) < uppRefTransRaster);
 Duration3 = zeros(3);
 previousPeak = 0;
 previousPeak2 = 0;
 middleRasterDuration = 310e3;
 
-for i = 1:length (linesUdr9000)
-    if i == length (linesUdr9000)
+for i = 1:length (linesUdrUppVal)
+    if i == length (linesUdrUppVal)
         break;
     end
-    initialIndex = linesUdr9000(i);
-    finalIndex = linesUdr9000(i+1);
+    initialIndex = linesUdrUppVal(i);
+    finalIndex = linesUdrUppVal(i+1);
     result = detectAnom(initialIndex, finalIndex);
     previousPeak2 = previousPeak;
     previousPeak = Duration3(end-1,1);
@@ -382,7 +392,7 @@ for i = 1:length (linesUdr9000)
             Duration2, ...
             initialIndex, ...
             finalIndex, ...
-            previousPeak);
+            previousPeak, varDurRaster, adpDurTranRaster);
         Duration3 = [Duration3(1:end-1,:); tempDuration];
         clear tempDuration
     end
@@ -426,13 +436,13 @@ clear Duration3_v2
 % 13° Obtaining sixth duration matrix for the internal pattern
 % Obtain the first raster line and add to the beggining of the duraction matrix
 Duration4_v2(1,2) = Duration4(1,3);
-Duration4_v2(1,1) = Duration4(2,1)-11e3;
+Duration4_v2(1,1) = Duration4(2,1)-varDurRaster;
 Duration4_v2(1,3) = Duration4_v2(1,2) - Duration4_v2(1,1);
 Duration4_v2(2:length(Duration4(:,1))+1,:) = Duration4;
 
 % Obtain the last raster line and add to the end of the duraction matrix
 Duration4_v2(length(Duration4(:,1))+2,3) = Duration4_v2(length(Duration4(:,1))+1,2);
-Duration4_v2(length(Duration4(:,1))+2,1) = Duration4_v2(length(Duration4(:,1)),1)-11e3;
+Duration4_v2(length(Duration4(:,1))+2,1) = Duration4_v2(length(Duration4(:,1)),1)-varDurRaster;
 Duration4_v2(length(Duration4(:,1))+2,2) = Duration4_v2(length(Duration4(:,1))+2,1) + Duration4_v2(length(Duration4(:,1))+2,3);
 % \ 13°
 
@@ -444,7 +454,7 @@ rasterLineCount = 1;
 transitionLineCount = 1;
 
 for j = 1:length(Duration4_v2(:,1))
-    if Duration4_v2(j,1) < 8000 || Duration4_v2(j,1) > 9000
+    if Duration4_v2(j,1) < lowRefTransRaster || Duration4_v2(j,1) > uppRefTransRaster
         index_raster(rasterLineCount,:) = Duration4_v2(j,:);
         rasterLineCount = rasterLineCount + 1;
     else
@@ -453,7 +463,7 @@ for j = 1:length(Duration4_v2(:,1))
     end
 end
 
-contourToRasterReposition(1,3) = indexContour(12,3);
+contourToRasterReposition(1,3) = indexContour(numofContourLines,3);
 contourToRasterReposition(1,2) = Duration4_v2(1,3);
 contourToRasterReposition(1,1) = contourToRasterReposition(1,2) -...
     contourToRasterReposition(1,3);
@@ -465,12 +475,12 @@ contourToRasterReposition(1,3) = contourToRasterRepositionAux(1,2);
 
 indexContourAlt = indexContour;
 
-for i = 1:1:12
+for i = 1:1:numofContourLines
     indexContourAlt(i,2) = indexContour(i,2);
     indexContourAlt(i,3) = indexContour(i,3)-5;
 end
 
-if length(index_raster) < 55
+if length(index_raster) < numofRasterLines
     [index_raster,index_trans_raster] =...
         adjust_internal(index_raster,index_trans_raster);
 
@@ -478,10 +488,10 @@ end
 
 % Verify external pattern integrity
 
-square1ExternalPattern = mean (indexContourAlt(1:4,1));
-square2ExternalPattern = mean (indexContourAlt(5:8,1));
+square1ExternalPattern = mean (indexContourAlt(1:numofContourSides,1));
+square2ExternalPattern = mean (indexContourAlt((numofContourSides+1):(numofContourSides*2),1));
 
-if abs(square2ExternalPattern - square1ExternalPattern) > 15e3
+if abs(square2ExternalPattern - square1ExternalPattern) > (varDurRaster+4e3)
     [contourRepositions, indexContourAlt] = adjustExternalPattern(contourRepositions, indexContourAlt);
 end
 
@@ -489,17 +499,17 @@ end
 
 % Verify internal pattern integrity
 rasterAuxMatrix = index_raster;
-rasterAuxMatrix(1,4) = 0;
+rasterAuxMatrix(1,numofContourSides) = 0;
 
 for i = 2:length(index_raster(:,1))
-    rasterAuxMatrix(i,4) = abs(index_raster(i,3) - index_raster(i-1,2));
+    rasterAuxMatrix(i,numofContourSides) = abs(index_raster(i,(numofContourSides-1)) - index_raster(i-1,2));
 end
 
-maxRasterAux = max(rasterAuxMatrix(:,4));
+maxRasterAux = max(rasterAuxMatrix(:,numofContourSides));
 
-indexAdjust = find (rasterAuxMatrix(:,4) > 10e3);
+indexAdjust = find (rasterAuxMatrix(:,numofContourSides) > (varDurRaster-1e3));
 
-if maxRasterAux > 9e3
+if maxRasterAux > uppRefTransRaster
     [index_raster, index_trans_raster] = adjustInternalPattern(index_raster, index_trans_raster, indexAdjust);
 end
 
@@ -525,9 +535,9 @@ if testSegmentChoice == true
     resultContour = indexContourAlt;
     resultRaster = index_raster;
     resultTransitionRaster = index_trans_raster;
-    resultWholeWorkpiece = [resultContour(1,2) resultRaster(55,2)];
-    resultExternalPattern = [resultContour(1,2) resultContour(12,3)];
-    resultInternalPattern = [resultRaster(1,3) resultRaster(55,2)];
+    resultWholeWorkpiece = [resultContour(1,2) resultRaster(numofRasterLines,2)];
+    resultExternalPattern = [resultContour(1,2) resultContour(numofContourLines,3)];
+    resultInternalPattern = [resultRaster(1,3) resultRaster(numofRasterLines,2)];
 
     if testxticksChoice == true
         resultReposition = convUni(sensorSignalNormalized, resultReposition, Fs);
@@ -567,14 +577,14 @@ testSegmentChoice = strcmp(segmentationChoice,'segments');
 if testSegmentChoice == true
     resultReposition = gen_signal_segments(sensorSignalNormalized,...
         contourRepositions);
-    resultReposition(1,4) = gen_signal_segments(sensorSignalNormalized,...
+    resultReposition(1,numofContourSides) = gen_signal_segments(sensorSignalNormalized,...
         contourToRasterReposition);
     resultContour = gen_signal_segments(sensorSignalNormalized, indexContour);
     resultRaster = gen_signal_segments(sensorSignalNormalized, index_raster);
     resultTransitionRaster = gen_signal_segments(sensorSignalNormalized, index_trans_raster);
-    resultWholeWorkpiece = gen_signal_segments(sensorSignalNormalized, [resultContour(1,2) resultRaster(55,2)]);
-    resultExternalPattern = gen_signal_segments(sensorSignalNormalized, [resultContour(1,2) resultContour(12,3)]);
-    resultInternalPattern = gen_signal_segments(sensorSignalNormalized, [resultRaster(1,3) resultRaster(55,2)]);
+    resultWholeWorkpiece = gen_signal_segments(sensorSignalNormalized, [resultContour(1,2) resultRaster(numofRasterLines,2)]);
+    resultExternalPattern = gen_signal_segments(sensorSignalNormalized, [resultContour(1,2) resultContour(numofContourLines,3)]);
+    resultInternalPattern = gen_signal_segments(sensorSignalNormalized, [resultRaster(1,3) resultRaster(numofRasterLines,2)]);
 end
 
 % \ 15°
@@ -604,7 +614,7 @@ function result = detectAnom(initialPoint, lastPoint)
     % The anormal segmentation situation is verified where multiple low duration segments are verified between two
     % high duration segments. In the case of the specific part geometry and sampling frequency employed 
     % for the three datasets of signals collected from a first layer 3D print, these anormal low duration segments
-    % are below 8000 samples.
+    % are below lowRefTransRaster samples.
 %   
 %   result = detectAnom(initialPoint, lastPoint) test if the anomaly is present between the indexes 
 %   initialPoint and lastPoint. 
@@ -630,7 +640,7 @@ function composedDuration = isNormal(originalDuration, ...
     % The normal segmentation situation is verified where a low duration segment is verified between two
     % high duration segments. In the case of the specific part geometry and sampling frequency employed 
     % for the three datasets of signals collected from a first layer 3D print, the low duration segment
-    % is around 8000 samples.
+    % is around lowRefTransRaster samples.
 %
 %   composedDuration = isNormal(originalDuration, initialPoint, lastPoint, indexDuration) 
 %
@@ -638,20 +648,20 @@ function composedDuration = isNormal(originalDuration, ...
 %   initialPoint is the initial index of interest in this segmentation logic, lastPoint is the last point of interest
 %   in this segmentation logic, and indexDuration is the reference index of the duration matrix to be composed.
 
-% Transition period (aprox 8000 samples)
+% Transition period (aprox lowRefTransRaster samples)
 composedDuration(indexDuration, 3) =  originalDuration(initialPoint,3);
 composedDuration(indexDuration, 2) =  originalDuration(initialPoint,2);
 composedDuration(indexDuration, 1) =  composedDuration(indexDuration, 2)...
     - composedDuration(indexDuration, 3);
 
 % Raster period (value above 9000 samples, and that increases
-% 11e3 in relation to the previous fabrication period
+% varDurRaster in relation to the previous fabrication period
 composedDuration(indexDuration + 1, 3) =  originalDuration(initialPoint + 1,3);
 composedDuration(indexDuration + 1, 2) =  originalDuration(initialPoint + 1,2);
 composedDuration(indexDuration + 1, 1) =  composedDuration(indexDuration + 1, 2)...
     - composedDuration(indexDuration + 1, 3);
 
-% Transition period (aprox 8000 samples)
+% Transition period (aprox lowRefTransRaster samples)
 composedDuration(indexDuration + 2, 3) =  originalDuration(lastPoint, 3);
 composedDuration(indexDuration + 2, 2) =  originalDuration(lastPoint, 2);
 composedDuration(indexDuration + 2, 1) =  composedDuration(indexDuration + 2, 2)...
@@ -661,25 +671,25 @@ end
 % SUB3
 function composedDuration = isAnormal(originalDuration, ...
     initialPoint, lastPoint, ...
-    previousPeak)
+    previousPeak, varDurRaster, adpDurTranRaster)
     % isAnormal  Obtain the duration matrix for the internal pattern in an anormal segmentation situation.
     % The anormal segmentation situation is verified where multiple low duration segments are verified between two
     % high duration segments. In the case of the specific part geometry and sampling frequency employed 
     % for the three datasets of signals collected from a first layer 3D print, these anormal low duration segments
-    % are below 8000 samples.
+    % are below lowRefTransRaster samples.
 %
-%   composedDuration = isAnormal(originalDuration, initialPoint, lastPoint, previousPeak) 
+%   composedDuration = isAnormal(originalDuration, initialPoint, lastPoint, previousPeak, varDurRaster, adpDurTranRaste) 
 %
 %   where composedDuration is the resulting duration matrix, originalDuration is the original duration matrix,
 %   initialPoint is the initial index of interest in this segmentation logic, lastPoint is the last point of interest
-%   in this segmentation logic, and previousPeak is the duration value from the last high duration segment.
+%TODO   in this segmentation logic, and previousPeak is the duration value from the last high duration segment.
 
 cont = 1;
 for i = initialPoint:2:lastPoint
     if lastPoint - i == 1 || lastPoint == i
         if lastPoint - initialPoint > 3
             % normal transition
-            % Transition period (aprox 8000 samples)
+            % Transition period (aprox lowRefTransRaster samples)
             composedDuration(cont, 3) =  composedDuration(cont-1, 2);
             composedDuration(cont, 2) =  originalDuration(lastPoint, 2);
             composedDuration(cont, 1) =  composedDuration(cont, 2)...
@@ -716,7 +726,7 @@ for i = initialPoint:2:lastPoint
         end
     end
     if i == initialPoint % If it is the first case
-        % Transition period (aprox 8000 samples)
+        % Transition period (aprox lowRefTransRaster samples)
         composedDuration(cont, 3) =  originalDuration(i,3); %#ok<*AGROW>
         composedDuration(cont, 2) =  originalDuration(i,2);
         composedDuration(cont, 1) =  composedDuration(cont, 2)...
@@ -725,16 +735,16 @@ for i = initialPoint:2:lastPoint
     else % Normal transition
         composedDuration(cont, 3) =  composedDuration(cont-1, 2);
         composedDuration(cont, 2) =  composedDuration(cont, 3) +...
-            8.4e3;
+            adpDurTranRaster;
         composedDuration(cont, 1) =  composedDuration(cont, 2)...
             - composedDuration(cont, 3);
         cont = cont +1;
     end
-    % Transition period (aprox 8000 samples), and that grows
-    % 11e3 in relation to the previous fabrication period
+    % Transition period (aprox lowRefTransRaster samples), and that grows
+    % varDurRaster in relation to the previous fabrication period
     composedDuration(cont, 3) =  composedDuration(cont-1, 2);
     composedDuration(cont, 2) =  composedDuration(cont, 3) +...
-        previousPeak + 11e3;
+        previousPeak + varDurRaster;
     composedDuration(cont, 1) =  composedDuration(cont, 2)...
         - composedDuration(cont, 3);
     previousPeak = composedDuration(cont, 1);
@@ -743,7 +753,7 @@ for i = initialPoint:2:lastPoint
     % Normal transition
     composedDuration(cont, 3) =  composedDuration(cont-1, 2);
     composedDuration(cont, 2) =  composedDuration(cont, 3) +...
-        8.4e3;
+        adpDurTranRaster;
     composedDuration(cont, 1) =  composedDuration(cont, 2)...
         - composedDuration(cont, 3);
 end
@@ -754,20 +764,20 @@ function duration = obtainDuration ( ...
     sensor_signal_normalized, ...
     Dir_X_adjusted_normalized,...
     Dir_Y_adjusted_normalized, ...
-    result_problem)
+    result_problem, refminimum_sampleValue)
     % obtainDuration  Obtain the duration matrix from the acoustic signal and the X and Y step motor control signals.
 %
-%   duration = obtainDuration (sensor_signal_normalized, Dir_X_adjusted_normalized, Dir_Y_adjusted_normalized, result_problem) 
+%   duration = obtainDuration (sensor_signal_normalized, Dir_X_adjusted_normalized, Dir_Y_adjusted_normalized, result_problem, refminimum_sampleValue) 
 %
 %   where duration is the resulting duration matrix, sensor_signal_normalized is the normalized acoustic signal,
 %   Dir_X_adjusted_normalized is the normalized X step motor control signal, Dir_Y_adjusted_normalized is the normalized Y step motor control signal,
-%   and result_problem is a boolean value that indicates if the anomaly that the detectAnom function verifies is present.
+%TODO   and result_problem is a boolean value that indicates if the anomaly that the detectAnom function verifies is present.
 
 x_value = 0;
 y_value = 0;
 last_change = 0;
 if result_problem == true
-    minimum_sampleValue = 50e3;
+    minimum_sampleValue = refminimum_sampleValue;
 else
     minimum_sampleValue = 0;
 end
@@ -820,14 +830,14 @@ end
 
 % SUB5
 function result_problem = test_Minvariations(sensor_signal_normalized, Dir_X_adjusted_normalized,...
-    Dir_Y_adjusted_normalized)
+    Dir_Y_adjusted_normalized, lowRefTransRaster)
 % test_Minvariations  detects the anomaly verified in the Test1.mat dataset. The anomaly present in the Test1.mat dataset
 % was that of unexpected low duration segments appearing throughout the dirX signal. This was caused by interference, and was fixed
 % for the Test2.mat and Test3.mat datasets printing procedures.
 %   
-%   result_problem = test_Minvariations(sensor_signal_normalized, Dir_X_adjusted_normalized, Dir_Y_adjusted_normalized)
+%   result_problem = test_Minvariations(sensor_signal_normalized, Dir_X_adjusted_normalized, Dir_Y_adjusted_normalized, lowRefTransRaster)
 %
-%   where result_problem returns the boolean value true if the anomaly is present, and false if it is not.
+%TODO   where result_problem returns the boolean value true if the anomaly is present, and false if it is not.
 
 x_value = 0;
 y_value = 0;
@@ -885,25 +895,12 @@ end
 cont_low_dur = 0;
 
 for i = 1:length(duration(:,1))
-    if duration(i,1) < 8e3
+    if duration(i,1) < lowRefTransRaster
         cont_low_dur = cont_low_dur + 1;
     end
 end
 
-% % DEBUG - POI-5 - why the min value of 50?
-%
-% generate_standard_fig(1:length(duration(:,1)), duration(:,1), 1, 1,...
-%     'Duration', 'DEBUG - POI-5', 'Segment',...
-%     'Duration (number of samples)', 0, 0, ...
-%     0, 0, 0, 0,...
-%     2, 'Times New Roman', 16);
-%
-% DEBUG_ID = 'POI-5.png';
-% saveFig(gca,'centimeters',[13 8]*1.8,600,DEBUG_ID);
-%
-% % \ DEBUG - POI-5
-
-if cont_low_dur > 50
+if cont_low_dur > 50 % indicates the presence of the anomaly
     result_problem = true;
 else
     result_problem = false;
@@ -946,7 +943,7 @@ signal_raster_segmented =...
 signal_trans_raster_segmented =...
     signal_trans_raster(index_raster(1,3)-(2.0*Fs):index_raster(1,3)+(1.5*Fs));
 
-t_segmented = obtain_time_vec(sensor_signal_segmented,200e3);
+t_segmented = obtain_time_vec(sensor_signal_segmented,Fs);
 
 %
 
@@ -1427,7 +1424,7 @@ id_index_raster = 0;
 
 for i = 2:length(index_raster)
     if (abs(index_raster(i,1)-index_raster(i-1,1))) > 12e3
-        qnt = floor(abs((index_raster(i,1)-index_raster(i-1,1)))/11e3);
+        qnt = floor(abs((index_raster(i,1)-index_raster(i-1,1)))/varDurRaster);
         id_index_raster(i,1) = qnt-1;
     else
         id_index_raster(i,1) = 0;
@@ -1449,12 +1446,12 @@ for j = 1:length(ind_id)
     for k = 1:id_index_raster(ind_id(j))
 
         if ind_id(j) < 27
-            temp_mat(k,1) = last_peak(1,1) + 11e3;
-            temp_mat(k,3) = last_peak(1,2) + 8.4e3;
+            temp_mat(k,1) = last_peak(1,1) + varDurRaster;
+            temp_mat(k,3) = last_peak(1,2) + adpDurTranRaster;
             temp_mat(k,2) = temp_mat(k,3) + temp_mat(k,1);
         else
-            temp_mat(k,1) = last_peak(1,1) - 11e3;
-            temp_mat(k,3) = last_peak(1,2) + 8.4e3;
+            temp_mat(k,1) = last_peak(1,1) - varDurRaster;
+            temp_mat(k,3) = last_peak(1,2) + adpDurTranRaster;
             temp_mat(k,2) = temp_mat(k,3) + temp_mat(k,1);
 
         end
@@ -1491,10 +1488,10 @@ for i = 1:middle
     if i == 1
         index_raster_alt_2(i,3) =...
             index_raster_alt(middle,2)+...
-            8.4e3;
+            adpDurTranRaster;
     else
         index_raster_alt_2(i,3) =...
-            index_raster_alt_2(end-1,2) + 8.4e3;
+            index_raster_alt_2(end-1,2) + adpDurTranRaster;
     end
     index_raster_alt_2(i,2) =...
         index_raster_alt_2(i,1)+index_raster_alt_2(i,3);
@@ -1519,34 +1516,34 @@ function [contourRepositions_corr, indexContour_corr] =...
 %   where contourRepositions_corr is the adjusted reposition geometrical element, indexContour_corr is the adjusted index of the contour geometrical element,
 %   contourRepositions is the original reposition geometrical element, and indexContour is the original index of the contour geometrical element.
 
-med_quad_ext = mean(indexContour(5:8,1));
+med_quad_ext = mean(indexContour((numofContourSides+1):(numofContourSides*2),1));
 
-dif_quad = indexContour(8,1) - indexContour(9,1);
+dif_quad = indexContour((numofContourSides*2),1) - indexContour((numofContourSides+1),1);
 
 dif_ini = med_quad_ext - dif_quad;
 
-correct_square = zeros(4,3);
+correct_square = zeros(numofContourSides,3);
 
-correct_square(4,3) = contourRepositions(2,2);
-correct_square(4,2) = floor(correct_square(4,3) - dif_ini);
-correct_square(4,1) = floor(abs(correct_square(4,2) - correct_square(4,3)));
+correct_square(numofContourSides,3) = contourRepositions(numofContourSides-2,2);
+correct_square(numofContourSides,2) = floor(correct_square(numofContourSides,3) - dif_ini);
+correct_square(numofContourSides,1) = floor(abs(correct_square(numofContourSides,2) - correct_square(numofContourSides,3)));
 
-correct_square(3,3) = correct_square(4,2) - 4;
-correct_square(3,2) = floor(correct_square(3,3) - dif_ini - 6);
-correct_square(3,1) = floor(abs(correct_square(3,2) - correct_square(3,3)));
+correct_square(numofContourSides-1,3) = correct_square(numofContourSides,2) - numofContourSides;
+correct_square(numofContourSides-1,2) = floor(correct_square(numofContourSides-1,3) - dif_ini - (numofContourSides+1));
+correct_square(numofContourSides-1,1) = floor(abs(correct_square(numofContourSides-1,2) - correct_square(numofContourSides-1,3)));
 
-correct_square(2,3) = correct_square(3,2) - 4;
-correct_square(2,2) = floor(correct_square(2,3) - dif_ini - 3);
-correct_square(2,1) = floor(abs(correct_square(2,2) - correct_square(2,3)));
+correct_square(numofContourSides-2,3) = correct_square(numofContourSides-1,2) - numofContourSides;
+correct_square(numofContourSides-2,2) = floor(correct_square(numofContourSides-2,3) - dif_ini - numofContourSides-1);
+correct_square(numofContourSides-2,1) = floor(abs(correct_square(numofContourSides-2,2) - correct_square(numofContourSides-2,3)));
 
-correct_square(1,3) = correct_square(2,2) - 4;
-correct_square(1,2) = floor(correct_square(1,3) - dif_ini + 4);
-correct_square(1,1) = floor(abs(correct_square(1,2) - correct_square(1,3)));
+correct_square(numofContourSides-3,3) = correct_square(numofContourSides-2,2) - numofContourSides;
+correct_square(numofContourSides-3,2) = floor(correct_square(numofContourSides-3,3) - dif_ini + numofContourSides);
+correct_square(numofContourSides-3,1) = floor(abs(correct_square(numofContourSides-3,2) - correct_square(numofContourSides-3,3)));
 
-contourRepositions(1,3) = correct_square(1,2) - 4;
+contourRepositions(numofContourSides-3,3) = correct_square(numofContourSides-3,2) - numofContourSides;
 contourRepositions_corr(1,2) = floor(contourRepositions(1,3) - contourRepositions(1,1));
 
-indexContour_corr(1:4,:) = correct_square;
+indexContour_corr(1:numofContourSides,:) = correct_square;
 
 end
 
