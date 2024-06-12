@@ -1,4 +1,5 @@
-function fff_segmenter(sensorSignal, dirX, dirY, Fs)
+function fff_segmenter
+% function fff_segmenter(sensorSignal, dirX, dirY, Fs)
 %   fff_segmenter Is the main function of the FFF Line Segmentation script.
 %
 %% READ ME
@@ -44,7 +45,7 @@ function fff_segmenter(sensorSignal, dirX, dirY, Fs)
 % <a href="matlab: disp('gen_graph: Generate the graphical visualization of the segmentation results. Please read the comments under the subfunction for further details.') ">gen_graph</a>
 % <a href="matlab: disp('gen_signal_segments: Generate the signal segments based on the original signal and on specific segmentation indexes. Please read the comments under the subfunction for further details.') ">gen_signal_segments</a>
 % <a href="matlab: disp('generate_standard_fig: Plot the graphics with the segmentation results in a predefined format. Please read the comments under the subfunction for further details.') ">generate_standard_fig</a>
-% <a href="matlab: disp('isAnormal: Obtain the duration matrix for the internal pattern in an abnormal segmentation situation. Please read the comments under the subfunction for further details.') ">isAnormal</a>
+% <a href="matlab: disp('isAbnormal: Obtain the duration matrix for the internal pattern in an abnormal segmentation situation. Please read the comments under the subfunction for further details.') ">isAbnormal</a>
 % <a href="matlab: disp('isNormal: Obtain the duration matrix for the internal pattern in a normal segmentation situation. Please read the comments under the subfunction for further details.') ">isNormal</a>
 % <a href="matlab: disp('Normaliz3r: Normalize the amplitude of a signal between -1 and 1. Please read the comments under the subfunction for further details.') ">Normaliz3r</a>
 % <a href="matlab: disp('obtainDuration: Obtain the duration matrix based on the acoustic signal and on the step motor control signals. Please read the comments under the subfunction for further details.') ">obtainDuration</a>
@@ -54,70 +55,56 @@ function fff_segmenter(sensorSignal, dirX, dirY, Fs)
 % <a href="matlab: disp('save_files: Save the segmentation results in .mat files. Please read the comments under the subfunction for further details.') ">save_files</a>
 % <a href="matlab: disp('test_Minvariations: Test for the occurence of the variation problem observed for the Test1.mat data. Please read the comments under the subfunction for further details.') ">test_Minvariations</a>
 
-%% Attributing values that are due to the specific part geometry to necessary variables
-lowRefTransRaster = 8e3; % Lower Number of samples reference value for the transition raster
-uppRefTransRaster = 9e3; % Upper Number of samples reference value for the transition raster
-varDurRaster = 11e3; % Variation of the duration between raster lines
-adpDurTranRaster = 8.4e3; % Adopted duration for the transition raster
-numofRasterLines = 55; % Number of raster lines
-numofContourSides = 4; % Number of contour sides
-numofContourLoops = 3; % Number of contour loops
-numofContourLines = numofContourSides * numofContourLoops; % Number of contour lines
-durationReference = 150e3; % known duration for the last contour printing
-refminimum_sampleValue = 50e3; % Minimum number of samples reference for the test_Minvariations subfunction
 
-%% Input prompts
-clc;
-disp ("Provide the signal identification");
-prompt = "Signal name: ";
-signalIdentifier = input(prompt,"s");
+%% APP User Inputs
+
+pause(0.1);
+
+% app = APP_JOSS;
+app = APP_User_Inputs;
+while strcmp(app.RunthesegmentationSwitch.Value,'Off') == 1
+    pause(0.1); 
+end
+
+Data_path = evalin('base', 'Data_path');
+xticksChoice = evalin('base', 'xticksChoice');
+signalIdentifier = evalin('base', 'signalIdentifier');
+segmentationChoice = evalin('base','Segmentation_choice');
+saveChoice = evalin('base', 'saveChoice');
+graphical = evalin('base', 'graphical');
+Fs = evalin('base', 'Fs');
+figureChoice = evalin('base', 'figureChoice');
+
+load(Data_path);
+
+DirXidentification = evalin('base', 'DirXidentification');
+DirYidentification = evalin('base', 'DirYidentification');
+dirX = evalin('caller',DirXidentification);
+dirY = evalin('caller',DirYidentification);
+sensorSignal = evalin('caller', signalIdentifier);
+
+delete(app.UIFigure);
+
+%% Verify Input
+
+
+
 if isempty(signalIdentifier)
     signalIdentifier = 'segmentation results';
 end
-clear prompt
-clc;
 
-disp ("Would you like to obtain the segmentation index (points) or the segments of signal (segments)? ");
-prompt = "Response points/segments [points]: ";
-segmentationChoice = input(prompt,"s");
 if isempty(segmentationChoice)
-    segmentationChoice = 'points';
+    segmentationChoice = 'Points';
 end
 
-testSegmentChoicePoints = strcmp(segmentationChoice,'points');
-testSegmentChoiceSegments = strcmp(segmentationChoice,'segments');
-
-if testSegmentChoicePoints ~= 1 && testSegmentChoiceSegments ~= 1
-    segmentationChoice = 'points';
-end
-
-clear prompt
-clc;
-
-testSegmentChoice = strcmp(segmentationChoice,'points');
+testSegmentChoice = strcmp(segmentationChoice,'Points');
 
 if testSegmentChoice == true
-    disp ("Would you like to obtain the segmentation index (points)");
-    disp ("in number of samples or in seconds? ");
-    prompt = "Response number of samples/seconds [number of samples]: ";
-    xticksChoice = input(prompt,"s");
     if isempty(xticksChoice)
         xticksChoice = 'number of samples';
     end
-    testxticksChoiceNumber = strcmp(xticksChoice,'number of samples');
-    testxticksChoiceSeconds = strcmp(xticksChoice,'seconds');
-    if testxticksChoiceNumber ~= 1 && testxticksChoiceSeconds ~= 1
-        xticksChoice = 'number of samples';
-    end
-
 end
 
-clear prompt
-clc;
-
-disp ("Would you like to obtain graphical visualization of the segmentation?");
-prompt = "Response Y/N [Y]: ";
-graphical = input(prompt, "s");
 if isempty(graphical)
     graphical = 'Y';
 end
@@ -129,12 +116,7 @@ if testGraphicalChoiceY ~= 1 && testGraphicalChoiceN ~= 1
     segmentationChoice = 'Y';
 end
 
-clear prompt
-clc;
 if graphical == 'Y'
-    disp("Would you like to autosave the figures?");
-    prompt = "Response Y/N [Y]: ";
-    figureChoice = input(prompt, "s");
     if isempty(figureChoice)
         figureChoice = 'Y';
     end
@@ -145,14 +127,8 @@ if graphical == 'Y'
     if testFigureChoiceY ~= 1 && testFigureChoiceN ~= 1
         figureChoice = 'Y';
     end
-
-    clc;
-    clear prompt
 end
 
-disp("Would you like to obtain automatic .mat files of the segmentation results?");
-prompt = "Response Y/N [Y]: ";
-saveChoice = input(prompt,'s');
 if isempty(saveChoice)
     saveChoice = 'Y';
 end
@@ -163,32 +139,25 @@ testSaveChoiceN = strcmp(saveChoice,'N');
 if testSaveChoiceY ~= 1 && testSaveChoiceN ~= 1
     saveChoice = 'Y';
 end
-
-clc;
-clear prompt
-
-disp ("Choices");
-disp ("Signal name: ");
-disp (signalIdentifier);
-disp ("Segmentation choice: ");
-disp (segmentationChoice);
-
-testSegmentChoice = strcmp(segmentationChoice,'points');
-
-if testSegmentChoice == true
-disp ("xticksChoice: ");
-disp (xticksChoice);
-end
-
-disp ("Graphical choice: ");
-disp (graphical);
-if graphical == 'Y'
-    disp ("Save figure choice: ");
-    disp (figureChoice);
-end
-disp ("Save data choice: ");
-disp (saveChoice);
+disp (' ');
 disp ("Wait just a few moments while we segment your FFF signal...");
+
+
+%% Attributing values that are due to the specific part geometry to necessary variables.
+% The Fs used for this values was 200e3;
+lowRefTransRaster = Fs/25; % Lower Number of samples reference value for the transition raster
+uppRefTransRaster = round(Fs/22.2222,0); % Upper Number of samples reference value for the transition raster
+varDurRaster = round(Fs/18.1818,0); % Variation of the duration between raster lines
+adpDurTranRaster = round(Fs/23.8095,0); % Adopted duration for the transition raster
+numofRasterLines = 55; % Number of raster lines
+numofContourSides = 4; % Number of contour sides
+numofContourLoops = 3; % Number of contour loops
+numofContourLines = numofContourSides * numofContourLoops; % Number of contour lines
+durationReference = round(Fs/1.33333,0); % known duration for the last contour printing
+refminimum_sampleValue = round(Fs/4,0); % Minimum number of samples reference for the test_Minvariations subfunction
+middleRasterDuration = round(Fs/0.645161290322581,0); % Middle raster duration value
+
+%#ok<*AGROW> % Suppress the warning for growing arrays in the code
 
 %% Pre-processing
 
@@ -196,21 +165,10 @@ dirXAdjusted = zeros(size(dirX));
 dirYAdjusted = zeros(size(dirY));
 
 % 1° Normalize the X and Y step motor control signals between 0V and 5V
-for i = 1:length(dirX)
-    if dirX(i) > 2
-        dirXAdjusted(i) = 5;
-    else
-        dirXAdjusted(i) = 0;
-    end
-end
-
-for i = 1:length(dirY)
-    if dirY(i) > 2
-        dirYAdjusted(i) = 5;
-    else
-        dirYAdjusted(i) = 0;
-    end
-end
+dirXAdjusted(dirX > 2) = 5;
+dirXAdjusted(dirX < 2) = 0;
+dirYAdjusted(dirY < 2) = 0;
+dirYAdjusted(dirY > 2) = 5;
 
 % 2° Normalize the acoustic signal, and the X and Y step motor control
 % signals between -1 and 1 (acoustic signal) and 0 & 1 (step motor signals)
@@ -354,7 +312,6 @@ linesUdrUppVal = find(Duration2(:,1) < uppRefTransRaster);
 Duration3 = zeros(3);
 previousPeak = 0;
 previousPeak2 = 0;
-middleRasterDuration = 310e3;
 
 for i = 1:length (linesUdrUppVal)
     if i == length (linesUdrUppVal)
@@ -378,17 +335,14 @@ for i = 1:length (linesUdrUppVal)
             initialIndex, ...
             finalIndex, ...
             1);
-
         if Duration3(1,1) == 0
             Duration3 = tempDuration;
-
         else
             Duration3 = [Duration3(1:end-1,:); tempDuration];
         end
         clear tempDuration
-
     else % abnormal situation
-        tempDuration = isAnormal( ...
+        tempDuration = isAbnormal( ...
             Duration2, ...
             initialIndex, ...
             finalIndex, ...
@@ -526,9 +480,9 @@ signalContour = Compos3r(sensorSignalNormalized, indexContourAlt(:,2:3));
 
 % 15° Obtain the segmentation results
 
-testSegmentChoice = strcmp(segmentationChoice,'points');
+testSegmentChoice = strcmp(segmentationChoice,'Points');
 
-testxticksChoice = strcmp(xticksChoice,'seconds');
+testxticksChoice = strcmp(xticksChoice,'Seconds');
 
 if testSegmentChoice == true
     resultReposition = [contourRepositions; contourToRasterReposition];
@@ -609,25 +563,25 @@ end
 
 % SUB1
 function result = detectAnom(initialPoint, lastPoint)
-% detectAnom  Detects if an anormal segmentation situation is present while in the internal 
+% detectAnom  Detects if an abnormal segmentation situation is present while in the internal 
 % printing pattern segmentation logic. 
-    % The anormal segmentation situation is verified where multiple low duration segments are verified between two
+    % The abnormal segmentation situation is verified where multiple low duration segments are verified between two
     % high duration segments. In the case of the specific part geometry and sampling frequency employed 
-    % for the three datasets of signals collected from a first layer 3D print, these anormal low duration segments
+    % for the three datasets of signals collected from a first layer 3D print, these abnormal low duration segments
     % are below lowRefTransRaster samples.
 %   
 %   result = detectAnom(initialPoint, lastPoint) test if the anomaly is present between the indexes 
 %   initialPoint and lastPoint. 
-%   The anormal segmentation situation is present when the difference between lastPoint and initialPoint is not equal to 2.
+%   The abnormal segmentation situation is present when the difference between lastPoint and initialPoint is not equal to 2.
 %
-%   result returns true if the anormal segmentation situation is not present, and false if it is present.
+%   result returns true if the abnormal segmentation situation is not present, and false if it is present.
 
 
 if lastPoint - initialPoint == 2
     % Normal situation
     result = true;
 else
-    % Anormal situation
+    % Abnormal situation
     result = false;
 end
 end
@@ -654,7 +608,7 @@ composedDuration(indexDuration, 2) =  originalDuration(initialPoint,2);
 composedDuration(indexDuration, 1) =  composedDuration(indexDuration, 2)...
     - composedDuration(indexDuration, 3);
 
-% Raster period (value above 9000 samples, and that increases
+% Raster period (value above uppRefTransRaster samples, and that increases
 % varDurRaster in relation to the previous fabrication period
 composedDuration(indexDuration + 1, 3) =  originalDuration(initialPoint + 1,3);
 composedDuration(indexDuration + 1, 2) =  originalDuration(initialPoint + 1,2);
@@ -669,20 +623,23 @@ composedDuration(indexDuration + 2, 1) =  composedDuration(indexDuration + 2, 2)
 end
 
 % SUB3
-function composedDuration = isAnormal(originalDuration, ...
+function composedDuration = isAbnormal(originalDuration, ...
     initialPoint, lastPoint, ...
     previousPeak, varDurRaster, adpDurTranRaster)
-    % isAnormal  Obtain the duration matrix for the internal pattern in an anormal segmentation situation.
-    % The anormal segmentation situation is verified where multiple low duration segments are verified between two
+    % isAbnormal  Obtain the duration matrix for the internal pattern in an abnormal segmentation situation.
+    % The abnormal segmentation situation is verified where multiple low duration segments are verified between two
     % high duration segments. In the case of the specific part geometry and sampling frequency employed 
-    % for the three datasets of signals collected from a first layer 3D print, these anormal low duration segments
+    % for the three datasets of signals collected from a first layer 3D print, these abnormal low duration segments
     % are below lowRefTransRaster samples.
 %
-%   composedDuration = isAnormal(originalDuration, initialPoint, lastPoint, previousPeak, varDurRaster, adpDurTranRaste) 
+%   composedDuration = isAbnormal(originalDuration, initialPoint, lastPoint, previousPeak, varDurRaster, adpDurTranRaste) 
 %
 %   where composedDuration is the resulting duration matrix, originalDuration is the original duration matrix,
 %   initialPoint is the initial index of interest in this segmentation logic, lastPoint is the last point of interest
-%TODO   in this segmentation logic, and previousPeak is the duration value from the last high duration segment.
+%   in this segmentation logic, previousPeak is the duration value from the last high duration segment,
+%   varDurRaster is the observed duration raster for the specific part geometry with the Fs of 200kHz,
+%   and adpDurTranRaster is the adopted duration for the transition raster in regard to for the specific part geometry
+%   with the Fs of 200kHz.
 
 cont = 1;
 for i = initialPoint:2:lastPoint
@@ -701,7 +658,7 @@ for i = initialPoint:2:lastPoint
                 composedDuration =  composedDuration2;
                 clear composedDuration2
                 aux = length(composedDuration(:,1));
-                if aux == 1
+                if isscalar(aux)
                     break;
                 end
                 cont = cont-2;
@@ -727,7 +684,7 @@ for i = initialPoint:2:lastPoint
     end
     if i == initialPoint % If it is the first case
         % Transition period (aprox lowRefTransRaster samples)
-        composedDuration(cont, 3) =  originalDuration(i,3); %#ok<*AGROW>
+        composedDuration(cont, 3) =  originalDuration(i,3); 
         composedDuration(cont, 2) =  originalDuration(i,2);
         composedDuration(cont, 1) =  composedDuration(cont, 2)...
             - composedDuration(cont, 3);
@@ -771,7 +728,8 @@ function duration = obtainDuration ( ...
 %
 %   where duration is the resulting duration matrix, sensor_signal_normalized is the normalized acoustic signal,
 %   Dir_X_adjusted_normalized is the normalized X step motor control signal, Dir_Y_adjusted_normalized is the normalized Y step motor control signal,
-%TODO   and result_problem is a boolean value that indicates if the anomaly that the detectAnom function verifies is present.
+%   result_problem is a boolean value that indicates if the anomaly that the detectAnom function verifies is present, and refminimum_sampleValue is
+%   the reference minimum sample value for the duration matrix in regard to the to the specific part geometry and with the Fs of 200 kHz.
 
 x_value = 0;
 y_value = 0;
@@ -837,7 +795,8 @@ function result_problem = test_Minvariations(sensor_signal_normalized, Dir_X_adj
 %   
 %   result_problem = test_Minvariations(sensor_signal_normalized, Dir_X_adjusted_normalized, Dir_Y_adjusted_normalized, lowRefTransRaster)
 %
-%TODO   where result_problem returns the boolean value true if the anomaly is present, and false if it is not.
+%       where result_problem returns the boolean value true if the anomaly is present, false if it is not, and lowRefTransRaster is the reference
+%       low duration raster for the specific part geometry and with the Fs of 200 kHz.
 
 x_value = 0;
 y_value = 0;
@@ -1257,7 +1216,7 @@ elseif sum(unitVal) > 1
     error('Error:saveFig', 'Please, inform only one unit.')
 end
 
-if strcmp(class(res),'double') %#ok<STISA>
+if isa(res,'double') 
     res = ['-r' num2str(res)];
 elseif strncmp('-r', res, 2) == 0
     error('Error:saveFig', 'The value informed for the resolution is not valid.')
