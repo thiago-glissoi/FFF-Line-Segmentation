@@ -1,5 +1,8 @@
 classdef APP_User_Inputs < matlab.apps.AppBase
 
+    %#ok<*INUSD>
+    %#ok<*NASGU>
+
     % Properties that correspond to app components
     properties (Access = public)
         UIFigure                       matlab.ui.Figure
@@ -34,7 +37,7 @@ classdef APP_User_Inputs < matlab.apps.AppBase
     methods (Access = private)
 
         % Value changed function: ObtaingraphicalvisualizationSwitch
-        function ObtaingraphicalvisualizationSwitchValueChanged(app, event)
+        function ObtaingraphicalvisualizationSwitchValueChanged(app, event) 
             value = app.ObtaingraphicalvisualizationSwitch.Value;
             if  strcmp(value,'Yes')
                 value2 = 'Y';
@@ -95,6 +98,7 @@ classdef APP_User_Inputs < matlab.apps.AppBase
             fullpath = fullfile(pathname, filename);
             disp(['User selected ', fullpath]);
             assignin('base', 'Data_path', fullpath);
+            addpath(pathname);
         end
         end
 
@@ -134,7 +138,7 @@ classdef APP_User_Inputs < matlab.apps.AppBase
 
         % Value changed function: RunthesegmentationSwitch
         function RunthesegmentationSwitchValueChanged(app, event)
-            value = app.RunthesegmentationSwitch.Value;
+            value = app.RunthesegmentationSwitch.Value; 
         end
     end
 

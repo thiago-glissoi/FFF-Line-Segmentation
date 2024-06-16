@@ -55,39 +55,43 @@ function fff_segmenter
 % <a href="matlab: disp('save_files: Save the segmentation results in .mat files. Please read the comments under the subfunction for further details.') ">save_files</a>
 % <a href="matlab: disp('test_Minvariations: Test for the occurence of the variation problem observed for the Test1.mat data. Please read the comments under the subfunction for further details.') ">test_Minvariations</a>
 
+% app = APP_JOSS;
 
 %% APP User Inputs
 
-pause(0.1);
-
-% app = APP_JOSS;
 app = APP_User_Inputs;
 while strcmp(app.RunthesegmentationSwitch.Value,'Off') == 1
-    pause(0.1); 
+    pause(0.5); % In order to avoid missuse of the CPU
 end
 
 Data_path = evalin('base', 'Data_path');
 xticksChoice = evalin('base', 'xticksChoice');
-signalIdentifier = evalin('base', 'signalIdentifier');
 segmentationChoice = evalin('base','Segmentation_choice');
 saveChoice = evalin('base', 'saveChoice');
 graphical = evalin('base', 'graphical');
 Fs = evalin('base', 'Fs');
 figureChoice = evalin('base', 'figureChoice');
-
-load(Data_path);
-
+signalIdentifier = evalin('base', 'signalIdentifier');
 DirXidentification = evalin('base', 'DirXidentification');
 DirYidentification = evalin('base', 'DirYidentification');
-dirX = evalin('caller',DirXidentification);
+
+% Load variables from a .mat file into a temporary structure
+temp = load(Data_path); %#ok<*LOAD>
+
+% Assign each variable in the structure to the caller workspace
+fields = fieldnames(temp);
+for i = 1:length(fields)
+    assignin('caller', fields{i}, temp.(fields{i}));
+end
+clear temp fields i 
+
+dirX = evalin('base',DirXidentification);
 dirY = evalin('caller',DirYidentification);
 sensorSignal = evalin('caller', signalIdentifier);
 
 delete(app.UIFigure);
 
-%% Verify Input
-
-
+%% Verify Input integrity
 
 if isempty(signalIdentifier)
     signalIdentifier = 'segmentation results';
@@ -144,15 +148,18 @@ disp ("Wait just a few moments while we segment your FFF signal...");
 
 
 %% Attributing values that are due to the specific part geometry to necessary variables.
-% The Fs used for this values was 200e3;
-lowRefTransRaster = Fs/25; % Lower Number of samples reference value for the transition raster
-uppRefTransRaster = round(Fs/22.2222,0); % Upper Number of samples reference value for the transition raster
-varDurRaster = round(Fs/18.1818,0); % Variation of the duration between raster lines
-adpDurTranRaster = round(Fs/23.8095,0); % Adopted duration for the transition raster
+
+% Workpice specific variables
 numofRasterLines = 55; % Number of raster lines
 numofContourSides = 4; % Number of contour sides
 numofContourLoops = 3; % Number of contour loops
 numofContourLines = numofContourSides * numofContourLoops; % Number of contour lines
+
+% Variables for the segmentation logic
+lowRefTransRaster = Fs/25; % Lower Number of samples reference value for the transition raster
+uppRefTransRaster = round(Fs/22.2222,0); % Upper Number of samples reference value for the transition raster
+varDurRaster = round(Fs/18.1818,0); % Variation of the duration between raster lines
+adpDurTranRaster = round(Fs/23.8095,0); % Adopted duration for the transition raster
 durationReference = round(Fs/1.33333,0); % known duration for the last contour printing
 refminimum_sampleValue = round(Fs/4,0); % Minimum number of samples reference for the test_Minvariations subfunction
 middleRasterDuration = round(Fs/0.645161290322581,0); % Middle raster duration value
@@ -223,6 +230,7 @@ for i = 1:length(externalLines)-1
     indexCountourTemp(duration3Length,3) = externalLines(i+1);
     duration3Length = duration3Length+1;
 end
+% \ 6 °
 
 % 7° Repositioning evaluation and contour lines correction
 
@@ -281,7 +289,7 @@ contourRepositions = [repoToContour1; repoToContour2; repoToContour3];
 
 % 8° Obtaining first duration matrix for the internal pattern
 % There is no need to check for the problem of too many consecutive transition lines here
-% since there are very small line segments in the internal pattern. On the cobtrary,
+% since there are very small line segments in the internal pattern. On the contrary,
 % this could cause some issues. So the result_problem value is set to false.
 resultProblem = false;
 
@@ -290,6 +298,7 @@ Duration = obtainDuration(sensorSignalNormalized, ...
     dirXAdjustedNormalized,...
     dirYAdjustedNormalized, ...
     resultProblem, refminimum_sampleValue);
+% \ 8°
 
 % 9° Obtaining second duration matrix for the internal pattern
 
@@ -305,6 +314,7 @@ for i = 1:length(Duration(:,1))
 end
 
 clear Duration
+% \ 9°
 
 % 10° Obtaining third duration matrix for the internal pattern
 
@@ -353,6 +363,7 @@ for i = 1:length (linesUdrUppVal)
 end
 
 clear Duration2
+% \ 10°
 
 % 11° Obtaining fourth duration matrix for the internal pattern
 indexPreviousPeak2 = find (Duration3(:,1) == previousPeak2);
@@ -381,11 +392,10 @@ for i = 1:length(Duration3_v2(:,1))-2
         duration3Length = duration3Length + 1;
     end
 end
-% \ 12°
 
 clear Duration3_v2
 
-
+% \ 12°
 
 % 13° Obtaining sixth duration matrix for the internal pattern
 % Obtain the first raster line and add to the beggining of the duraction matrix
@@ -398,10 +408,9 @@ Duration4_v2(2:length(Duration4(:,1))+1,:) = Duration4;
 Duration4_v2(length(Duration4(:,1))+2,3) = Duration4_v2(length(Duration4(:,1))+1,2);
 Duration4_v2(length(Duration4(:,1))+2,1) = Duration4_v2(length(Duration4(:,1)),1)-varDurRaster;
 Duration4_v2(length(Duration4(:,1))+2,2) = Duration4_v2(length(Duration4(:,1))+2,1) + Duration4_v2(length(Duration4(:,1))+2,3);
-% \ 13°
 
 clear Duration4
-
+% \ 13°
 
 % 14° Obtaining the index values from the last duration matrix
 rasterLineCount = 1;
@@ -468,7 +477,6 @@ if maxRasterAux > uppRefTransRaster
 end
 
 %
-
 
 signalReposition = Compos3r(sensorSignalNormalized,contourToRasterReposition(:,2:3))+...
     Compos3r(sensorSignalNormalized,contourRepositions(:,2:3));
