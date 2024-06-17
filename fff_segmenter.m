@@ -64,85 +64,137 @@ while strcmp(app.RunthesegmentationSwitch.Value,'Off') == 1
     pause(0.5); % In order to avoid missuse of the CPU
 end
 
-Data_path = evalin('base', 'Data_path');
-xticksChoice = evalin('base', 'xticksChoice');
-segmentationChoice = evalin('base','Segmentation_choice');
-saveChoice = evalin('base', 'saveChoice');
-graphical = evalin('base', 'graphical');
+% Verify presence of identifications
+signalIdentifier_exists = evalin('base', ['exist(''', 'signalIdentifier', ''', ''var'')']);
+DirXidentification_exists = evalin('base', ['exist(''', 'DirXidentification', ''', ''var'')']);
+DirYidentification_exists = evalin('base', ['exist(''', 'DirYidentification', ''', ''var'')']);
+
+if signalIdentifier_exists == 1 && DirXidentification_exists == 1 &&...
+        DirYidentification_exists == 1
+else
+    disp ('ATTENTION!')
+        disp ('A necessary signal identification was not provided.');
+        disp ('Please, run the function again and provide the proper signal identifications.');
+        delete(app.UIFigure);
+        return;
+end
+
+% Verify presence of segmentation choice and xticks choice
+Segmentation_choice_exists = evalin('base', ['exist(''', 'Segmentation_choice', ''', ''var'')']);
+
+if Segmentation_choice_exists == 0
+    disp ('ATTENTION!')
+    disp ('The segmentation mode was not selected.');
+    disp ('The function will run with the default "Points" mode of segmentation');
+    segmentationChoice = 'Points';
+    xticksChoice_exists = evalin('base', ['exist(''', 'xticksChoice', ''', ''var'')']);
+    if xticksChoice_exists == 0
+        disp ('ATTENTION!')
+        disp ('The unit was not selected.');
+        disp ('The function will run with the default "Segments" unit');
+        xticksChoice = 'number of samples';
+    else
+        xticksChoice = evalin('base', 'xticksChoice');
+    end
+else
+    segmentationChoice = evalin('base','Segmentation_choice');
+
+    if strcmp(segmentationChoice,'Points')
+        xticksChoice_exists = evalin('base', ['exist(''', 'xticksChoice', ''', ''var'')']);
+        if xticksChoice_exists == 0
+            disp ('ATTENTION!')
+            disp ('The xticks mode was not selected.');
+            disp ('The function will run with the default "Segments" unit');
+            xticksChoice = 'number of samples';
+        else
+            xticksChoice = evalin('base', 'xticksChoice');
+        end
+
+    end
+end
+
+% Verify saveChoice
+saveChoice_exists = evalin('base', ['exist(''', 'saveChoice', ''', ''var'')']);
+if saveChoice_exists == 1
+    saveChoice = 'Y';
+else
+    saveChoice = 'N';
+end
+
+% Verify graphical representation
+graphical_exists = evalin('base', ['exist(''', 'graphical', ''', ''var'')']);
+if graphical_exists == 1
+    graphical = 'Y';
+    % Verify option to save figure
+    figureChoice_exists = evalin('base', ['exist(''', 'figureChoice', ''', ''var'')']);
+    if figureChoice_exists == 1
+        figureChoice = 'Y';
+    else
+        figureChoice = 'N';
+    end
+
+else
+    graphical = 'N';
+end
+
+% Verify Sampling frequency
+Fs_exists = evalin('base', ['exist(''', 'Fs', ''', ''var'')']);
+if Fs_exists == 1
 Fs = evalin('base', 'Fs');
-figureChoice = evalin('base', 'figureChoice');
+else
+        disp ('ATTENTION!')
+        disp ('No numerical value attributed to Sampling frequency (Fs) field.');
+        disp ('Please, run the function again and provide the proper Fs value.');
+        delete(app.UIFigure);
+        return;
+end
+
 signalIdentifier = evalin('base', 'signalIdentifier');
 DirXidentification = evalin('base', 'DirXidentification');
 DirYidentification = evalin('base', 'DirYidentification');
 
-% Load variables from a .mat file into a temporary structure
-temp = load(Data_path); %#ok<*LOAD>
+% Verify data selection
+Data_path_exists = evalin('base', ['exist(''', 'Data_path', ''', ''var'')']);
+if Data_path_exists == 1
+    Data_path = evalin('base', 'Data_path');
+    temp = load(Data_path); %#ok<*LOAD>
 
-% Assign each variable in the structure to the caller workspace
-fields = fieldnames(temp);
-for i = 1:length(fields)
-    assignin('caller', fields{i}, temp.(fields{i}));
+    fields = fieldnames(temp);
+    for i = 1:length(fields)
+        assignin('caller', fields{i}, temp.(fields{i}));
+    end
+    clear temp fields i
+else
+    if exist(signalIdentifier) && exist(DirXidentification) &&...
+            exist(DirYidentification)
+    else
+        disp ('ATTENTION!')
+        disp (['No data selected on the app or one of the signals named in the' ...
+            ' identifications is not present in the current workspace']);
+        delete(app.UIFigure);
+        return;
+    end
 end
-clear temp fields i 
 
-dirX = evalin('base',DirXidentification);
+% Verify identification
+dirX_exists = evalin('caller', ['exist(''', DirXidentification, ''', ''var'')']);
+dirY_exists = evalin('caller', ['exist(''', DirYidentification, ''', ''var'')']);
+sensorSignal_exists = evalin('caller', ['exist(''', signalIdentifier, ''', ''var'')']);
+
+if dirX_exists == 1 && dirY_exists == 1 && sensorSignal_exists == 1
+dirX = evalin('caller',DirXidentification);
 dirY = evalin('caller',DirYidentification);
 sensorSignal = evalin('caller', signalIdentifier);
+else
+        disp ('ATTENTION!')
+        disp (['At least one of the signals identifications did not match the selected data' ...
+            ' or existent workspace variable name.']);
+        delete(app.UIFigure);
+        return;
+end
+
 
 delete(app.UIFigure);
-
-%% Verify Input integrity
-
-if isempty(signalIdentifier)
-    signalIdentifier = 'segmentation results';
-end
-
-if isempty(segmentationChoice)
-    segmentationChoice = 'Points';
-end
-
-testSegmentChoice = strcmp(segmentationChoice,'Points');
-
-if testSegmentChoice == true
-    if isempty(xticksChoice)
-        xticksChoice = 'number of samples';
-    end
-end
-
-if isempty(graphical)
-    graphical = 'Y';
-end
-
-testGraphicalChoiceY = strcmp(graphical,'Y');
-testGraphicalChoiceN = strcmp(graphical,'N');
-
-if testGraphicalChoiceY ~= 1 && testGraphicalChoiceN ~= 1
-    segmentationChoice = 'Y';
-end
-
-if graphical == 'Y'
-    if isempty(figureChoice)
-        figureChoice = 'Y';
-    end
-
-    testFigureChoiceY = strcmp(figureChoice,'Y');
-    testFigureChoiceN = strcmp(figureChoice,'N');
-
-    if testFigureChoiceY ~= 1 && testFigureChoiceN ~= 1
-        figureChoice = 'Y';
-    end
-end
-
-if isempty(saveChoice)
-    saveChoice = 'Y';
-end
-
-testSaveChoiceY = strcmp(saveChoice,'Y');
-testSaveChoiceN = strcmp(saveChoice,'N');
-
-if testSaveChoiceY ~= 1 && testSaveChoiceN ~= 1
-    saveChoice = 'Y';
-end
 disp (' ');
 disp ("Wait just a few moments while we segment your FFF signal...");
 
@@ -551,7 +603,16 @@ end
 
 % \ 15°
 
-% 16° Save the results and generate the graphs
+% 16° Output and optionally save the results and optionally generate the graphs
+assignin('base', 'resultReposition', resultReposition);
+    assignin('base', 'resultContour', resultContour);
+    assignin('base', 'resultRaster', resultRaster);
+    assignin('base', 'resultTransitionRaster', resultTransitionRaster);
+    assignin('base', 'resultWholeWorkpiece', resultWholeWorkpiece);
+    assignin('base', 'resultExternalPattern', resultExternalPattern);
+    assignin('base', 'resultInternalPattern', resultInternalPattern);
+    assignin('base', 'segmentationChoice', segmentationChoice);
+    assignin('base', 'signalIdentifier', signalIdentifier);
 
 if saveChoice == 'Y'
     save_files(resultReposition, resultContour, resultRaster,...
@@ -566,6 +627,17 @@ if graphical == 'Y'
 end
 
 % \ 16°
+
+% 17° Clean up the workspace
+clear segmentationChoice;
+varargin = ({'DirXidentification', 'DirYidentification', 'figureChoice', 'Fs',...
+    'graphical', 'saveChoice', 'Segmentation_choice', 'segmentationChoice',...
+    'signalIdentifier', 'xticksChoice'});
+for i = 1:length(varargin)
+        varName = varargin{i};
+        evalin('base', ['clear ', varName]);
+end
+% \ 17°
 
 end
 
