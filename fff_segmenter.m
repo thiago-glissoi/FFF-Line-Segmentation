@@ -38,6 +38,7 @@ function fff_segmenter
 % <a href="matlab: disp('adjustExternalPattern: Adjust the external pattern segmentation results for a specific scenario. Please read the comments under the subfunction for further details.') ">adjustExternalPattern</a>
 % <a href="matlab: disp('adjustInternalPattern: Adjust the internal pattern segmentation results for a specific scenario. Please read the comments under the subfunction for further details.') ">adjustInternalPattern</a>
 % <a href="matlab: disp('adjust_internal: Adjust the internal pattern segmentation results for a specific scenario. Please read the comments under the subfunction for further details.') ">adjust_internal</a>
+% <a href="matlab: disp('cleanUpWS: Clean up the base workspace from the fff_segmenter variables.') ">cleanUpWS</a>
 % <a href="matlab: disp('Compos3r: Compose a signal based on the original acoustic signal and on specific segmentation indexes. Please read the comments under the subfunction for further details.') ">Compos3r</a>
 % <a href="matlab: disp('convUni: convUni Obtain a time (s) value based on a number of samples value, a reference signal, and on the sampling frequency. Please read the comments under the subfunction for further details.') ">convUni</a>
 % <a href="matlab: disp('detectAnom: Detect the anomaly verified in the Test1.mat dataset. Please read the comments under the subfunction for further details.') ">detectAnom</a>
@@ -54,8 +55,6 @@ function fff_segmenter
 % <a href="matlab: disp('saveFig: Save the graphical visualization of the segmentation results in a predefined format and resolution. Please read the comments under the subfunction for further details.') ">saveFig</a>
 % <a href="matlab: disp('save_files: Save the segmentation results in .mat files. Please read the comments under the subfunction for further details.') ">save_files</a>
 % <a href="matlab: disp('test_Minvariations: Test for the occurence of the variation problem observed for the Test1.mat data. Please read the comments under the subfunction for further details.') ">test_Minvariations</a>
-
-% app = APP_JOSS;
 
 %% APP User Inputs
 
@@ -76,6 +75,7 @@ else
         disp ('A necessary signal identification was not provided.');
         disp ('Please, run the function again and provide the proper signal identifications.');
         delete(app.UIFigure);
+        cleanUpWS;
         return;
 end
 
@@ -116,7 +116,7 @@ end
 % Verify saveChoice
 saveChoice_exists = evalin('base', ['exist(''', 'saveChoice', ''', ''var'')']);
 if saveChoice_exists == 1
-    saveChoice = 'Y';
+    saveChoice = evalin('base', 'saveChoice');
 else
     saveChoice = 'N';
 end
@@ -124,15 +124,17 @@ end
 % Verify graphical representation
 graphical_exists = evalin('base', ['exist(''', 'graphical', ''', ''var'')']);
 if graphical_exists == 1
-    graphical = 'Y';
+    graphical = evalin('base','graphical');
+    
+    if strcmp(graphical, 'Y') == 1
     % Verify option to save figure
     figureChoice_exists = evalin('base', ['exist(''', 'figureChoice', ''', ''var'')']);
     if figureChoice_exists == 1
-        figureChoice = 'Y';
+        figureChoice = evalin('base', 'figureChoice');
     else
         figureChoice = 'N';
     end
-
+    end
 else
     graphical = 'N';
 end
@@ -146,6 +148,7 @@ else
         disp ('No numerical value attributed to Sampling frequency (Fs) field.');
         disp ('Please, run the function again and provide the proper Fs value.');
         delete(app.UIFigure);
+        cleanUpWS;
         return;
 end
 
@@ -172,6 +175,7 @@ else
         disp (['No data selected on the app or one of the signals named in the' ...
             ' identifications is not present in the current workspace']);
         delete(app.UIFigure);
+        cleanUpWS;
         return;
     end
 end
@@ -190,6 +194,7 @@ else
         disp (['At least one of the signals identifications did not match the selected data' ...
             ' or existent workspace variable name.']);
         delete(app.UIFigure);
+        cleanUpWS;
         return;
 end
 
@@ -628,16 +633,7 @@ end
 
 % \ 16°
 
-% 17° Clean up the workspace
-clear segmentationChoice;
-varargin = ({'DirXidentification', 'DirYidentification', 'figureChoice', 'Fs',...
-    'graphical', 'saveChoice', 'Segmentation_choice', 'segmentationChoice',...
-    'signalIdentifier', 'xticksChoice'});
-for i = 1:length(varargin)
-        varName = varargin{i};
-        evalin('base', ['clear ', varName]);
-end
-% \ 17°
+cleanUpWS;
 
 end
 
@@ -1650,5 +1646,23 @@ StartPoint = startPointMat;
 EndPoint = endPointMat;
 
 resultTable = table(Duration,StartPoint,EndPoint);
+
+end
+
+% AUX14
+
+function cleanUpWS
+% cleanUpWS Clean up the 'base' workspace from the fff_segmenter algorithm variables.
+
+clear segmentationChoice;
+varargin = ({'DirXidentification', 'DirYidentification', 'figureChoice', 'Fs',...
+    'graphical', 'saveChoice', 'Segmentation_choice', 'segmentationChoice',...
+    'signalIdentifier', 'xticksChoice'});
+for i = 1:length(varargin)
+        varName = varargin{i};
+        evalin('base', ['clear ', varName]);
+end
+
+
 
 end
