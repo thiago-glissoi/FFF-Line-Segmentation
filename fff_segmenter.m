@@ -231,6 +231,7 @@ if exist('OCTAVE_VERSION', 'builtin') ~= 0
     disp (' ');
     graphical = input('Do you want to generate the graphical representation of the segmentation results? (Y/N): ', 's');
     if strcmp(graphical, 'Y') == 1
+        disp (' ');
         figureChoice = input('Do you want to save the graphical representation of the segmentation results? (Y/N): ', 's');
     end
     disp (' ');
@@ -238,6 +239,7 @@ if exist('OCTAVE_VERSION', 'builtin') ~= 0
     % Verify user input
     
     if strcmp(segmentationChoice,'Points') == 0 && strcmp(segmentationChoice,'Segments') == 0
+        disp (' ');
         disp ('ATTENTION!')
         disp ('The segmentation mode was not selected.');
         disp ('The function will run with the default "Points" mode of segmentation');
@@ -246,6 +248,7 @@ if exist('OCTAVE_VERSION', 'builtin') ~= 0
     end
     
     if strcmp(saveChoice,'Y') == 0 && strcmp(saveChoice,'N') == 0
+        disp (' ');
         disp ('ATTENTION!')
         disp ('The save choice was not selected.');
         disp ('The function will run with the default "N" mode of save');
@@ -253,20 +256,23 @@ if exist('OCTAVE_VERSION', 'builtin') ~= 0
     end
     
     if strcmp(graphical,'Y') == 0 && strcmp(graphical,'N') == 0
+        disp (' ');
         disp ('ATTENTION!')
         disp ('The graphical choice was not selected.');
         disp ('The function will run with the default "N" mode of graphical representation');
         graphical = 'N';
+        figureChoice = '';
     end
     
     if strcmp(figureChoice,'Y') == 0 && strcmp(figureChoice,'N') == 0
+        disp (' ');
         disp ('ATTENTION!')
         disp ('The figure choice was not selected.');
         disp ('The function will run with the default "N" mode of figure save');
         figureChoice = 'N';
     end
 end
-
+disp (' ');
 disp ("Wait just a few moments while we segment your FFF signal...");
 %#ok<*EXIST>
 
@@ -282,12 +288,13 @@ numofContourLines = numofContourSides * numofContourLoops; % Number of contour l
 lowRefTransRaster = Fs/25; % Lower Number of samples reference value for the transition raster
 
 if exist('OCTAVE_VERSION', 'builtin') == 0
-    uppRefTransRaster = round(Fs/22.2222,0); % Upper Number of samples reference value for the transition raster
+    % uppRefTransRaster = round(Fs/22.2222,0); % Upper Number of samples reference value for the transition raster
+    uppRefTransRaster = 9.3e3;
     varDurRaster = round(Fs/18.1818,0); % Variation of the duration between raster lines
     adpDurTranRaster = round(Fs/23.8095,0); % Adopted duration for the transition raster
     durationReference = round(Fs/1.33333,0); % known duration for the last contour printing
     refminimum_sampleValue = round(Fs/4,0); % Minimum number of samples reference for the test_Minvariations subfunction
-    middleRasterDuration = round(Fs/0.645161290322581,0); % Middle raster duration value
+    middleRasterDuration = round(Fs/0.645161290322581,1); % Middle raster duration value
 else
     uppRefTransRaster = round(Fs/22.2222); % Upper Number of samples reference value for the transition raster
     varDurRaster = round(Fs/18.1818); % Variation of the duration between raster lines
@@ -325,8 +332,6 @@ resultProblem = test_Minvariations(sensorSignalNormalized, dirXAdjustedNormalize
 clear dirXAdjusted dirX dirYAdjusted dirY sensorSignal
 
 %% External pattern segmentation
-
-% result_problem = 1; % % Necessary for the May/2023 data
 
 % 4° Obtain the duration vector
 Duration = obtainDuration(sensorSignalNormalized, dirXAdjustedNormalized,...
@@ -471,6 +476,9 @@ previousPeak = 0;
 previousPeak2 = 0;
 
 for i = 1:length (linesUdrUppVal)
+    if length(Duration3) > 48
+    a = 1;
+    end
     if i == length (linesUdrUppVal)
         break;
     end
@@ -486,18 +494,21 @@ for i = 1:length (linesUdrUppVal)
         % found the end of the increasing behaviour
         break;
     end
+
     if result == 1 % normal situation
-        tempDuration= isNormal( ...
-            Duration2, ...
-            initialIndex, ...
-            finalIndex, ...
-            1);
-        if Duration3(1,1) == 0
-            Duration3 = tempDuration;
-        else
-            Duration3 = [Duration3(1:end-1,:); tempDuration];
+        if (abs(Duration3(length(Duration3)-1,1) - Duration2(finalIndex-1,1)) > (Fs/40))
+            tempDuration= isNormal( ...
+                Duration2, ...
+                initialIndex, ...
+                finalIndex, ...
+                1);
+            if Duration3(1,1) == 0
+                Duration3 = tempDuration;
+            else
+                Duration3 = [Duration3(1:end-1,:); tempDuration];
+            end
+            clear tempDuration
         end
-        clear tempDuration
     else % abnormal situation
         tempDuration = isAbnormal( ...
             Duration2, ...
@@ -592,7 +603,7 @@ end
 
 if length(index_raster) < numofRasterLines
     [index_raster,index_trans_raster] =...
-        adjust_internal(index_raster,index_trans_raster);
+        adjust_internal(index_raster,index_trans_raster, varDurRaster);
     
 end
 
@@ -602,7 +613,7 @@ square1ExternalPattern = mean (indexContourAlt(1:numofContourSides,1));
 square2ExternalPattern = mean (indexContourAlt((numofContourSides+1):(numofContourSides*2),1));
 
 if abs(square2ExternalPattern - square1ExternalPattern) > (varDurRaster+4e3)
-    [contourRepositions, indexContourAlt] = adjustExternalPattern(contourRepositions, indexContourAlt);
+    [contourRepositions, indexContourAlt] = adjustExternalPattern(contourRepositions, indexContourAlt, numofContourSides);
 end
 
 %
@@ -1047,7 +1058,7 @@ for i = 1:length(duration(:,1))
     end
 end
 
-if cont_low_dur > (varDurRaster/220) % indicates the presence of the anomaly
+if cont_low_dur > (lowRefTransRaster/160) % indicates the presence of the anomaly
     result_problem = 1;
 else
     result_problem = 0;
@@ -1570,7 +1581,7 @@ end
 % AUX9
 
 function [index_raster_alt,index_trans_raster_alt] =...
-    adjust_internal(index_raster,index_trans_raster)
+    adjust_internal(index_raster,index_trans_raster, varDurRaster)
 % adjust_internal Adjust the internal pattern segmentation results for a specific scenario. The adjustment is made
 % when small duration segments are present at the beggining or end of the internal printing pattern, which would affect
 % the number of raster lines and the overall segmentation process in regard to the internal printing pattern.
@@ -1667,17 +1678,17 @@ end
 % AUX10
 
 function [contourRepositions_corr, indexContour_corr] =...
-    adjustExternalPattern(contourRepositions, indexContour)
+    adjustExternalPattern(contourRepositions, indexContour,numofContourSides)
 % adjustExternalPattern Adjust the external pattern segmentation results for a specific scenario. The adjustment is made
 % when small duration segments are present between the movements without deposition (reposition), which would affect the identification of
 % the contours geometrical features in regard to the movements without deposition and the overall segmentation process in regard
 % to the external printing pattern.
-%
+% 
 %   [contourRepositions_corr, indexContour_corr] = adjustExternalPattern(contourRepositions, indexContour)
 %
 %   where contourRepositions_corr is the adjusted reposition geometrical element, indexContour_corr is the adjusted index of the contour geometrical element,
 %   contourRepositions is the original reposition geometrical element, and indexContour is the original index of the contour geometrical element.
-
+% TODO adjust help
 med_quad_ext = mean(indexContour((numofContourSides+1):(numofContourSides*2),1));
 
 dif_quad = indexContour((numofContourSides*2),1) - indexContour((numofContourSides+1),1);
@@ -1703,8 +1714,9 @@ correct_square(numofContourSides-3,2) = floor(correct_square(numofContourSides-3
 correct_square(numofContourSides-3,1) = floor(abs(correct_square(numofContourSides-3,2) - correct_square(numofContourSides-3,3)));
 
 contourRepositions(numofContourSides-3,3) = correct_square(numofContourSides-3,2) - numofContourSides;
+contourRepositions_corr = contourRepositions;
 contourRepositions_corr(1,2) = floor(contourRepositions(1,3) - contourRepositions(1,1));
-
+indexContour_corr = indexContour;
 indexContour_corr(1:numofContourSides,:) = correct_square;
 
 end
