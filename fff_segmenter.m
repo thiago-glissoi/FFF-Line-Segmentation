@@ -3,7 +3,7 @@ function fff_segmenter
 %   fff_segmenter Is the main function of the FFF Line Segmentation script.
 %
 %% READ ME
-%   To verify the readmed, alonside a example run, check <a href="matlab: 
+%   To verify the readmed, alonside a example run, check <a href="matlab:
 %   web('https://github.com/thiago-glissoi/FFF-Line-Segmentation')">FFF-Line-Segmentation</a> for the FFF-Line-Segmentation script on Github.
 %
 % MIT License
@@ -15,7 +15,7 @@ function fff_segmenter
 % 3. Calls specific subfunctions to perform secondary tasks
 %    necessary to complete the segmentation operations.
 %
-%   For more information regarding the segmentation logic, see <a href="matlab: 
+%   For more information regarding the segmentation logic, see <a href="matlab:
 %   web('https://github.com/thiago-glissoi/FFF-Line-Segmentation/blob/main/Documentation.pdf')">Documentation</a> for the FFF-Line-Segmentation script on Github.
 %
 % Inputs:
@@ -25,13 +25,13 @@ function fff_segmenter
 % - Fs (double): The sampling frequency of the signals.
 %
 % Outputs:
-% - The main outputs of the function are the segmentation results, which can be 
+% - The main outputs of the function are the segmentation results, which can be
 %   the segmentation index (points), in seconds or in or the segments of signal (segments), based
 %   on the user's choice. These segmentation results are stored in the user current
 %   matlab workspace.
-% - Additionally, if the user opted for it, the segmentation results can be automatically 
+% - Additionally, if the user opted for it, the segmentation results can be automatically
 %   saved in .mat files in the user current matlab directory. Also, if the user opted for it,
-%   the function can generate a graphical visualization of the segmentation results and 
+%   the function can generate a graphical visualization of the segmentation results and
 %   automatically save it to the user current matlab directory.
 %
 % Called subfunctions (in alphabetical order):
@@ -50,159 +50,225 @@ function fff_segmenter
 % <a href="matlab: disp('isNormal: Obtain the duration matrix for the internal pattern in a normal segmentation situation. Please read the comments under the subfunction for further details.') ">isNormal</a>
 % <a href="matlab: disp('Normaliz3r: Normalize the amplitude of a signal between -1 and 1. Please read the comments under the subfunction for further details.') ">Normaliz3r</a>
 % <a href="matlab: disp('obtainDuration: Obtain the duration matrix based on the acoustic signal and on the step motor control signals. Please read the comments under the subfunction for further details.') ">obtainDuration</a>
-% <a href="matlab: disp('obtainTable: Obtain a table with the segmentation results. Please read the comments under the subfunction for further details.') ">obtainTable</a>
+% <a href="matlab: disp('obtainOutput: Obtain a formated output with the segmentation results. Please read the comments under the subfunction for further details.') ">obtainOutput</a>
 % <a href="matlab: disp('obtain_time_vec: Obtain a time (s) vector based on the signal's number of samples length and on the sampling frequency. Please read the comments under the subfunction for further details.') ">obtain_time_vec</a>
 % <a href="matlab: disp('saveFig: Save the graphical visualization of the segmentation results in a predefined format and resolution. Please read the comments under the subfunction for further details.') ">saveFig</a>
 % <a href="matlab: disp('save_files: Save the segmentation results in .mat files. Please read the comments under the subfunction for further details.') ">save_files</a>
 % <a href="matlab: disp('test_Minvariations: Test for the occurence of the variation problem observed for the Test1.mat data. Please read the comments under the subfunction for further details.') ">test_Minvariations</a>
 
-%% APP User Inputs
-
-app = APP_User_Inputs;
-while strcmp(app.RunthesegmentationSwitch.Value,'Off') == 1
-    pause(0.5); % In order to avoid missuse of the CPU
-end
-
-% Verify presence of identifications
-signalIdentifier_exists = evalin('base', ['exist(''', 'signalIdentifier', ''', ''var'')']);
-DirXidentification_exists = evalin('base', ['exist(''', 'DirXidentification', ''', ''var'')']);
-DirYidentification_exists = evalin('base', ['exist(''', 'DirYidentification', ''', ''var'')']);
-
-if signalIdentifier_exists == 1 && DirXidentification_exists == 1 &&...
-        DirYidentification_exists == 1
-else
-    disp ('ATTENTION!')
+if exist('OCTAVE_VERSION', 'builtin') == 0
+    % Is not running in octave
+    %% APP User Inputs
+    
+    app = APP_User_Inputs;
+    while strcmp(app.RunthesegmentationSwitch.Value,'Off') == 1
+        pause(0.5); % In order to avoid missuse of the CPU
+    end
+    
+    % Verify presence of identifications
+    signalIdentifier_exists = evalin('base', ['exist(''', 'signalIdentifier', ''', ''var'')']);
+    DirXidentification_exists = evalin('base', ['exist(''', 'DirXidentification', ''', ''var'')']);
+    DirYidentification_exists = evalin('base', ['exist(''', 'DirYidentification', ''', ''var'')']);
+    
+    if signalIdentifier_exists == 1 && DirXidentification_exists == 1 &&...
+            DirYidentification_exists == 1
+    else
+        disp ('ATTENTION!')
         disp ('A necessary signal identification was not provided.');
         disp ('Please, run the function again and provide the proper signal identifications.');
         delete(app.UIFigure);
         cleanUpWS;
         return;
-end
-
-% Verify presence of segmentation choice and xticks choice
-Segmentation_choice_exists = evalin('base', ['exist(''', 'Segmentation_choice', ''', ''var'')']);
-
-if Segmentation_choice_exists == 0
-    disp ('ATTENTION!')
-    disp ('The segmentation mode was not selected.');
-    disp ('The function will run with the default "Points" mode of segmentation');
-    segmentationChoice = 'Points';
-    xticksChoice_exists = evalin('base', ['exist(''', 'xticksChoice', ''', ''var'')']);
-    if xticksChoice_exists == 0
-        disp ('ATTENTION!')
-        disp ('The unit was not selected.');
-        disp ('The function will run with the default "Segments" unit');
-        xticksChoice = 'number of samples';
-    else
-        xticksChoice = evalin('base', 'xticksChoice');
     end
-else
-    segmentationChoice = evalin('base','Segmentation_choice');
-
-    if strcmp(segmentationChoice,'Points')
+    
+    % Verify presence of segmentation choice and xticks choice
+    Segmentation_choice_exists = evalin('base', ['exist(''', 'Segmentation_choice', ''', ''var'')']);
+    
+    if Segmentation_choice_exists == 0
+        disp ('ATTENTION!')
+        disp ('The segmentation mode was not selected.');
+        disp ('The function will run with the default "Points" mode of segmentation');
+        segmentationChoice = 'Points';
         xticksChoice_exists = evalin('base', ['exist(''', 'xticksChoice', ''', ''var'')']);
         if xticksChoice_exists == 0
             disp ('ATTENTION!')
-            disp ('The xticks mode was not selected.');
+            disp ('The unit was not selected.');
             disp ('The function will run with the default "Segments" unit');
             xticksChoice = 'number of samples';
         else
             xticksChoice = evalin('base', 'xticksChoice');
         end
-
-    end
-end
-
-% Verify saveChoice
-saveChoice_exists = evalin('base', ['exist(''', 'saveChoice', ''', ''var'')']);
-if saveChoice_exists == 1
-    saveChoice = evalin('base', 'saveChoice');
-else
-    saveChoice = 'N';
-end
-
-% Verify graphical representation
-graphical_exists = evalin('base', ['exist(''', 'graphical', ''', ''var'')']);
-if graphical_exists == 1
-    graphical = evalin('base','graphical');
-    
-    if strcmp(graphical, 'Y') == 1
-    % Verify option to save figure
-    figureChoice_exists = evalin('base', ['exist(''', 'figureChoice', ''', ''var'')']);
-    if figureChoice_exists == 1
-        figureChoice = evalin('base', 'figureChoice');
     else
-        figureChoice = 'N';
+        segmentationChoice = evalin('base','Segmentation_choice');
+        
+        if strcmp(segmentationChoice,'Points')
+            xticksChoice_exists = evalin('base', ['exist(''', 'xticksChoice', ''', ''var'')']);
+            if xticksChoice_exists == 0
+                disp ('ATTENTION!')
+                disp ('The xticks mode was not selected.');
+                disp ('The function will run with the default "Segments" unit');
+                xticksChoice = 'number of samples';
+            else
+                xticksChoice = evalin('base', 'xticksChoice');
+            end
+            
+        end
     end
+    
+    % Verify saveChoice
+    saveChoice_exists = evalin('base', ['exist(''', 'saveChoice', ''', ''var'')']);
+    if saveChoice_exists == 1
+        saveChoice = evalin('base', 'saveChoice');
+    else
+        saveChoice = 'N';
     end
-else
-    graphical = 'N';
-end
-
-% Verify Sampling frequency
-Fs_exists = evalin('base', ['exist(''', 'Fs', ''', ''var'')']);
-if Fs_exists == 1
-Fs = evalin('base', 'Fs');
-else
+    
+    % Verify graphical representation
+    graphical_exists = evalin('base', ['exist(''', 'graphical', ''', ''var'')']);
+    if graphical_exists == 1
+        graphical = evalin('base','graphical');
+        
+        if strcmp(graphical, 'Y') == 1
+            % Verify option to save figure
+            figureChoice_exists = evalin('base', ['exist(''', 'figureChoice', ''', ''var'')']);
+            if figureChoice_exists == 1
+                figureChoice = evalin('base', 'figureChoice');
+            else
+                figureChoice = 'N';
+            end
+        end
+    else
+        graphical = 'N';
+    end
+    
+    % Verify Sampling frequency
+    Fs_exists = evalin('base', ['exist(''', 'Fs', ''', ''var'')']);
+    if Fs_exists == 1
+        Fs = evalin('base', 'Fs');
+    else
         disp ('ATTENTION!')
         disp ('No numerical value attributed to Sampling frequency (Fs) field.');
         disp ('Please, run the function again and provide the proper Fs value.');
         delete(app.UIFigure);
         cleanUpWS;
         return;
-end
-
-signalIdentifier = evalin('base', 'signalIdentifier');
-DirXidentification = evalin('base', 'DirXidentification');
-DirYidentification = evalin('base', 'DirYidentification');
-
-% Verify data selection
-Data_path_exists = evalin('base', ['exist(''', 'Data_path', ''', ''var'')']);
-if Data_path_exists == 1
-    Data_path = evalin('base', 'Data_path');
-    temp = load(Data_path); %#ok<*LOAD>
-
-    fields = fieldnames(temp);
-    for i = 1:length(fields)
-        assignin('caller', fields{i}, temp.(fields{i}));
     end
-    clear temp fields i
-else
-    if exist(signalIdentifier) && exist(DirXidentification) &&...
-            exist(DirYidentification)
+    
+    signalIdentifier = evalin('base', 'signalIdentifier');
+    DirXidentification = evalin('base', 'DirXidentification');
+    DirYidentification = evalin('base', 'DirYidentification');
+    
+    % Verify data selection
+    Data_path_exists = evalin('base', ['exist(''', 'Data_path', ''', ''var'')']);
+    if Data_path_exists == 1
+        Data_path = evalin('base', 'Data_path');
+        temp = load(Data_path); %#ok<*LOAD>
+        
+        fields = fieldnames(temp);
+        for i = 1:length(fields)
+            assignin('caller', fields{i}, temp.(fields{i}));
+        end
+        clear temp fields i
     else
-        disp ('ATTENTION!')
-        disp (['No data selected on the app or one of the signals named in the' ...
-            ' identifications is not present in the current workspace']);
-        delete(app.UIFigure);
-        cleanUpWS;
-        return;
+        if exist(signalIdentifier) && exist(DirXidentification) &&...
+                exist(DirYidentification)
+        else
+            disp ('ATTENTION!')
+            disp (['No data selected on the app or one of the signals named in the' ...
+                ' identifications is not present in the current workspace']);
+            delete(app.UIFigure);
+            cleanUpWS;
+            return;
+        end
     end
-end
-
-% Verify identification
-dirX_exists = evalin('caller', ['exist(''', DirXidentification, ''', ''var'')']);
-dirY_exists = evalin('caller', ['exist(''', DirYidentification, ''', ''var'')']);
-sensorSignal_exists = evalin('caller', ['exist(''', signalIdentifier, ''', ''var'')']);
-
-if dirX_exists == 1 && dirY_exists == 1 && sensorSignal_exists == 1
-dirX = evalin('caller',DirXidentification);
-dirY = evalin('caller',DirYidentification);
-sensorSignal = evalin('caller', signalIdentifier);
-else
+    
+    % Verify identification
+    dirX_exists = evalin('caller', ['exist(''', DirXidentification, ''', ''var'')']);
+    dirY_exists = evalin('caller', ['exist(''', DirYidentification, ''', ''var'')']);
+    sensorSignal_exists = evalin('caller', ['exist(''', signalIdentifier, ''', ''var'')']);
+    
+    if dirX_exists == 1 && dirY_exists == 1 && sensorSignal_exists == 1
+        dirX = evalin('caller',DirXidentification);
+        dirY = evalin('caller',DirYidentification);
+        sensorSignal = evalin('caller', signalIdentifier);
+    else
         disp ('ATTENTION!')
         disp (['At least one of the signals identifications did not match the selected data' ...
             ' or existent workspace variable name.']);
         delete(app.UIFigure);
         cleanUpWS;
         return;
+    end
+    
+    
+    delete(app.UIFigure);
+    disp (' ');
+    
 end
 
+if exist('OCTAVE_VERSION', 'builtin') ~= 0
+    % Is running in octave
+    
+    pkg load signal
+    pkg load control
+    
+    dirX = evalin('base',input('Please enter the signal identification for the X axis: ', 's'));
+    disp (' ');
+    dirY = evalin('base',input('Please enter the signal identification for the Y axis: ', 's'));
+    disp (' ');
+    sensorSignal = input('Please enter the signal identification for the acoustic signal: ', 's');
+    signalIdentifier = sensorSignal;
+    sensorSignal = evalin('base',sensorSignal);
+    disp (' ');
+    Fs = str2double(input('Please enter the sampling frequency of the signals: '));
+    disp (' ');
+    segmentationChoice = input('Do you want the segmentation results in points or segments? (Points/Segments): ', 's');
+    if strcmp(segmentationChoice,'Points') == 1
+        xticksChoice = input('Do you want the xticks in seconds or in number of samples? (Seconds/Samples): ', 's');
+    end
+    disp (' ');
+    saveChoice = input('Do you want to save the segmentation results? (Y/N): ', 's');
+    disp (' ');
+    graphical = input('Do you want to generate the graphical representation of the segmentation results? (Y/N): ', 's');
+    if strcmp(graphical, 'Y') == 1
+        figureChoice = input('Do you want to save the graphical representation of the segmentation results? (Y/N): ', 's');
+    end
+    disp (' ');
+    
+    % Verify user input
+    
+    if strcmp(segmentationChoice,'Points') == 0 && strcmp(segmentationChoice,'Segments') == 0
+        disp ('ATTENTION!')
+        disp ('The segmentation mode was not selected.');
+        disp ('The function will run with the default "Points" mode of segmentation');
+        segmentationChoice = 'Points';
+        xticksChoice = 'number of samples';
+    end
+    
+    if strcmp(saveChoice,'Y') == 0 && strcmp(saveChoice,'N') == 0
+        disp ('ATTENTION!')
+        disp ('The save choice was not selected.');
+        disp ('The function will run with the default "N" mode of save');
+        saveChoice = 'N';
+    end
+    
+    if strcmp(graphical,'Y') == 0 && strcmp(graphical,'N') == 0
+        disp ('ATTENTION!')
+        disp ('The graphical choice was not selected.');
+        disp ('The function will run with the default "N" mode of graphical representation');
+        graphical = 'N';
+    end
+    
+    if strcmp(figureChoice,'Y') == 0 && strcmp(figureChoice,'N') == 0
+        disp ('ATTENTION!')
+        disp ('The figure choice was not selected.');
+        disp ('The function will run with the default "N" mode of figure save');
+        figureChoice = 'N';
+    end
+end
 
-delete(app.UIFigure);
-disp (' ');
 disp ("Wait just a few moments while we segment your FFF signal...");
-
+%#ok<*EXIST>
 
 %% Attributing values that are due to the specific part geometry to necessary variables.
 
@@ -214,13 +280,22 @@ numofContourLines = numofContourSides * numofContourLoops; % Number of contour l
 
 % Variables for the segmentation logic
 lowRefTransRaster = Fs/25; % Lower Number of samples reference value for the transition raster
-uppRefTransRaster = round(Fs/22.2222,0); % Upper Number of samples reference value for the transition raster
-varDurRaster = round(Fs/18.1818,0); % Variation of the duration between raster lines
-adpDurTranRaster = round(Fs/23.8095,0); % Adopted duration for the transition raster
-durationReference = round(Fs/1.33333,0); % known duration for the last contour printing
-refminimum_sampleValue = round(Fs/4,0); % Minimum number of samples reference for the test_Minvariations subfunction
-middleRasterDuration = round(Fs/0.645161290322581,0); % Middle raster duration value
 
+if exist('OCTAVE_VERSION', 'builtin') == 0
+    uppRefTransRaster = round(Fs/22.2222,0); % Upper Number of samples reference value for the transition raster
+    varDurRaster = round(Fs/18.1818,0); % Variation of the duration between raster lines
+    adpDurTranRaster = round(Fs/23.8095,0); % Adopted duration for the transition raster
+    durationReference = round(Fs/1.33333,0); % known duration for the last contour printing
+    refminimum_sampleValue = round(Fs/4,0); % Minimum number of samples reference for the test_Minvariations subfunction
+    middleRasterDuration = round(Fs/0.645161290322581,0); % Middle raster duration value
+else
+    uppRefTransRaster = round(Fs/22.2222); % Upper Number of samples reference value for the transition raster
+    varDurRaster = round(Fs/18.1818); % Variation of the duration between raster lines
+    adpDurTranRaster = round(Fs/23.8095); % Adopted duration for the transition raster
+    durationReference = round(Fs/1.33333); % known duration for the last contour printing
+    refminimum_sampleValue = round(Fs/4); % Minimum number of samples reference for the test_Minvariations subfunction
+    middleRasterDuration = round(Fs/0.645161290322581); % Middle raster duration value
+end
 %#ok<*AGROW> % Suppress the warning for growing arrays in the code
 
 %% Pre-processing
@@ -251,7 +326,7 @@ clear dirXAdjusted dirX dirYAdjusted dirY sensorSignal
 
 %% External pattern segmentation
 
-% result_problem = true; % % Necessary for the May/2023 data
+% result_problem = 1; % % Necessary for the May/2023 data
 
 % 4° Obtain the duration vector
 Duration = obtainDuration(sensorSignalNormalized, dirXAdjustedNormalized,...
@@ -261,10 +336,10 @@ Duration = obtainDuration(sensorSignalNormalized, dirXAdjustedNormalized,...
 % 5° Find the separation point
 
 for i = 1:length(Duration(:,1))
-
+    
     resultSep = determin_separation_point(Duration, i, durationReference);
-
-    if resultSep == true
+    
+    if resultSep == 1
         patternVariationPoint = Duration(i,2);
         break;
     else
@@ -292,8 +367,13 @@ end
 % 7° Repositioning evaluation and contour lines correction
 
 % reposition 1
-meanCountourGroup1 = round(mean([indexCountourTemp(numofContourSides-2,1) indexCountourTemp(numofContourSides-1,1)...
-    indexCountourTemp(numofContourSides,1)]),0);
+if exist('OCTAVE_VERSION', 'builtin') == 0
+    meanCountourGroup1 = round(mean([indexCountourTemp(numofContourSides-2,1) indexCountourTemp(numofContourSides-1,1)...
+        indexCountourTemp(numofContourSides,1)]),0);
+else
+    meanCountourGroup1 = round(mean([indexCountourTemp(numofContourSides-2,1) indexCountourTemp(numofContourSides-1,1)...
+        indexCountourTemp(numofContourSides,1)]));
+end
 
 adjustedContourLine1(1,1) = meanCountourGroup1;
 adjustedContourLine1(1,3) = indexCountourTemp(1,3);
@@ -311,8 +391,13 @@ else
 end
 
 % reposition 2
-meanContourGroup2 = round(mean([indexCountourTemp(6,1) indexCountourTemp(7,1)...
-    indexCountourTemp(8,1)]),0);
+if exist('OCTAVE_VERSION', 'builtin') == 0
+    meanContourGroup2 = round(mean([indexCountourTemp(6,1) indexCountourTemp(7,1)...
+        indexCountourTemp(8,1)]),0);
+else
+    meanContourGroup2 = round(mean([indexCountourTemp(6,1) indexCountourTemp(7,1)...
+        indexCountourTemp(8,1)]));
+end
 
 adjustedContourLine2(1,1) = meanContourGroup2;
 adjustedContourLine2(1,3) = indexCountourTemp(5,3);
@@ -323,8 +408,13 @@ repoToContour2(1,3) = adjustedContourLine2(1,2);
 repoToContour2(1,2) = indexCountourTemp(5,2);
 
 % reposition 3
-meanContourGroup3 = round(mean([indexCountourTemp(10,1) indexCountourTemp(11,1)...
-    indexCountourTemp(numofContourLines,1)]),0);
+if exist('OCTAVE_VERSION', 'builtin') == 0
+    meanContourGroup3 = round(mean([indexCountourTemp(10,1) indexCountourTemp(11,1)...
+        indexCountourTemp(numofContourLines,1)]),0);
+else
+    meanContourGroup3 = round(mean([indexCountourTemp(10,1) indexCountourTemp(11,1)...
+        indexCountourTemp(numofContourLines,1)]));
+end
 
 adjustedContourLine3(1,1) = meanContourGroup3;
 adjustedContourLine3(1,3) = indexCountourTemp(9,3);
@@ -347,8 +437,8 @@ contourRepositions = [repoToContour1; repoToContour2; repoToContour3];
 % 8° Obtaining first duration matrix for the internal pattern
 % There is no need to check for the problem of too many consecutive transition lines here
 % since there are very small line segments in the internal pattern. On the contrary,
-% this could cause some issues. So the result_problem value is set to false.
-resultProblem = false;
+% this could cause some issues. So the result_problem value is set to 0.
+resultProblem = 0;
 
 % Obtaining duration matrix
 Duration = obtainDuration(sensorSignalNormalized, ...
@@ -396,7 +486,7 @@ for i = 1:length (linesUdrUppVal)
         % found the end of the increasing behaviour
         break;
     end
-    if result == true % normal situation
+    if result == 1 % normal situation
         tempDuration= isNormal( ...
             Duration2, ...
             initialIndex, ...
@@ -503,7 +593,7 @@ end
 if length(index_raster) < numofRasterLines
     [index_raster,index_trans_raster] =...
         adjust_internal(index_raster,index_trans_raster);
-
+    
 end
 
 % Verify external pattern integrity
@@ -549,7 +639,7 @@ testSegmentChoice = strcmp(segmentationChoice,'Points');
 
 testxticksChoice = strcmp(xticksChoice,'Seconds');
 
-if testSegmentChoice == true
+if testSegmentChoice == 1
     resultReposition = [contourRepositions; contourToRasterReposition];
     resultContour = indexContourAlt;
     resultRaster = index_raster;
@@ -557,8 +647,8 @@ if testSegmentChoice == true
     resultWholeWorkpiece = [resultContour(1,2) resultRaster(numofRasterLines,2)];
     resultExternalPattern = [resultContour(1,2) resultContour(numofContourLines,3)];
     resultInternalPattern = [resultRaster(1,3) resultRaster(numofRasterLines,2)];
-
-    if testxticksChoice == true
+    
+    if testxticksChoice == 1
         resultReposition = convUni(sensorSignalNormalized, resultReposition, Fs);
         resultContour = convUni(sensorSignalNormalized, resultContour, Fs);
         resultRaster = convUni(sensorSignalNormalized, resultRaster, Fs);
@@ -567,33 +657,55 @@ if testSegmentChoice == true
         resultExternalPattern = convUni(sensorSignalNormalized, resultExternalPattern, Fs);
         resultInternalPattern = convUni(sensorSignalNormalized, resultInternalPattern, Fs);
     end
-
-    resultReposition = obtainTable(resultReposition(:,1),...
+    
+    resultReposition = obtainOutput(resultReposition(:,1),...
         resultReposition(:,2), resultReposition(:,3));
-    resultContour = obtainTable(resultContour(:,1),...
+    resultContour = obtainOutput(resultContour(:,1),...
         resultContour(:,2), resultContour(:,3));
-    resultRaster = obtainTable(resultRaster(:,1),...
+    resultRaster = obtainOutput(resultRaster(:,1),...
         resultRaster(:,3), resultRaster(:,2));
-    resultTransitionRaster = obtainTable(resultTransitionRaster(:,1),...
+    resultTransitionRaster = obtainOutput(resultTransitionRaster(:,1),...
         resultTransitionRaster(:,3), resultTransitionRaster(:,2));
-
+    
     StartPoint = resultWholeWorkpiece(1);
     EndPoint = resultWholeWorkpiece(2);
-    resultWholeWorkpiece = table(StartPoint,EndPoint);
-
+    
+    if exist('OCTAVE_VERSION', 'builtin') == 0
+        resultWholeWorkpiece = table(StartPoint,EndPoint);
+    else
+        resultWholeWorkpiece = struct();
+        resultWholeWorkpiece.StartPoint = StartPoint;
+        resultWholeWorkpiece.EndPoint = EndPoint;
+    end
+    
+    
     StartPoint = resultExternalPattern(1);
     EndPoint = resultExternalPattern(2);
-    resultExternalPattern = table(StartPoint,EndPoint);
-
+    
+    if exist('OCTAVE_VERSION', 'builtin') == 0
+        resultExternalPattern = table(StartPoint,EndPoint);
+    else
+        resultExternalPattern = struct();
+        resultExternalPattern.StartPoint = StartPoint;
+        resultExternalPattern.EndPoint = EndPoint;
+    end
+    
     StartPoint = resultInternalPattern(1);
     EndPoint = resultInternalPattern(2);
-    resultInternalPattern = table(StartPoint,EndPoint);
-
+    
+    if exist('OCTAVE_VERSION', 'builtin') == 0
+        resultInternalPattern = table(StartPoint,EndPoint);
+    else
+        resultInternalPattern = struct();
+        resultInternalPattern.StartPoint = StartPoint;
+        resultInternalPattern.EndPoint = EndPoint;
+    end
+    
 end
 
 testSegmentChoice = strcmp(segmentationChoice,'segments');
 
-if testSegmentChoice == true
+if testSegmentChoice == 1
     resultReposition = gen_signal_segments(sensorSignalNormalized,...
         contourRepositions);
     resultReposition(1,numofContourSides) = gen_signal_segments(sensorSignalNormalized,...
@@ -610,14 +722,14 @@ end
 
 % 16° Output and optionally save the results and optionally generate the graphs
 assignin('base', 'resultReposition', resultReposition);
-    assignin('base', 'resultContour', resultContour);
-    assignin('base', 'resultRaster', resultRaster);
-    assignin('base', 'resultTransitionRaster', resultTransitionRaster);
-    assignin('base', 'resultWholeWorkpiece', resultWholeWorkpiece);
-    assignin('base', 'resultExternalPattern', resultExternalPattern);
-    assignin('base', 'resultInternalPattern', resultInternalPattern);
-    assignin('base', 'segmentationChoice', segmentationChoice);
-    assignin('base', 'signalIdentifier', signalIdentifier);
+assignin('base', 'resultContour', resultContour);
+assignin('base', 'resultRaster', resultRaster);
+assignin('base', 'resultTransitionRaster', resultTransitionRaster);
+assignin('base', 'resultWholeWorkpiece', resultWholeWorkpiece);
+assignin('base', 'resultExternalPattern', resultExternalPattern);
+assignin('base', 'resultInternalPattern', resultInternalPattern);
+assignin('base', 'segmentationChoice', segmentationChoice);
+assignin('base', 'signalIdentifier', signalIdentifier);
 
 if saveChoice == 'Y'
     save_files(resultReposition, resultContour, resultRaster,...
@@ -639,26 +751,26 @@ end
 
 % SUB1
 function result = detectAnom(initialPoint, lastPoint)
-% detectAnom  Detects if an abnormal segmentation situation is present while in the internal 
-% printing pattern segmentation logic. 
-    % The abnormal segmentation situation is verified where multiple low duration segments are verified between two
-    % high duration segments. In the case of the specific part geometry and sampling frequency employed 
-    % for the three datasets of signals collected from a first layer 3D print, these abnormal low duration segments
-    % are below lowRefTransRaster samples.
-%   
-%   result = detectAnom(initialPoint, lastPoint) test if the anomaly is present between the indexes 
-%   initialPoint and lastPoint. 
+% detectAnom  Detects if an abnormal segmentation situation is present while in the internal
+% printing pattern segmentation logic.
+% The abnormal segmentation situation is verified where multiple low duration segments are verified between two
+% high duration segments. In the case of the specific part geometry and sampling frequency employed
+% for the three datasets of signals collected from a first layer 3D print, these abnormal low duration segments
+% are below lowRefTransRaster samples.
+%
+%   result = detectAnom(initialPoint, lastPoint) test if the anomaly is present between the indexes
+%   initialPoint and lastPoint.
 %   The abnormal segmentation situation is present when the difference between lastPoint and initialPoint is not equal to 2.
 %
-%   result returns true if the abnormal segmentation situation is not present, and false if it is present.
+%   result returns 1 if the abnormal segmentation situation is not present, and 0 if it is present.
 
 
 if lastPoint - initialPoint == 2
     % Normal situation
-    result = true;
+    result = 1;
 else
     % Abnormal situation
-    result = false;
+    result = 0;
 end
 end
 
@@ -666,13 +778,13 @@ end
 function composedDuration = isNormal(originalDuration, ...
     initialPoint, lastPoint, ...
     indexDuration)
-    % isNormal  Obtain the duration matrix for the internal pattern in a normal segmentation situation.
-    % The normal segmentation situation is verified where a low duration segment is verified between two
-    % high duration segments. In the case of the specific part geometry and sampling frequency employed 
-    % for the three datasets of signals collected from a first layer 3D print, the low duration segment
-    % is around lowRefTransRaster samples.
+% isNormal  Obtain the duration matrix for the internal pattern in a normal segmentation situation.
+% The normal segmentation situation is verified where a low duration segment is verified between two
+% high duration segments. In the case of the specific part geometry and sampling frequency employed
+% for the three datasets of signals collected from a first layer 3D print, the low duration segment
+% is around lowRefTransRaster samples.
 %
-%   composedDuration = isNormal(originalDuration, initialPoint, lastPoint, indexDuration) 
+%   composedDuration = isNormal(originalDuration, initialPoint, lastPoint, indexDuration)
 %
 %   where composedDuration is the resulting duration matrix, originalDuration is the original duration matrix,
 %   initialPoint is the initial index of interest in this segmentation logic, lastPoint is the last point of interest
@@ -702,13 +814,13 @@ end
 function composedDuration = isAbnormal(originalDuration, ...
     initialPoint, lastPoint, ...
     previousPeak, varDurRaster, adpDurTranRaster)
-    % isAbnormal  Obtain the duration matrix for the internal pattern in an abnormal segmentation situation.
-    % The abnormal segmentation situation is verified where multiple low duration segments are verified between two
-    % high duration segments. In the case of the specific part geometry and sampling frequency employed 
-    % for the three datasets of signals collected from a first layer 3D print, these abnormal low duration segments
-    % are below lowRefTransRaster samples.
+% isAbnormal  Obtain the duration matrix for the internal pattern in an abnormal segmentation situation.
+% The abnormal segmentation situation is verified where multiple low duration segments are verified between two
+% high duration segments. In the case of the specific part geometry and sampling frequency employed
+% for the three datasets of signals collected from a first layer 3D print, these abnormal low duration segments
+% are below lowRefTransRaster samples.
 %
-%   composedDuration = isAbnormal(originalDuration, initialPoint, lastPoint, previousPeak, varDurRaster, adpDurTranRaste) 
+%   composedDuration = isAbnormal(originalDuration, initialPoint, lastPoint, previousPeak, varDurRaster, adpDurTranRaste)
 %
 %   where composedDuration is the resulting duration matrix, originalDuration is the original duration matrix,
 %   initialPoint is the initial index of interest in this segmentation logic, lastPoint is the last point of interest
@@ -760,7 +872,7 @@ for i = initialPoint:2:lastPoint
     end
     if i == initialPoint % If it is the first case
         % Transition period (aprox lowRefTransRaster samples)
-        composedDuration(cont, 3) =  originalDuration(i,3); 
+        composedDuration(cont, 3) =  originalDuration(i,3);
         composedDuration(cont, 2) =  originalDuration(i,2);
         composedDuration(cont, 1) =  composedDuration(cont, 2)...
             - composedDuration(cont, 3);
@@ -782,7 +894,7 @@ for i = initialPoint:2:lastPoint
         - composedDuration(cont, 3);
     previousPeak = composedDuration(cont, 1);
     cont = cont +1;
-
+    
     % Normal transition
     composedDuration(cont, 3) =  composedDuration(cont-1, 2);
     composedDuration(cont, 2) =  composedDuration(cont, 3) +...
@@ -798,9 +910,9 @@ function duration = obtainDuration ( ...
     Dir_X_adjusted_normalized,...
     Dir_Y_adjusted_normalized, ...
     result_problem, refminimum_sampleValue)
-    % obtainDuration  Obtain the duration matrix from the acoustic signal and the X and Y step motor control signals.
+% obtainDuration  Obtain the duration matrix from the acoustic signal and the X and Y step motor control signals.
 %
-%   duration = obtainDuration (sensor_signal_normalized, Dir_X_adjusted_normalized, Dir_Y_adjusted_normalized, result_problem, refminimum_sampleValue) 
+%   duration = obtainDuration (sensor_signal_normalized, Dir_X_adjusted_normalized, Dir_Y_adjusted_normalized, result_problem, refminimum_sampleValue)
 %
 %   where duration is the resulting duration matrix, sensor_signal_normalized is the normalized acoustic signal,
 %   Dir_X_adjusted_normalized is the normalized X step motor control signal, Dir_Y_adjusted_normalized is the normalized Y step motor control signal,
@@ -810,7 +922,7 @@ function duration = obtainDuration ( ...
 x_value = 0;
 y_value = 0;
 last_change = 0;
-if result_problem == true
+if result_problem == 1
     minimum_sampleValue = refminimum_sampleValue;
 else
     minimum_sampleValue = 0;
@@ -868,10 +980,10 @@ function result_problem = test_Minvariations(sensor_signal_normalized, Dir_X_adj
 % test_Minvariations  detects the anomaly verified in the Test1.mat dataset. The anomaly present in the Test1.mat dataset
 % was that of unexpected low duration segments appearing throughout the dirX signal. This was caused by interference, and was fixed
 % for the Test2.mat and Test3.mat datasets printing procedures.
-%   
+%
 %   result_problem = test_Minvariations(sensor_signal_normalized, Dir_X_adjusted_normalized, Dir_Y_adjusted_normalized, lowRefTransRaster)
 %
-%       where result_problem returns the boolean value true if the anomaly is present, false if it is not, and lowRefTransRaster is the reference
+%       where result_problem returns the boolean value 1 if the anomaly is present, 0 if it is not, and lowRefTransRaster is the reference
 %       low duration raster for the specific part geometry and with the Fs of 200 kHz.
 
 x_value = 0;
@@ -935,10 +1047,10 @@ for i = 1:length(duration(:,1))
     end
 end
 
-if cont_low_dur > 50 % indicates the presence of the anomaly
-    result_problem = true;
+if cont_low_dur > (varDurRaster/220) % indicates the presence of the anomaly
+    result_problem = 1;
 else
-    result_problem = false;
+    result_problem = 0;
 end
 
 end
@@ -949,7 +1061,7 @@ function gen_graph(signal_reposition, sensor_signal, Fs,...
     signal_trans_raster, index_raster, figure_choice)
 % gen_graph  Generate the graphical visualization of the segmentation results. The graphical visualization is generated
 % in a figure using predefined ploting parameters in order to represent the segmentation results.
-%   
+%
 %   gen_graph(signal_reposition, sensor_signal, Fs, signal_identifier, signal_contour, signal_raster,
 %   signal_trans_raster, index_raster, figure_choice)
 %
@@ -994,8 +1106,12 @@ a = index_raster(1,3)/Fs;
 xlim_min = a - 2.0;
 xlim_max = a + 1.5;
 
-ticks = round(xlim_min:1:xlim_max,1);
-ticks = num2str(ticks');
+if exist('OCTAVE_VERSION', 'builtin') == 0
+    ticks = round(xlim_min:1:xlim_max,1);
+    ticks = num2str(ticks');
+else
+    ticks = num2str(1:1:6);
+end
 
 figure;
 subplot (2,3,1:2);
@@ -1038,7 +1154,9 @@ generate_standard_fig(t_segmented, signal_raster_segmented, 1, 2,...
 legend('off');
 grid minor;
 
-xticklabels (ticks);
+if exist('OCTAVE_VERSION', 'builtin') == 0
+    xticklabels (ticks);
+end
 
 subplot (2,3,4:5);
 generate_standard_fig(t_decimated, sensor_signal, 1, 2,...
@@ -1080,7 +1198,9 @@ generate_standard_fig(t_segmented, signal_trans_raster_segmented, 1, 2,...
 legend('off');
 grid minor;
 
-xticklabels (ticks);
+if exist('OCTAVE_VERSION', 'builtin') == 0
+    xticklabels (ticks);
+end
 
 if figure_choice == 'Y'
     checkFolder = isfolder('Segmentation results');
@@ -1088,7 +1208,7 @@ if figure_choice == 'Y'
         mkdir('Segmentation results');
     end
     oldFolder = cd('Segmentation results/');
-
+    
     signal_identifier2 = ['Segmentation results ',signal_identifier, '.png'];
     saveFig(gca,'centimeters',[13 11]*1.8,600,signal_identifier2)
     cd(oldFolder);
@@ -1133,7 +1253,7 @@ function generate_standard_fig(xaxis, yaxis, type, new_or_superimpose,...
 % generate_standard_fig  Generate the figure for the graphical visualization using predefined ploting parameters. The figure is generated
 % using predefined ploting parameters in order to represent the segmentation results in a standardized way, making it easy to spot segmentation
 % inconsistencies.
-%   
+%
 %   generate_standard_fig(xaxis, yaxis, type, new_or_superimpose, leg, tit, xaxis_label, yaxis_label, x_ticks, y_ticks, x_limit1, x_limit2,
 %   y_limit1, y_limit2, legend_type, font_type, font_size)
 %
@@ -1158,7 +1278,9 @@ if (type == 1)
     else
         p = plot(xaxis, yaxis);
     end
-    p.LineWidth = 1;
+    if exist('OCTAVE_VERSION', 'builtin') == 0
+        p.LineWidth = 1;
+    end
 end
 
 if (type == 2)
@@ -1220,19 +1342,19 @@ if (leg ~= 0)
     if (legend_type == 1)
         legend('Location','best');
     end
-
+    
     if (legend_type == 2 || legend_type == 0)
         legend('Location','northeast');
     end
-
+    
     if (legend_type == 3)
         legend('Location','northwest');
     end
-
+    
     if (legend_type == 4)
         legend('Location','southwest');
     end
-
+    
     if (legend_type == 5)
         legend('Location','southeast');
     end
@@ -1246,12 +1368,16 @@ if (new_or_superimpose == 2)
     hold on;
     numb_fig = size(allchild(gca));
     numb_fig_v = numb_fig(1,1);
-    numb_col = round(numb_fig_v/4,0);
+    if exist('OCTAVE_VERSION', 'builtin') == 0
+        numb_col = round(numb_fig_v/4,0);
+    else
+        numb_col = round(numb_fig_v/4);
+    end
     if numb_col == 0
         numb_col = 1;
     end
     legend('NumColumns',numb_col);
-
+    
     ordem_cor = [0.00,0.45,0.74; 0.85,0.33,0.10; 0.93,0.69,0.13;...
         0.49,0.18,0.56; 0.47,0.67,0.19; 0.30,0.75,0.93;...
         0.64,0.08,0.18; 0.85,0.85,0.35; 0.07,0.62,1.00;...
@@ -1259,8 +1385,9 @@ if (new_or_superimpose == 2)
         0.41,0.82,0.82; 1.00,0.07,0.65; 1.00,0.00,0.00;...
         0.65,0.65,0.65; 0.00, 1.00,0.00; 0.00,0.00, 1.00;...
         0.00,0.00,0.00];
-
-    colororder(ordem_cor(1:numb_fig_v,:));
+    if exist('OCTAVE_VERSION', 'builtin') == 0
+        colororder(ordem_cor(1:numb_fig_v,:));
+    end
 end
 
 end
@@ -1292,7 +1419,7 @@ elseif sum(unitVal) > 1
     error('Error:saveFig', 'Please, inform only one unit.')
 end
 
-if isa(res,'double') 
+if isa(res,'double')
     res = ['-r' num2str(res)];
 elseif strncmp('-r', res, 2) == 0
     error('Error:saveFig', 'The value informed for the resolution is not valid.')
@@ -1312,7 +1439,7 @@ end
 
 % AUX3
 function vector_normalized = Normaliz3r (original_vector)
-% vector_normalized  Normalize the amplitude of a signal between -1 and 1, or between 0 and 1 (if its an 
+% vector_normalized  Normalize the amplitude of a signal between -1 and 1, or between 0 and 1 (if its an
 % signal which the amplitude variates between 0 and 1).
 %
 %   vector_normalized = Normaliz3r (original_vector)
@@ -1376,8 +1503,8 @@ end
 % AUX7
 function result_sep = determin_separation_point(Duration, i,...
     duration_reference)
-    % determin_separation_point  Determine the separation point between internal and external patterns based on the 
-    % duration matrix and on a reference duration value.
+% determin_separation_point  Determine the separation point between internal and external patterns based on the
+% duration matrix and on a reference duration value.
 %
 %   result_sep = determin_separation_point(Duration, i, duration_reference)
 %
@@ -1407,15 +1534,15 @@ if next_sub1 >= duration_reference && ...
         next_value3 < duration_reference && ...
         next_value4 < duration_reference && ...
         next_value5 < duration_reference
-    result_sep = true;
+    result_sep = 1;
 else
-    result_sep = false;
+    result_sep = 0;
 end
 end
 
 % AUX8
 function signal_segments = gen_signal_segments(raw_signal, index_matrix)
-    % gen_signal_segments  Generate the signal segments based on the original signal and on specific segmentation indexes.
+% gen_signal_segments  Generate the signal segments based on the original signal and on specific segmentation indexes.
 %
 %   signal_segments = gen_signal_segments(raw_signal, index_matrix)
 %
@@ -1444,9 +1571,9 @@ end
 
 function [index_raster_alt,index_trans_raster_alt] =...
     adjust_internal(index_raster,index_trans_raster)
-        % adjust_internal Adjust the internal pattern segmentation results for a specific scenario. The adjustment is made
-        % when small duration segments are present at the beggining or end of the internal printing pattern, which would affect
-        % the number of raster lines and the overall segmentation process in regard to the internal printing pattern.
+% adjust_internal Adjust the internal pattern segmentation results for a specific scenario. The adjustment is made
+% when small duration segments are present at the beggining or end of the internal printing pattern, which would affect
+% the number of raster lines and the overall segmentation process in regard to the internal printing pattern.
 %
 %   [index_raster_alt,index_trans_raster_alt] = adjust_internal(index_raster,index_trans_raster)
 %
@@ -1472,14 +1599,14 @@ aux1 = 1;
 index_raster_alt = [0 0 0];
 
 for j = 1:length(ind_id)
-
+    
     index_raster_alt = [index_raster_alt;...
         index_raster(aux1:ind_id(j)-1,1:3)];
-
+    
     last_peak = index_raster_alt(end,1:3);
-
+    
     for k = 1:id_index_raster(ind_id(j))
-
+        
         if ind_id(j) < 27
             temp_mat(k,1) = last_peak(1,1) + varDurRaster;
             temp_mat(k,3) = last_peak(1,2) + adpDurTranRaster;
@@ -1488,23 +1615,23 @@ for j = 1:length(ind_id)
             temp_mat(k,1) = last_peak(1,1) - varDurRaster;
             temp_mat(k,3) = last_peak(1,2) + adpDurTranRaster;
             temp_mat(k,2) = temp_mat(k,3) + temp_mat(k,1);
-
+            
         end
         last_peak = temp_mat(end,1:3);
-
+        
     end
     index_raster_alt = [index_raster_alt;...
         temp_mat];
     clear temp_mat last_peak
-
+    
     aux1 = ind_id(j);
-
+    
     if j == length(ind_id)
         index_raster_alt = [index_raster_alt;...
             index_raster(aux1:end,1:3)];
     end
-
-
+    
+    
 end
 
 index_raster_alt = index_raster_alt(2:end,:);
@@ -1530,7 +1657,7 @@ for i = 1:middle
     end
     index_raster_alt_2(i,2) =...
         index_raster_alt_2(i,1)+index_raster_alt_2(i,3);
-
+    
 end
 
 index_raster_alt = [index_raster_alt;index_raster_alt_2];
@@ -1541,10 +1668,10 @@ end
 
 function [contourRepositions_corr, indexContour_corr] =...
     adjustExternalPattern(contourRepositions, indexContour)
-        % adjustExternalPattern Adjust the external pattern segmentation results for a specific scenario. The adjustment is made
-        % when small duration segments are present between the movements without deposition (reposition), which would affect the identification of 
-        % the contours geometrical features in regard to the movements without deposition and the overall segmentation process in regard 
-        % to the external printing pattern.
+% adjustExternalPattern Adjust the external pattern segmentation results for a specific scenario. The adjustment is made
+% when small duration segments are present between the movements without deposition (reposition), which would affect the identification of
+% the contours geometrical features in regard to the movements without deposition and the overall segmentation process in regard
+% to the external printing pattern.
 %
 %   [contourRepositions_corr, indexContour_corr] = adjustExternalPattern(contourRepositions, indexContour)
 %
@@ -1586,10 +1713,10 @@ end
 
 function [index_raster, index_trans_raster] =...
     adjustInternalPattern(index_raster, index_trans_raster, indexAdjust)
-        % adjustInternalPattern Adjust the internal pattern segmentation results for a specific scenario. The adjustment is made
-        % when there are multiple small duration segments mixed with the middle raster duration segmenter and both previous and subsequent
-        % transition raster , which would affect the identification of the middle raster index in regard to the previous and subsequent transition 
-        % between raster and the overall segmentation process in regard to the internal printing pattern.
+% adjustInternalPattern Adjust the internal pattern segmentation results for a specific scenario. The adjustment is made
+% when there are multiple small duration segments mixed with the middle raster duration segmenter and both previous and subsequent
+% transition raster , which would affect the identification of the middle raster index in regard to the previous and subsequent transition
+% between raster and the overall segmentation process in regard to the internal printing pattern.
 %
 %   [index_raster, index_trans_raster] = adjustInternalPattern(index_raster, index_trans_raster, indexAdjust)
 %
@@ -1600,13 +1727,13 @@ index_rasterAdj = index_raster;
 index_trans_rasterAdj = index_trans_raster;
 
 for i = indexAdjust(1):indexAdjust(end)
-
+    
     index_rasterAdj(i,3) = index_rasterAdj(i-1,2) + index_trans_rasterAdj(i-1,1);
     index_rasterAdj(i,2) = index_rasterAdj(i,3) + index_rasterAdj(i,1);
-
+    
     index_trans_rasterAdj(i-1,3) = index_rasterAdj(i-1,2);
     index_trans_rasterAdj(i-1,2) = index_trans_rasterAdj(i-1,3) + index_trans_rasterAdj(i-1,1);
-
+    
 end
 
 index_raster = index_rasterAdj;
@@ -1617,7 +1744,7 @@ end
 % AXU12
 
 function valueSeconds = convUni(Ref, valueNumberofSamples, Fs)
-    % convUni Obtain a time (s) value based on a number of samples value, a reference signal, and on the sampling frequency. 
+% convUni Obtain a time (s) value based on a number of samples value, a reference signal, and on the sampling frequency.
 %
 %   valueSeconds = convUni(Ref, valueNumberofSamples, Fs)
 %
@@ -1633,20 +1760,26 @@ end
 
 % AUX13
 
-function resultTable = obtainTable(DurationMat, startPointMat, endPointMat)
-    % resultTable Obtain a table with the segmentation results.
+function resultingOutput = obtainOutput(DurationMat, startPointMat, endPointMat)
+% resultingOutput Obtain a formated output with the segmentation results.
 %
-%   resultTable = obtainTable(DurationMat, startPointMat, endPointMat)
+%   resultingOutput = obtainOutput(DurationMat, startPointMat, endPointMat)
 %
-%   where resultTable is obtained table, DurationMat is the duration matrix, startPointMat is the start point matrix, 
+%   where resultingOutput is the obtained formated ouput, DurationMat is the duration matrix, startPointMat is the start point matrix,
 %   and endPointMat is the end point matrix.
 
 Duration = DurationMat;
 StartPoint = startPointMat;
 EndPoint = endPointMat;
 
-resultTable = table(Duration,StartPoint,EndPoint);
-
+if exist('OCTAVE_VERSION', 'builtin') == 0
+    resultingOutput = table(Duration,StartPoint,EndPoint);
+else
+    resultingOutput = struct();
+    resultingOutput.Duration = Duration;
+    resultingOutput.StartPoint = StartPoint;
+    resultingOutput.EndPoint = EndPoint;
+end
 end
 
 % AUX14
@@ -1659,8 +1792,8 @@ varargin = ({'DirXidentification', 'DirYidentification', 'figureChoice', 'Fs',..
     'graphical', 'saveChoice', 'Segmentation_choice', 'segmentationChoice',...
     'signalIdentifier', 'xticksChoice'});
 for i = 1:length(varargin)
-        varName = varargin{i};
-        evalin('base', ['clear ', varName]);
+    varName = varargin{i};
+    evalin('base', ['clear ', varName]);
 end
 
 
