@@ -94,7 +94,7 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
             disp ('ATTENTION!')
             disp ('The unit was not selected.');
             disp ('The function will run with the default "Segments" unit');
-            xticksChoice = 'number of samples';
+            xticksChoice = 'Samples';
         else
             xticksChoice = evalin('base', 'xticksChoice');
         end
@@ -212,29 +212,32 @@ if exist('OCTAVE_VERSION', 'builtin') ~= 0
     pkg load signal
     pkg load control
     
-    dirX = evalin('base',input('Please enter the signal identification for the X axis: ', 's'));
     disp (' ');
-    dirY = evalin('base',input('Please enter the signal identification for the Y axis: ', 's'));
-    disp (' ');
-    sensorSignal = input('Please enter the signal identification for the acoustic signal: ', 's');
-    signalIdentifier = sensorSignal;
-    sensorSignal = evalin('base',sensorSignal);
-    disp (' ');
-    Fs = str2double(input('Please enter the sampling frequency of the signals: '));
-    disp (' ');
-    segmentationChoice = input('Do you want the segmentation results in points or segments? (Points/Segments): ', 's');
-    if strcmp(segmentationChoice,'Points') == 1
-        xticksChoice = input('Do you want the xticks in seconds or in number of samples? (Seconds/Samples): ', 's');
-    end
-    disp (' ');
-    saveChoice = input('Do you want to save the segmentation results? (Y/N): ', 's');
-    disp (' ');
-    graphical = input('Do you want to generate the graphical representation of the segmentation results? (Y/N): ', 's');
-    if strcmp(graphical, 'Y') == 1
-        disp (' ');
-        figureChoice = input('Do you want to save the graphical representation of the segmentation results? (Y/N): ', 's');
-    end
-    disp (' ');
+disp ('Load file with signals')
+[fname, fpath, fltidx] = uigetfile ();
+assignin( 'base', 'fpath', fpath);
+assignin( 'base', 'fname', fname);
+assignin( 'base', 'fltidx', fltidx);
+evalin( 'base', 'load ([fpath, fname]) ');
+prompt = {"Sensor signal identification", "X-axis signal identification",...
+"Y-axis signal identification", "Sampling frequency", "Segmentation type (Points/Segments)"
+"Segmentation unit (Samples/Seconds)", "Auto save files (Y/N)",...
+"Generate figure (Y/N)", "Save figure (Y/N)"};
+rowscols = [1,:; 1,:; 1,:; 1,:; 1,:; 1,:; 1,:; 1,:; 1,:];%#ok 
+defaults = {""; ""; ""; ""; "Points"; "Samples"; "N"; "N"; "N"};
+names = inputdlg(prompt, "FFF Line Segmentation - Insert values and choose between options",...
+ rowscols, defaults);
+
+signalIdentifier = names{1,1};
+sensorSignal = evalin( 'base' ,signalIdentifier);
+dirX = evalin( 'base', names {2,1}) ;
+dirY = evalin( 'base' ,names {3,1});
+Fs = str2double(names{4,1});
+segmentationChoice = names{5,1};
+xticksChoice = names{6,1};
+saveChoice = names {7,1};
+graphical = names{8,1};
+figureChoice = names{9,1};
     
     % Verify user input
     
@@ -288,20 +291,19 @@ numofContourLines = numofContourSides * numofContourLoops; % Number of contour l
 lowRefTransRaster = Fs/25; % Lower Number of samples reference value for the transition raster
 
 if exist('OCTAVE_VERSION', 'builtin') == 0
-    % uppRefTransRaster = round(Fs/22.2222,0); % Upper Number of samples reference value for the transition raster
-    uppRefTransRaster = 9.3e3;
+    uppRefTransRaster = round(Fs/21.505476344,0); % Upper Number of samples reference value for the transition raster
     varDurRaster = round(Fs/18.1818,0); % Variation of the duration between raster lines
     adpDurTranRaster = round(Fs/23.8095,0); % Adopted duration for the transition raster
     durationReference = round(Fs/1.33333,0); % known duration for the last contour printing
     refminimum_sampleValue = round(Fs/4,0); % Minimum number of samples reference for the test_Minvariations subfunction
     middleRasterDuration = round(Fs/0.645161290322581,1); % Middle raster duration value
 else
-    uppRefTransRaster = round(Fs/22.2222); % Upper Number of samples reference value for the transition raster
-    varDurRaster = round(Fs/18.1818); % Variation of the duration between raster lines
-    adpDurTranRaster = round(Fs/23.8095); % Adopted duration for the transition raster
-    durationReference = round(Fs/1.33333); % known duration for the last contour printing
-    refminimum_sampleValue = round(Fs/4); % Minimum number of samples reference for the test_Minvariations subfunction
-    middleRasterDuration = round(Fs/0.645161290322581); % Middle raster duration value
+    uppRefTransRaster = ceil(Fs/21.505476344); % Upper Number of samples reference value for the transition raster
+    varDurRaster = floor(Fs/18.1818); % Variation of the duration between raster lines
+    adpDurTranRaster = floor(Fs/23.8095); % Adopted duration for the transition raster
+    durationReference = floor(Fs/1.33333); % known duration for the last contour printing
+    refminimum_sampleValue = floor(Fs/4); % Minimum number of samples reference for the test_Minvariations subfunction
+    middleRasterDuration = floor(Fs/0.645161290322581); % Middle raster duration value
 end
 %#ok<*AGROW> % Suppress the warning for growing arrays in the code
 
@@ -376,7 +378,7 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
     meanCountourGroup1 = round(mean([indexCountourTemp(numofContourSides-2,1) indexCountourTemp(numofContourSides-1,1)...
         indexCountourTemp(numofContourSides,1)]),0);
 else
-    meanCountourGroup1 = round(mean([indexCountourTemp(numofContourSides-2,1) indexCountourTemp(numofContourSides-1,1)...
+    meanCountourGroup1 = floor(mean([indexCountourTemp(numofContourSides-2,1) indexCountourTemp(numofContourSides-1,1)...
         indexCountourTemp(numofContourSides,1)]));
 end
 
@@ -400,7 +402,7 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
     meanContourGroup2 = round(mean([indexCountourTemp(6,1) indexCountourTemp(7,1)...
         indexCountourTemp(8,1)]),0);
 else
-    meanContourGroup2 = round(mean([indexCountourTemp(6,1) indexCountourTemp(7,1)...
+    meanContourGroup2 = floor(mean([indexCountourTemp(6,1) indexCountourTemp(7,1)...
         indexCountourTemp(8,1)]));
 end
 
@@ -417,7 +419,7 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
     meanContourGroup3 = round(mean([indexCountourTemp(10,1) indexCountourTemp(11,1)...
         indexCountourTemp(numofContourLines,1)]),0);
 else
-    meanContourGroup3 = round(mean([indexCountourTemp(10,1) indexCountourTemp(11,1)...
+    meanContourGroup3 = floor(mean([indexCountourTemp(10,1) indexCountourTemp(11,1)...
         indexCountourTemp(numofContourLines,1)]));
 end
 
@@ -476,9 +478,6 @@ previousPeak = 0;
 previousPeak2 = 0;
 
 for i = 1:length (linesUdrUppVal)
-    if length(Duration3) > 48
-    a = 1;
-    end
     if i == length (linesUdrUppVal)
         break;
     end
@@ -1382,7 +1381,7 @@ if (new_or_superimpose == 2)
     if exist('OCTAVE_VERSION', 'builtin') == 0
         numb_col = round(numb_fig_v/4,0);
     else
-        numb_col = round(numb_fig_v/4);
+        numb_col = floor(numb_fig_v/4);
     end
     if numb_col == 0
         numb_col = 1;
@@ -1802,7 +1801,7 @@ function cleanUpWS
 clear segmentationChoice;
 varargin = ({'DirXidentification', 'DirYidentification', 'figureChoice', 'Fs',...
     'graphical', 'saveChoice', 'Segmentation_choice', 'segmentationChoice',...
-    'signalIdentifier', 'xticksChoice'});
+    'signalIdentifier', 'xticksChoice', 'fname', 'fpath', 'fltidx'});
 for i = 1:length(varargin)
     varName = varargin{i};
     evalin('base', ['clear ', varName]);
