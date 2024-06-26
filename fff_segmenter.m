@@ -1,5 +1,4 @@
 function fff_segmenter
-% function fff_segmenter(sensorSignal, dirX, dirY, Fs)
 %   fff_segmenter Is the main function of the FFF Line Segmentation script.
 %
 %% READ ME
@@ -28,11 +27,11 @@ function fff_segmenter
 % - The main outputs of the function are the segmentation results, which can be
 %   the segmentation index (points), in seconds or in or the segments of signal (segments), based
 %   on the user's choice. These segmentation results are stored in the user current
-%   matlab workspace.
+%   matlab/octave workspace.
 % - Additionally, if the user opted for it, the segmentation results can be automatically
-%   saved in .mat files in the user current matlab directory. Also, if the user opted for it,
+%   saved in .mat files in the user current matlab/octave directory. Also, if the user opted for it,
 %   the function can generate a graphical visualization of the segmentation results and
-%   automatically save it to the user current matlab directory.
+%   automatically save it to the user current matlab/octave directory.
 %
 % Called subfunctions (in alphabetical order):
 % <a href="matlab: disp('adjustExternalPattern: Adjust the external pattern segmentation results for a specific scenario. Please read the comments under the subfunction for further details.') ">adjustExternalPattern</a>
@@ -59,17 +58,17 @@ function fff_segmenter
 if exist('OCTAVE_VERSION', 'builtin') == 0
     % Is not running in octave
     %% APP User Inputs
-    
+
     app = APP_User_Inputs;
     while strcmp(app.RunthesegmentationSwitch.Value,'Off') == 1
         pause(0.5); % In order to avoid missuse of the CPU
     end
-    
+
     % Verify presence of identifications
     signalIdentifier_exists = evalin('base', ['exist(''', 'signalIdentifier', ''', ''var'')']);
     DirXidentification_exists = evalin('base', ['exist(''', 'DirXidentification', ''', ''var'')']);
     DirYidentification_exists = evalin('base', ['exist(''', 'DirYidentification', ''', ''var'')']);
-    
+
     if signalIdentifier_exists == 1 && DirXidentification_exists == 1 &&...
             DirYidentification_exists == 1
     else
@@ -80,10 +79,10 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
         cleanUpWS;
         return;
     end
-    
+
     % Verify presence of segmentation choice and xticks choice
     Segmentation_choice_exists = evalin('base', ['exist(''', 'Segmentation_choice', ''', ''var'')']);
-    
+
     if Segmentation_choice_exists == 0
         disp ('ATTENTION!')
         disp ('The segmentation mode was not selected.');
@@ -100,7 +99,7 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
         end
     else
         segmentationChoice = evalin('base','Segmentation_choice');
-        
+
         if strcmp(segmentationChoice,'Points')
             xticksChoice_exists = evalin('base', ['exist(''', 'xticksChoice', ''', ''var'')']);
             if xticksChoice_exists == 0
@@ -111,10 +110,10 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
             else
                 xticksChoice = evalin('base', 'xticksChoice');
             end
-            
+
         end
     end
-    
+
     % Verify saveChoice
     saveChoice_exists = evalin('base', ['exist(''', 'saveChoice', ''', ''var'')']);
     if saveChoice_exists == 1
@@ -122,12 +121,12 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
     else
         saveChoice = 'N';
     end
-    
+
     % Verify graphical representation
     graphical_exists = evalin('base', ['exist(''', 'graphical', ''', ''var'')']);
     if graphical_exists == 1
         graphical = evalin('base','graphical');
-        
+
         if strcmp(graphical, 'Y') == 1
             % Verify option to save figure
             figureChoice_exists = evalin('base', ['exist(''', 'figureChoice', ''', ''var'')']);
@@ -140,7 +139,7 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
     else
         graphical = 'N';
     end
-    
+
     % Verify Sampling frequency
     Fs_exists = evalin('base', ['exist(''', 'Fs', ''', ''var'')']);
     if Fs_exists == 1
@@ -153,17 +152,17 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
         cleanUpWS;
         return;
     end
-    
+
     signalIdentifier = evalin('base', 'signalIdentifier');
     DirXidentification = evalin('base', 'DirXidentification');
     DirYidentification = evalin('base', 'DirYidentification');
-    
+
     % Verify data selection
     Data_path_exists = evalin('base', ['exist(''', 'Data_path', ''', ''var'')']);
     if Data_path_exists == 1
         Data_path = evalin('base', 'Data_path');
         temp = load(Data_path); %#ok<*LOAD>
-        
+
         fields = fieldnames(temp);
         for i = 1:length(fields)
             assignin('caller', fields{i}, temp.(fields{i}));
@@ -181,12 +180,12 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
             return;
         end
     end
-    
+
     % Verify identification
     dirX_exists = evalin('caller', ['exist(''', DirXidentification, ''', ''var'')']);
     dirY_exists = evalin('caller', ['exist(''', DirYidentification, ''', ''var'')']);
     sensorSignal_exists = evalin('caller', ['exist(''', signalIdentifier, ''', ''var'')']);
-    
+
     if dirX_exists == 1 && dirY_exists == 1 && sensorSignal_exists == 1
         dirX = evalin('caller',DirXidentification);
         dirY = evalin('caller',DirYidentification);
@@ -199,48 +198,50 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
         cleanUpWS;
         return;
     end
-    
-    
+
+
     delete(app.UIFigure);
     disp (' ');
-    
+
 end
 
 if exist('OCTAVE_VERSION', 'builtin') ~= 0
     % Is running in octave
-    
+
     pkg load signal
     pkg load control
-    
-    disp (' ');
-disp ('Load file with signals')
-[fname, fpath, fltidx] = uigetfile ();
-assignin( 'base', 'fpath', fpath);
-assignin( 'base', 'fname', fname);
-assignin( 'base', 'fltidx', fltidx);
-evalin( 'base', 'load ([fpath, fname]) ');
-prompt = {"Sensor signal identification", "X-axis signal identification",...
-"Y-axis signal identification", "Sampling frequency", "Segmentation type (Points/Segments)"
-"Segmentation unit (Samples/Seconds)", "Auto save files (Y/N)",...
-"Generate figure (Y/N)", "Save figure (Y/N)"};
-rowscols = [1,:; 1,:; 1,:; 1,:; 1,:; 1,:; 1,:; 1,:; 1,:];%#ok 
-defaults = {""; ""; ""; ""; "Points"; "Samples"; "N"; "N"; "N"};
-names = inputdlg(prompt, "FFF Line Segmentation - Insert values and choose between options",...
- rowscols, defaults);
 
-signalIdentifier = names{1,1};
-sensorSignal = evalin( 'base' ,signalIdentifier);
-dirX = evalin( 'base', names {2,1}) ;
-dirY = evalin( 'base' ,names {3,1});
-Fs = str2double(names{4,1});
-segmentationChoice = names{5,1};
-xticksChoice = names{6,1};
-saveChoice = names {7,1};
-graphical = names{8,1};
-figureChoice = names{9,1};
-    
+    disp (' ');
+    disp ('Load file with signals')
+    [fname, fpath, fltidx] = uigetfile ();
+    assignin( 'base', 'fpath', fpath);
+    assignin( 'base', 'fname', fname);
+    assignin( 'base', 'fltidx', fltidx);
+    evalin( 'base', 'load ([fpath, fname]) ');
+    prompt = {"Sensor signal identification", "X-axis signal identification",...
+        "Y-axis signal identification", "Sampling frequency", "Segmentation type (Points/Segments)",...
+        "Segmentation unit (Samples/Seconds)", "Auto save files (Y/N)",...
+        "Generate figure (Y/N)", "Save figure (Y/N)"};
+
+    rowscols = [1,30; 1,30; 1,30; 1,30; 1,30; 1,30; 1,30; 1,30; 1,30];
+
+    defaults = {""; ""; ""; ""; "Points"; "Samples"; "N"; "N"; "N"};
+    names = inputdlg(prompt, "FFF Line Segmentation - Insert values and choose between options",...
+        rowscols, defaults);
+
+    signalIdentifier = names{1,1};
+    sensorSignal = evalin( 'base' ,signalIdentifier);
+    dirX = evalin( 'base', names {2,1}) ;
+    dirY = evalin( 'base' ,names {3,1});
+    Fs = str2double(names{4,1});
+    segmentationChoice = names{5,1};
+    xticksChoice = names{6,1};
+    saveChoice = names {7,1};
+    graphical = names{8,1};
+    figureChoice = names{9,1};
+
     % Verify user input
-    
+
     if strcmp(segmentationChoice,'Points') == 0 && strcmp(segmentationChoice,'Segments') == 0
         disp (' ');
         disp ('ATTENTION!')
@@ -249,7 +250,7 @@ figureChoice = names{9,1};
         segmentationChoice = 'Points';
         xticksChoice = 'number of samples';
     end
-    
+
     if strcmp(saveChoice,'Y') == 0 && strcmp(saveChoice,'N') == 0
         disp (' ');
         disp ('ATTENTION!')
@@ -257,7 +258,7 @@ figureChoice = names{9,1};
         disp ('The function will run with the default "N" mode of save');
         saveChoice = 'N';
     end
-    
+
     if strcmp(graphical,'Y') == 0 && strcmp(graphical,'N') == 0
         disp (' ');
         disp ('ATTENTION!')
@@ -266,7 +267,7 @@ figureChoice = names{9,1};
         graphical = 'N';
         figureChoice = '';
     end
-    
+
     if strcmp(figureChoice,'Y') == 0 && strcmp(figureChoice,'N') == 0
         disp (' ');
         disp ('ATTENTION!')
@@ -343,9 +344,9 @@ Duration = obtainDuration(sensorSignalNormalized, dirXAdjustedNormalized,...
 % 5° Find the separation point
 
 for i = 1:length(Duration(:,1))
-    
+
     resultSep = determin_separation_point(Duration, i, durationReference);
-    
+
     if resultSep == 1
         patternVariationPoint = Duration(i,2);
         break;
@@ -603,7 +604,7 @@ end
 if length(index_raster) < numofRasterLines
     [index_raster,index_trans_raster] =...
         adjust_internal(index_raster,index_trans_raster, varDurRaster);
-    
+
 end
 
 % Verify external pattern integrity
@@ -657,7 +658,7 @@ if testSegmentChoice == 1
     resultWholeWorkpiece = [resultContour(1,2) resultRaster(numofRasterLines,2)];
     resultExternalPattern = [resultContour(1,2) resultContour(numofContourLines,3)];
     resultInternalPattern = [resultRaster(1,3) resultRaster(numofRasterLines,2)];
-    
+
     if testxticksChoice == 1
         resultReposition = convUni(sensorSignalNormalized, resultReposition, Fs);
         resultContour = convUni(sensorSignalNormalized, resultContour, Fs);
@@ -667,7 +668,7 @@ if testSegmentChoice == 1
         resultExternalPattern = convUni(sensorSignalNormalized, resultExternalPattern, Fs);
         resultInternalPattern = convUni(sensorSignalNormalized, resultInternalPattern, Fs);
     end
-    
+
     resultReposition = obtainOutput(resultReposition(:,1),...
         resultReposition(:,2), resultReposition(:,3));
     resultContour = obtainOutput(resultContour(:,1),...
@@ -676,10 +677,10 @@ if testSegmentChoice == 1
         resultRaster(:,3), resultRaster(:,2));
     resultTransitionRaster = obtainOutput(resultTransitionRaster(:,1),...
         resultTransitionRaster(:,3), resultTransitionRaster(:,2));
-    
+
     StartPoint = resultWholeWorkpiece(1);
     EndPoint = resultWholeWorkpiece(2);
-    
+
     if exist('OCTAVE_VERSION', 'builtin') == 0
         resultWholeWorkpiece = table(StartPoint,EndPoint);
     else
@@ -687,11 +688,11 @@ if testSegmentChoice == 1
         resultWholeWorkpiece.StartPoint = StartPoint;
         resultWholeWorkpiece.EndPoint = EndPoint;
     end
-    
-    
+
+
     StartPoint = resultExternalPattern(1);
     EndPoint = resultExternalPattern(2);
-    
+
     if exist('OCTAVE_VERSION', 'builtin') == 0
         resultExternalPattern = table(StartPoint,EndPoint);
     else
@@ -699,10 +700,10 @@ if testSegmentChoice == 1
         resultExternalPattern.StartPoint = StartPoint;
         resultExternalPattern.EndPoint = EndPoint;
     end
-    
+
     StartPoint = resultInternalPattern(1);
     EndPoint = resultInternalPattern(2);
-    
+
     if exist('OCTAVE_VERSION', 'builtin') == 0
         resultInternalPattern = table(StartPoint,EndPoint);
     else
@@ -710,7 +711,7 @@ if testSegmentChoice == 1
         resultInternalPattern.StartPoint = StartPoint;
         resultInternalPattern.EndPoint = EndPoint;
     end
-    
+
 end
 
 testSegmentChoice = strcmp(segmentationChoice,'segments');
@@ -904,7 +905,7 @@ for i = initialPoint:2:lastPoint
         - composedDuration(cont, 3);
     previousPeak = composedDuration(cont, 1);
     cont = cont +1;
-    
+
     % Normal transition
     composedDuration(cont, 3) =  composedDuration(cont-1, 2);
     composedDuration(cont, 2) =  composedDuration(cont, 3) +...
@@ -1218,7 +1219,7 @@ if figure_choice == 'Y'
         mkdir('Segmentation results');
     end
     oldFolder = cd('Segmentation results/');
-    
+
     signal_identifier2 = ['Segmentation results ',signal_identifier, '.png'];
     saveFig(gca,'centimeters',[13 11]*1.8,600,signal_identifier2)
     cd(oldFolder);
@@ -1352,19 +1353,19 @@ if (leg ~= 0)
     if (legend_type == 1)
         legend('Location','best');
     end
-    
+
     if (legend_type == 2 || legend_type == 0)
         legend('Location','northeast');
     end
-    
+
     if (legend_type == 3)
         legend('Location','northwest');
     end
-    
+
     if (legend_type == 4)
         legend('Location','southwest');
     end
-    
+
     if (legend_type == 5)
         legend('Location','southeast');
     end
@@ -1387,7 +1388,7 @@ if (new_or_superimpose == 2)
         numb_col = 1;
     end
     legend('NumColumns',numb_col);
-    
+
     ordem_cor = [0.00,0.45,0.74; 0.85,0.33,0.10; 0.93,0.69,0.13;...
         0.49,0.18,0.56; 0.47,0.67,0.19; 0.30,0.75,0.93;...
         0.64,0.08,0.18; 0.85,0.85,0.35; 0.07,0.62,1.00;...
@@ -1609,14 +1610,14 @@ aux1 = 1;
 index_raster_alt = [0 0 0];
 
 for j = 1:length(ind_id)
-    
+
     index_raster_alt = [index_raster_alt;...
         index_raster(aux1:ind_id(j)-1,1:3)];
-    
+
     last_peak = index_raster_alt(end,1:3);
-    
+
     for k = 1:id_index_raster(ind_id(j))
-        
+
         if ind_id(j) < 27
             temp_mat(k,1) = last_peak(1,1) + varDurRaster;
             temp_mat(k,3) = last_peak(1,2) + adpDurTranRaster;
@@ -1625,23 +1626,23 @@ for j = 1:length(ind_id)
             temp_mat(k,1) = last_peak(1,1) - varDurRaster;
             temp_mat(k,3) = last_peak(1,2) + adpDurTranRaster;
             temp_mat(k,2) = temp_mat(k,3) + temp_mat(k,1);
-            
+
         end
         last_peak = temp_mat(end,1:3);
-        
+
     end
     index_raster_alt = [index_raster_alt;...
         temp_mat];
     clear temp_mat last_peak
-    
+
     aux1 = ind_id(j);
-    
+
     if j == length(ind_id)
         index_raster_alt = [index_raster_alt;...
             index_raster(aux1:end,1:3)];
     end
-    
-    
+
+
 end
 
 index_raster_alt = index_raster_alt(2:end,:);
@@ -1667,7 +1668,7 @@ for i = 1:middle
     end
     index_raster_alt_2(i,2) =...
         index_raster_alt_2(i,1)+index_raster_alt_2(i,3);
-    
+
 end
 
 index_raster_alt = [index_raster_alt;index_raster_alt_2];
@@ -1682,7 +1683,7 @@ function [contourRepositions_corr, indexContour_corr] =...
 % when small duration segments are present between the movements without deposition (reposition), which would affect the identification of
 % the contours geometrical features in regard to the movements without deposition and the overall segmentation process in regard
 % to the external printing pattern.
-% 
+%
 %   [contourRepositions_corr, indexContour_corr] = adjustExternalPattern(contourRepositions, indexContour)
 %
 %   where contourRepositions_corr is the adjusted reposition geometrical element, indexContour_corr is the adjusted index of the contour geometrical element,
@@ -1738,13 +1739,13 @@ index_rasterAdj = index_raster;
 index_trans_rasterAdj = index_trans_raster;
 
 for i = indexAdjust(1):indexAdjust(end)
-    
+
     index_rasterAdj(i,3) = index_rasterAdj(i-1,2) + index_trans_rasterAdj(i-1,1);
     index_rasterAdj(i,2) = index_rasterAdj(i,3) + index_rasterAdj(i,1);
-    
+
     index_trans_rasterAdj(i-1,3) = index_rasterAdj(i-1,2);
     index_trans_rasterAdj(i-1,2) = index_trans_rasterAdj(i-1,3) + index_trans_rasterAdj(i-1,1);
-    
+
 end
 
 index_raster = index_rasterAdj;
