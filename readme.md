@@ -22,7 +22,7 @@ git clone https://github.com/thiago-glissoi/FFF-Line-Segmentation.git
  -> [Control Package](https://octave.sourceforge.io/control/)
   </details>
 
-# Example 
+# How to use
 Verify the example for Matlab or for Octave.
 
 </details>
@@ -38,11 +38,13 @@ fff_segmenter
 ```
 After running the fff_segmenter algorithm, the user will be provided with the graphical interface displayed below.
 
-![Figure 1 - Input interface](Example/Matlab%20Input%20GUI.png)
+![]()
+
+<img src="Example/Matlab%20Input%20GUI.png" alt="Figure 1 - Input interface" width="300">
 
 For the purpose of this example, the `Select data` button will be used to load the `Test1.mat` file from the `Data` folder. The `Select data` button will open a file explorer window, where the user can navigate to the `Data` folder and select the `Test1.mat` file. The rest of the input fields will be filled with the values in regard to the `Test1.mat` dataset, with default values for the `Segmentation mode` and `Unit` segmentation options, and with all of the available outputs toggled to Yes.
 
-<img src="Example/Matlab%20Input%20GUI%20filled.png" alt="Figure 2 - Input interface filled with values" width="600">
+<img src="Example/Matlab%20Input%20GUI%20filled.png" alt="Figure 2 - Input interface filled with values" width="300">
 
 
 When the user toggle to `On` the `Run the segmentation` button, the graphical input interface will be closed and the fff_segmentation algorithm will run with the defined parameters. 
