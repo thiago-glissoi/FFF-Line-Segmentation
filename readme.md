@@ -78,15 +78,19 @@ After running the fff_segmenter algorithm, a open a file explorer window. The us
 For the purpose of this example, the user can navigate to the `Data` folder and select the `Test1.mat` file.
 
 
-<img src="Example/Octave%20file%20navigation.png" alt="Figure 6 - Octave file selection" width="420">
+<img src="example/Octave%20file%20navigation.png" alt="Figure 6 - Octave file selection" width="420">
 
 After selecting the data file, the user will be provided with the graphical interface displayed below. The filled values in the input fields are the default values for the `Segmentation mode` and `Unit` segmentation options, and with all of the available outputs toggled to `No`.
 
-<img src="Example/Octave%20Input%20GUI.png" alt="Figure 7 - Octave input GUI" width="420">
+
+<img src="example/Octave%20Input%20GUI.png" alt="Figure 7 - Octave input GUI" width="420">
+
 
 The user will fill the fields with the values in regard to the `Test1.mat` dataset, with default values for the `Segmentation mode` and `Unit` segmentation options, and with all of the available outputs toggled to `Yes`.
 
-<img src="Example/Octave%20Input%20GUI%20filled.png" alt="Figure 8 - Octave input GUI filled" width="420">
+
+<img src="example/Octave%20Input%20GUI%20filled.png" alt="Figure 8 - Octave input GUI filled" width="420">
+
 
 When the the user press `Enter` on the keyboard, the graphical input interface will be closed and the fff_segmentation algorithm will run with the defined parameters. 
 
