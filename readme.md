@@ -83,13 +83,13 @@ For the purpose of this example, the user can navigate to the `Data` folder and 
 After selecting the data file, the user will be presented with the graphical interface displayed below. The filled values in the input fields are the default values for the `Segmentation mode` and `Unit` segmentation options, and with all of the available outputs toggled to `No`.
 
 
-<img src="Example/Octave%20input%20GUI.png" alt="Figure 7 - Octave Input GUI" width="600">
+<img src="Example/Octave%20input%20GUI.png" alt="Figure 7 - Octave Input GUI" width="420">
 
 
 The user will fill the fields with the values in regard to the `Test1.mat` dataset, with default values for the `Segmentation mode` and `Unit` segmentation options, and with all of the available outputs toggled to `Yes`.
 
 
-<img src="Example/Octave%20input%20GUI%20filled.png" alt="Figure 8 - Octave Input GUI filled" width="600">
+<img src="Example/Octave%20input%20GUI%20filled.png" alt="Figure 8 - Octave Input GUI filled" width="420">
 
 
 When the the user press `Enter` on the keyboard, the graphical input interface will be closed and the fff_segmentation algorithm will run with the defined parameters. 
@@ -127,7 +127,9 @@ As a result of using the fff_segmenter algorithm, the user now possess the abili
 
 Our community is dedicated to providing a welcoming and productive environment for all participants. Please follow these guidelines when interacting with this project.
 
-1. Contributing to the Software
+1. We again `strongly encourage` the user to read the [Documentation](Documentation.pdf) pdf file in order to completely comprehend the `fff_segmenter` algorithm inner workings, and how it was built with a specific part geometry and sampling frequency in consideration. The documentation also provides some examples on how the `fff_segmenter` can be further developed to cater to other FFF printers and parts geometries.
+
+2.  Contributing to the Software
 Contributions are welcome! Here are some ways to contribute:
 
 - Fork the repository and make your changes in a branch.
@@ -137,7 +139,7 @@ Contributions are welcome! Here are some ways to contribute:
 - Participate in discussions. Comments and suggestions are valuable for the continuous improvement of the software.
 - Verify additional ways in our [Contributing](.github/CONTRIBUTING.md) guide.
 
-2. Reporting Issues or Problems with the Software
+3. Reporting Issues or Problems with the Software
 If you encounter an issue or bug, please follow these steps:
 
 - Check if the issue has already been reported. Browse the list of open issues to see if someone has already reported the problem.
@@ -145,7 +147,7 @@ If you encounter an issue or bug, please follow these steps:
 - Be patient. The maintainers will review the issue and respond as soon as possible.
 
 
-3. Seeking Support
+4. Seeking Support
 For questions or support needs:
 
 - Check the documentation. Many common issues and questions are addressed in the project's [documentation](/Documentation.pdf).
