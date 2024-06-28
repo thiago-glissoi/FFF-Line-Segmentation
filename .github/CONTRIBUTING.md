@@ -2,6 +2,8 @@
 
 We welcome contributions from everyone. By participating in this project, you agree to abide by our Code of Conduct. Here are some guidelines to help you get started.
 
+We `strongly encourage` the user to read the [Documentation](Documentation.pdf) pdf file in order to completely comprehend the fff_segmenter algorithm inner workings, and how it was built with a specific part geometry and sampling frequency in consideration.
+
 ## How to Contribute
 
 1. Fork the Repository

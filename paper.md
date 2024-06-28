@@ -43,7 +43,7 @@ The Fused Filament Fabrication (FFF) process involves the manufacturing of parts
 The monitoring of the FFF process via acoustic signals has successfully detected defects in the printing process [@Wu2015; @Liu2018b; @Lopes2022].
 Mechanistically, acoustic signals obtained from the FFF process are non-stationary time-series that capture alterations in the acoustic field arising from material deposition [@Lopes2022].
 Signal segmentation is a fundamental step in the process monitoring of FFF, as it allows the identification of printing lines and extraction of relevant information for process monitoring and control. However, due to stochastic acoustic interferences arising from the FFF process, accurate manual segmentation may not be possible [@Lopes2022].
-`fff_segmenter` is a signal segmentation script written in MATLAB that allows for automatic and accurate segmentation of different printing lines.
+`fff_segmenter` is a signal segmentation script written in MATLAB that allows for automatic and accurate segmentation of different printing lines. The `fff_segmenter` script can also be run on Octave.
 
 # Statement of need
 

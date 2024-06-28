@@ -25,7 +25,7 @@ function fff_segmenter
 %
 % Outputs:
 % - The main outputs of the function are the segmentation results, which can be
-%   the segmentation index (points), in seconds or in or the segments of signal (segments), based
+%   the segmentation index (points), in seconds or in or the segments of signal (Number of samples), based
 %   on the user's choice. These segmentation results are stored in the user current
 %   matlab/octave workspace.
 % - Additionally, if the user opted for it, the segmentation results can be automatically
@@ -39,7 +39,7 @@ function fff_segmenter
 % <a href="matlab: disp('adjust_internal: Adjust the internal pattern segmentation results for a specific scenario. Please read the comments under the subfunction for further details.') ">adjust_internal</a>
 % <a href="matlab: disp('cleanUpWS: Clean up the base workspace from the fff_segmenter variables.') ">cleanUpWS</a>
 % <a href="matlab: disp('Compos3r: Compose a signal based on the original acoustic signal and on specific segmentation indexes. Please read the comments under the subfunction for further details.') ">Compos3r</a>
-% <a href="matlab: disp('convUni: convUni Obtain a time (s) value based on a number of samples value, a reference signal, and on the sampling frequency. Please read the comments under the subfunction for further details.') ">convUni</a>
+% <a href="matlab: disp('convUni: convUni Obtain a time (s) value based on a Number of samples value, a reference signal, and on the sampling frequency. Please read the comments under the subfunction for further details.') ">convUni</a>
 % <a href="matlab: disp('detectAnom: Detect the anomaly verified in the Test1.mat dataset. Please read the comments under the subfunction for further details.') ">detectAnom</a>
 % <a href="matlab: disp('determin_separation_point: Determine the separation point based on the duration matrix and on a reference duration value. Please read the comments under the subfunction for further details.') ">determin_separation_point</a>
 % <a href="matlab: disp('gen_graph: Generate the graphical visualization of the segmentation results. Please read the comments under the subfunction for further details.') ">gen_graph</a>
@@ -50,7 +50,7 @@ function fff_segmenter
 % <a href="matlab: disp('Normaliz3r: Normalize the amplitude of a signal between -1 and 1. Please read the comments under the subfunction for further details.') ">Normaliz3r</a>
 % <a href="matlab: disp('obtainDuration: Obtain the duration matrix based on the acoustic signal and on the step motor control signals. Please read the comments under the subfunction for further details.') ">obtainDuration</a>
 % <a href="matlab: disp('obtainOutput: Obtain a formated output with the segmentation results. Please read the comments under the subfunction for further details.') ">obtainOutput</a>
-% <a href="matlab: disp('obtain_time_vec: Obtain a time (s) vector based on the signal's number of samples length and on the sampling frequency. Please read the comments under the subfunction for further details.') ">obtain_time_vec</a>
+% <a href="matlab: disp('obtain_time_vec: Obtain a time (s) vector based on the signal's Number of samples length and on the sampling frequency. Please read the comments under the subfunction for further details.') ">obtain_time_vec</a>
 % <a href="matlab: disp('saveFig: Save the graphical visualization of the segmentation results in a predefined format and resolution. Please read the comments under the subfunction for further details.') ">saveFig</a>
 % <a href="matlab: disp('save_files: Save the segmentation results in .mat files. Please read the comments under the subfunction for further details.') ">save_files</a>
 % <a href="matlab: disp('test_Minvariations: Test for the occurence of the variation problem observed for the Test1.mat data. Please read the comments under the subfunction for further details.') ">test_Minvariations</a>
@@ -92,8 +92,8 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
         if xticksChoice_exists == 0
             disp ('ATTENTION!')
             disp ('The unit was not selected.');
-            disp ('The function will run with the default "Segments" unit');
-            xticksChoice = 'Samples';
+            disp ('The function will run with the default "Number of samples" unit');
+            xticksChoice = 'Number of samples';
         else
             xticksChoice = evalin('base', 'xticksChoice');
         end
@@ -110,15 +110,15 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
             if xticksChoice_exists == 0
                 disp ('ATTENTION!')
                 disp ('The xticks mode was not selected.');
-                disp ('The function will run with the default "Segments" unit');
-                xticksChoice = 'number of samples';
+                disp ('The function will run with the default "Number of samples" unit');
+                xticksChoice = 'Number of samples';
             else
                 xticksChoice = evalin('base', 'xticksChoice');
                 if strcmp(xticksChoice,'Choose')
                     disp ('ATTENTION!')
                     disp ('The xticks mode was not selected.');
-                    disp ('The function will run with the default "Segments" unit');
-                    xticksChoice = 'number of samples';
+                    disp ('The function will run with the default "Number of samples" unit');
+                    xticksChoice = 'Number of samples';
                 end
             end
         end
@@ -167,9 +167,9 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
     DirXidentification = evalin('base', 'DirXidentification');
     DirYidentification = evalin('base', 'DirYidentification');
 
-    if signalIdentifier == DirXidentification ||...
-            signalIdentifier == DirYidentification ||...
-            DirXidentification == DirYidentification
+    if isequal(signalIdentifier,DirXidentification) ||...
+        isequal(signalIdentifier,DirYidentification) ||...
+            isequal(DirXidentification,DirYidentification)
         disp ('ATTENTION!')
         disp ('At least one signal identifications was repated.');
         disp ('Please, run the function again and provide the correct signal identifications.');
@@ -252,23 +252,14 @@ if exist('OCTAVE_VERSION', 'builtin') ~= 0
     evalin( 'base', 'load ([fpath, fname]) ');
     prompt = {"Sensor signal identification", "X-axis signal identification",...
         "Y-axis signal identification", "Sampling frequency", "Segmentation type (Points/Segments)",...
-        "Segmentation unit (Samples/Seconds)", "Auto save files (Y/N)",...
+        "Segmentation unit (Number of samples/Seconds)", "Auto save files (Y/N)",...
         "Generate figure (Y/N)", "Save figure (Y/N)"};
 
     rowscols = [1,30; 1,30; 1,30; 1,30; 1,30; 1,30; 1,30; 1,30; 1,30];
 
-    defaults = {""; ""; ""; ""; "Points"; "Samples"; "N"; "N"; "N"};
+    defaults = {""; ""; ""; ""; "Points"; "Number of samples"; "N"; "N"; "N"};
     names = inputdlg(prompt, "FFF Line Segmentation - Insert values and choose between options",...
         rowscols, defaults);
-
-        if names{1,1} == 0 || names {2,1} == 0 &&...
-            names {3,1} == 0
-        disp ('ATTENTION!')
-        disp ('A necessary signal identification was not provided.');
-        disp ('Please, run the function again and provide the proper signal identifications.');
-        cleanUpWS;
-        return;
-        end
 
     signalIdentifier = names{1,1};
     sensorSignal = evalin( 'base' ,signalIdentifier);
@@ -291,12 +282,16 @@ if exist('OCTAVE_VERSION', 'builtin') ~= 0
         segmentationChoice = 'Points';
     end
 
-    if strcmp(xticksChoice,'number of samples') == 0 && strcmp(xticksChoice,'seconds') == 0
+    if strcmp(xticksChoice,'Samples') == 1
+        xticksChoice = 'Number of samples';
+    end
+
+    if strcmp(xticksChoice,'Number of samples') == 0 && strcmp(xticksChoice,'seconds') == 0
         disp (' ');
         disp ('ATTENTION!')
         disp ('The segmentation mode was not selected.');
-        disp ('The function will run with the default "number of samples" mode of segmentation');
-        xticksChoice = 'number of samples';
+        disp ('The function will run with the default "Number of samples" mode of segmentation');
+        xticksChoice = 'Number of samples';
     end
 
     if strcmp(saveChoice,'Y') == 0 && strcmp(saveChoice,'N') == 0
@@ -322,6 +317,17 @@ if exist('OCTAVE_VERSION', 'builtin') ~= 0
         disp ('The figure choice was not selected.');
         disp ('The function will run with the default "N" mode of figure save');
         figureChoice = 'N';
+    end
+
+    if sensorSignal == dirX ||...
+        sensorSignal == dirY ||...
+        dirX == dirY
+    disp ('ATTENTION!')
+    disp ('At least one signal identifications was repated.');
+    disp ('Please, run the function again and provide the correct signal identifications.');
+    delete(app.UIFigure);
+    cleanUpWS;
+    return;
     end
 
     if length(sensorSignal) ~= length(dirX) ||...
@@ -351,22 +357,13 @@ numofContourLines = numofContourSides * numofContourLoops; % Number of contour l
 
 % Variables for the segmentation logic
 lowRefTransRaster = Fs/25; % Lower Number of samples reference value for the transition raster
+uppRefTransRaster = ceil(Fs/21.505476344); % Upper Number of samples reference value for the transition raster
+varDurRaster = floor(Fs/18.1818); % Variation of the duration between raster lines
+adpDurTranRaster = floor(Fs/23.8095); % Adopted duration for the transition raster
+durationReference = floor(Fs/1.33333); % known duration for the last contour printing
+refminimum_sampleValue = floor(Fs/4); % Minimum Number of samples reference for the test_Minvariations subfunction
+middleRasterDuration = floor(Fs/0.645161290322581); % Middle raster duration value
 
-if exist('OCTAVE_VERSION', 'builtin') == 0
-    uppRefTransRaster = round(Fs/21.505476344,0); % Upper Number of samples reference value for the transition raster
-    varDurRaster = round(Fs/18.1818,0); % Variation of the duration between raster lines
-    adpDurTranRaster = round(Fs/23.8095,0); % Adopted duration for the transition raster
-    durationReference = round(Fs/1.33333,0); % known duration for the last contour printing
-    refminimum_sampleValue = round(Fs/4,0); % Minimum number of samples reference for the test_Minvariations subfunction
-    middleRasterDuration = round(Fs/0.645161290322581,1); % Middle raster duration value
-else
-    uppRefTransRaster = ceil(Fs/21.505476344); % Upper Number of samples reference value for the transition raster
-    varDurRaster = floor(Fs/18.1818); % Variation of the duration between raster lines
-    adpDurTranRaster = floor(Fs/23.8095); % Adopted duration for the transition raster
-    durationReference = floor(Fs/1.33333); % known duration for the last contour printing
-    refminimum_sampleValue = floor(Fs/4); % Minimum number of samples reference for the test_Minvariations subfunction
-    middleRasterDuration = floor(Fs/0.645161290322581); % Middle raster duration value
-end
 %#ok<*AGROW> % Suppress the warning for growing arrays in the code
 
 %% Pre-processing
@@ -709,7 +706,7 @@ signalContour = Compos3r(sensorSignalNormalized, indexContourAlt(:,2:3));
 
 testSegmentChoice = strcmp(segmentationChoice,'Points');
 
-testxticksChoice = strcmp(xticksChoice,'Seconds');
+testxticksChoice = strcmp(xticksChoice,'Segments');
 
 if testSegmentChoice == 1
     resultReposition = [contourRepositions; contourToRasterReposition];
@@ -775,7 +772,7 @@ if testSegmentChoice == 1
 
 end
 
-testSegmentChoice = strcmp(segmentationChoice,'segments');
+testSegmentChoice = strcmp(segmentationChoice,'Segments');
 
 if testSegmentChoice == 1
     resultReposition = gen_signal_segments(sensorSignalNormalized,...
@@ -1532,7 +1529,7 @@ end
 
 % AUX4
 function vector_t = obtain_time_vec(signal,Fs)
-% obtain_time_vec  Obtain a time (s) vector based on the signal's number of samples length and on the sampling frequency.
+% obtain_time_vec  Obtain a time (s) vector based on the signal's Number of samples length and on the sampling frequency.
 %
 %   vector_t = obtain_time_vec(signal,Fs)
 %
@@ -1817,11 +1814,11 @@ end
 % AXU12
 
 function valueSeconds = convUni(Ref, valueNumberofSamples, Fs)
-% convUni Obtain a time (s) value based on a number of samples value, a reference signal, and on the sampling frequency.
+% convUni Obtain a time (s) value based on a Number of samples value, a reference signal, and on the sampling frequency.
 %
 %   valueSeconds = convUni(Ref, valueNumberofSamples, Fs)
 %
-%   where valueSeconds is the time value (in seconds), Ref is the reference signal, valueNumberofSamples is the number of samples value,
+%   where valueSeconds is the time value (in seconds), Ref is the reference signal, valueNumberofSamples is the Number of samples value,
 %   and Fs is the sampling frequency of the reference signal.
 
 lengthRef = length(Ref);

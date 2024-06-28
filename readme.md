@@ -33,12 +33,12 @@ Verify the example for Matlab or for Octave.
 
 Make sure that the listed [Dependencies](#Dependencies) are installed and loaded into Matlab.
 
-Run the `fff_segmenter` script by typing directly into the command window followed by the press of the Enter on the keyboard, or by clicking in the run button of the Matlab text editor.
+Run the `fff_segmenter` script by typing directly into the command window followed by the press of the Enter key on the keyboard, or by clicking in the run button of the Matlab text editor.
 
 ```Matlab
 fff_segmenter
 ```
-After running the fff_segmenter algorithm, the user will be provided with the graphical interface displayed below.
+After running the fff_segmenter algorithm, the user will be presented with the graphical interface displayed below.
 
 <img src="Example/Matlab%20Input%20GUI.png" alt="Figure 1 - Input interface" width="420">
 
@@ -80,7 +80,7 @@ For the purpose of this example, the user can navigate to the `Data` folder and 
 
 <img src="Example/Octave%20file%20navigation.png" alt="Figure 6 - Octave file selection" width="420">
 
-After selecting the data file, the user will be provided with the graphical interface displayed below. The filled values in the input fields are the default values for the `Segmentation mode` and `Unit` segmentation options, and with all of the available outputs toggled to `No`.
+After selecting the data file, the user will be presented with the graphical interface displayed below. The filled values in the input fields are the default values for the `Segmentation mode` and `Unit` segmentation options, and with all of the available outputs toggled to `No`.
 
 
 <img src="Example/Octave%20input%20GUI.png" alt="Figure 7 - Octave Input GUI" width="600">
