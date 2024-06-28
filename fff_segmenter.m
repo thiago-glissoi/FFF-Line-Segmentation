@@ -57,7 +57,7 @@ function fff_segmenter
 
 if exist('OCTAVE_VERSION', 'builtin') == 0
     % Is not running in octave
-    %% APP User Inputs
+    % APP User Inputs
 
     app = APP_User_Inputs;
     while strcmp(app.RunthesegmentationSwitch.Value,'Off') == 1
@@ -99,7 +99,12 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
         end
     else
         segmentationChoice = evalin('base','Segmentation_choice');
-
+        if strcmp(segmentationChoice,'Choose')
+                disp ('ATTENTION!')
+                disp ('The segmentation mode was not selected.');
+                disp ('The function will run with the default "Points" mode of segmentation');
+                segmentationChoice = 'Points'; 
+        end
         if strcmp(segmentationChoice,'Points')
             xticksChoice_exists = evalin('base', ['exist(''', 'xticksChoice', ''', ''var'')']);
             if xticksChoice_exists == 0
@@ -109,8 +114,13 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
                 xticksChoice = 'number of samples';
             else
                 xticksChoice = evalin('base', 'xticksChoice');
+                if strcmp(xticksChoice,'Choose')
+                    disp ('ATTENTION!')
+                    disp ('The xticks mode was not selected.');
+                    disp ('The function will run with the default "Segments" unit');
+                    xticksChoice = 'number of samples';
+                end
             end
-
         end
     end
 
@@ -157,6 +167,17 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
     DirXidentification = evalin('base', 'DirXidentification');
     DirYidentification = evalin('base', 'DirYidentification');
 
+    if signalIdentifier == DirXidentification ||...
+            signalIdentifier == DirYidentification ||...
+            DirXidentification == DirYidentification
+        disp ('ATTENTION!')
+        disp ('At least one signal identifications was repated.');
+        disp ('Please, run the function again and provide the correct signal identifications.');
+        delete(app.UIFigure);
+        cleanUpWS;
+        return;
+    end
+
     % Verify data selection
     Data_path_exists = evalin('base', ['exist(''', 'Data_path', ''', ''var'')']);
     if Data_path_exists == 1
@@ -199,6 +220,17 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
         return;
     end
 
+    if length(sensorSignal) ~= length(dirX) ||...
+            length(sensorSignal) ~= length(dirY)||...
+            length(dirX) ~= length(dirY)
+        disp ('ATTENTION!')
+        disp ('A pair of the provided signals have different durations.');
+        disp ('Verify if the provided signals were acquired synchronously and with the same sampling frequency.');
+        disp ('Please, run the function again and provide the signals that were acquired synchronously.');
+        delete(app.UIFigure);
+        cleanUpWS;
+        return;
+    end
 
     delete(app.UIFigure);
     disp (' ');
@@ -229,6 +261,15 @@ if exist('OCTAVE_VERSION', 'builtin') ~= 0
     names = inputdlg(prompt, "FFF Line Segmentation - Insert values and choose between options",...
         rowscols, defaults);
 
+        if names{1,1} == 0 || names {2,1} == 0 &&...
+            names {3,1} == 0
+        disp ('ATTENTION!')
+        disp ('A necessary signal identification was not provided.');
+        disp ('Please, run the function again and provide the proper signal identifications.');
+        cleanUpWS;
+        return;
+        end
+
     signalIdentifier = names{1,1};
     sensorSignal = evalin( 'base' ,signalIdentifier);
     dirX = evalin( 'base', names {2,1}) ;
@@ -248,6 +289,13 @@ if exist('OCTAVE_VERSION', 'builtin') ~= 0
         disp ('The segmentation mode was not selected.');
         disp ('The function will run with the default "Points" mode of segmentation');
         segmentationChoice = 'Points';
+    end
+
+    if strcmp(xticksChoice,'number of samples') == 0 && strcmp(xticksChoice,'seconds') == 0
+        disp (' ');
+        disp ('ATTENTION!')
+        disp ('The segmentation mode was not selected.');
+        disp ('The function will run with the default "number of samples" mode of segmentation');
         xticksChoice = 'number of samples';
     end
 
@@ -275,7 +323,20 @@ if exist('OCTAVE_VERSION', 'builtin') ~= 0
         disp ('The function will run with the default "N" mode of figure save');
         figureChoice = 'N';
     end
+
+    if length(sensorSignal) ~= length(dirX) ||...
+        length(sensorSignal) ~= length(dirY)||...
+        length(dirX) ~= length(dirY)
+    disp ('ATTENTION!')
+    disp ('A pair of the provided signals have different durations.');
+    disp ('Verify if the provided signals were acquired synchronously and with the same sampling frequency.');
+    disp ('Please, run the function again and provide the signals that were acquired synchronously.');
+    cleanUpWS;
+    return;
+    end
+
 end
+
 disp (' ');
 disp ("Wait just a few moments while we segment your FFF signal...");
 %#ok<*EXIST>

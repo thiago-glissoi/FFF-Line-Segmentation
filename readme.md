@@ -121,3 +121,37 @@ The second file, named `Segmentation results Acoustic_signal`, is the automatica
 As a result of using the fff_segmenter algorithm, the user now possess the ability to more precisely examine the acoustic signal of the FFF fabrication in specified moments. An example of such application is represented in Figure 4, where the frequency content of the complete acoustic signal is represented in comparison to the frequency content of the acoustic signal related to just the middle raster line of the internal infill pattern fabrication period. 
 
 ![Figure 12 - Application example](Example/Application%20example.tiff)
+
+
+# Community Guidelines
+
+Our community is dedicated to providing a welcoming and productive environment for all participants. Please follow these guidelines when interacting with this project.
+
+1. Contributing to the Software
+Contributions are welcome! Here are some ways to contribute:
+
+- Fork the repository and make your changes in a branch.
+- Submit a Pull Request (PR) for review. - Ensure your PR clearly describes the changes made and the motivation behind them.
+- Follow the project's coding style. Refer to our style guides and check the code before submitting.
+- Test your changes before submitting a PR with all all of the datasets available in [Data](/data/) to ensure they do not introduce new bugs.
+- Participate in discussions. Comments and suggestions are valuable for the continuous improvement of the software.
+- Verify additional ways in our [Contributing](.github/CONTRIBUTING.md) guide.
+
+2. Reporting Issues or Problems with the Software
+If you encounter an issue or bug, please follow these steps:
+
+- Check if the issue has already been reported. Browse the list of open issues to see if someone has already reported the problem.
+- Create a new issue if the problem is not listed. Follow an [issue template](.github/ISSUE_TEMPLATE) and provide as much detail as possible.
+- Be patient. The maintainers will review the issue and respond as soon as possible.
+
+
+3. Seeking Support
+For questions or support needs:
+
+- Check the documentation. Many common issues and questions are addressed in the project's [documentation](/Documentation.pdf).
+- Search closed issues. Someone else might have had the same problem or question.
+- Open a new issue if you cannot find an answer. Be clear and specific in your question or problem description.
+- Participate in discussions. Others in the community may have helpful solutions or suggestions.
+
+# Code of Conduct
+By participating in this project, we ask that everyone follows our [Code of Conduct](.github/CODE_OF_CONDUCT.md), which sets expectations for behavior to maintain a welcoming and inclusive community.
