@@ -74,19 +74,18 @@ Run the `fff_segmenter` script by typing directly into the command window follow
 ```Octave
 fff_segmenter
 ```
-After running the fff_segmenter algorithm, a open a file explorer window. The user must navigate to, find, and select the .mat data file that holds the acoustic signal and the X and Y direction control signals.
-For the purpose of this example, the user can navigate to the `Data` folder and select the `Test1.mat` file.
+After running the fff_segmenter algorithm, a file explorer window will appear. For the purpose of this example, the user can navigate to the `Data` folder and select the `Test1.mat` file.
 
 
 <img src="Example/Octave%20file%20navigation.png" alt="Figure 6 - Octave file selection" width="420">
 
-After selecting the data file, the user will be presented with the graphical interface displayed below. The filled values in the input fields are the default values for the `Segmentation mode` and `Unit` segmentation options, and with all of the available outputs toggled to `No`.
+After selecting the data file, the user will be presented with the graphical interface displayed below. The filled values in the input fields are the default values for the `Segmentation mode` and `Unit` segmentation options, and with all of the available fields set to `N`.
 
 
 <img src="Example/Octave%20input%20GUI.png" alt="Figure 7 - Octave Input GUI" width="420">
 
 
-The user will fill the fields with the values in regard to the `Test1.mat` dataset, with default values for the `Segmentation mode` and `Unit` segmentation options, and with all of the available outputs toggled to `Yes`.
+The user will fill the fields with the values in regard to the `Test1.mat` dataset, with default values for the `Segmentation mode` and `Unit` segmentation options, and with all of the available fields set to `Y`.
 
 
 <img src="Example/Octave%20input%20GUI%20filled.png" alt="Figure 8 - Octave Input GUI filled" width="420">
@@ -101,7 +100,7 @@ The figure below demonstrate the contents of the `Points segmentation results Ac
 <img src="Example/Octave%20Segmentation%20index%20mode%20workspace.png" alt="Figure 9 - Points segmentation results in the workspace" width="420">
 
 
-Opening each struct in Matlab, it is possible to observe that the point segmentation mode generates three columns for each geometric feature, and two columns for the pattern's separation. In regard to the geometric features tables, the first column is the ```Duration``` of the feature fabrication, the second column is the first instant index, identified as ```StartPoint```, of the feature fabrication, and the third column is the ```EndPoint``` of the feature fabrication in the default number of samples mode.
+Opening each struct in Octave, it is possible to observe that the point segmentation mode generates three columns for each geometric feature, and two columns for the pattern's separation. In regard to the geometric features tables, the first column is the ```Duration``` of the feature fabrication, the second column is the first instant index, identified as ```StartPoint```, of the feature fabrication, and the third column is the ```EndPoint``` of the feature fabrication in the default number of samples mode.
 
 
 ![Figure 10 - Points segmentation results](Example/Octave%20Segmentation%20index%20mode%20results.png)
