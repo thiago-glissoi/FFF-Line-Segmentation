@@ -134,7 +134,7 @@ Contributions are welcome! Here are some ways to contribute:
 - Fork the repository and make your changes in a branch.
 - Submit a Pull Request (PR) for review. - Ensure your PR clearly describes the changes made and the motivation behind them.
 - Follow the project's coding style. Refer to our style guides and check the code before submitting.
-- Test your changes before submitting a PR with all all of the datasets available in [Data](/data/) to ensure they do not introduce new bugs.
+- Test your changes before submitting a PR with all all of the datasets available in [Data](/Data/) to ensure they do not introduce new bugs.
 - Participate in discussions. Comments and suggestions are valuable for the continuous improvement of the software.
 - Verify additional ways in our [Contributing](.github/CONTRIBUTING.md) guide.
 
