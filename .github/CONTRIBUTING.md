@@ -25,7 +25,7 @@ git checkout -b your-branch-name
 3. Make Your Changes
 - Make the necessary changes in your branch.
 - Ensure your code follows the project's coding style and conventions.
-- Test your changes to make sure they work as expected with all of the datasets available in [Data](/data/).
+- Test your changes to make sure they work as expected with all of the datasets available in [Data](/Data/).
 
 4. Commit Your Changes
 - Commit your changes with a descriptive commit message:
