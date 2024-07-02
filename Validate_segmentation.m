@@ -1,4 +1,4 @@
-function Validate_segmentation(sensorSignal, dirX, dirY, Fs)
+function Validate_segmentation
 %   ATTENTION!
 %
 %   THIS IS NOT the main segmentation function. This is a validation function that should be run when
@@ -8,14 +8,7 @@ function Validate_segmentation(sensorSignal, dirX, dirY, Fs)
 %   The main segmentation function is fff_segmenter.m
 %
 % Validate_segmentation  This validation function run the main function and compare with known output.
-%
-%   Validate_segmentation(sensorSignal, dirX, dirY, Fs)
 % 
-% Inputs:
-% - sensorSignal (array): The acoustic signal obtained from the FFF process.
-% - dirX (array): The signal obtained from the X-axis step motor control.
-% - dirY (array): The signal obtained from the Y-axis step motor control.
-% - Fs (double): The sampling frequency of the signals.
 %
 %#ok<*LOAD>
 %#ok<*USENS>
@@ -29,8 +22,9 @@ disp ('/ATTENTION!');
 disp (' ');
 
 load("Segmentation results/points segmentation results Test1.mat"); 
+load ("data/Test1.mat");
 
-fff_segmenter(sensorSignal, dirX, dirY, Fs);
+fff_segmenter(Acoustic_signal, Dir_X, Dir_Y, 200e3);
 
 importBaseWorkspaceVariables;
 
