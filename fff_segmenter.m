@@ -1,4 +1,4 @@
-function fff_segmenter
+function fff_segmenter(sensorSignal, dirX, dirY, Fs)
 %   fff_segmenter Is the main function of the FFF Line Segmentation script.
 %
 %% READ ME
@@ -55,16 +55,30 @@ function fff_segmenter
 % <a href="matlab: disp('save_files: Save the segmentation results in .mat files. Please read the comments under the subfunction for further details.') ">save_files</a>
 % <a href="matlab: disp('test_Minvariations: Test for the occurence of the variation problem observed for the Test1.mat data. Please read the comments under the subfunction for further details.') ">test_Minvariations</a>
 
+
+%#ok<*NASGU>
+
 if exist('OCTAVE_VERSION', 'builtin') == 0
     % Is not running in octave
     % APP User Inputs
 
+if exist('sensorSignal', "var") && exist('dirX',"var") && exist('dirY',"var") && exist('Fs',"var")
+    % Run the function with the default values when the function is called with the inputs
+    segmentationChoice = 'Points';
+    xticksChoice = 'Number of samples';
+    saveChoice = 'N';
+    graphical = 'N';
+    figureChoice = 'N';
+    signalIdentifier = '';
+    Validationflag = 1; 
+else 
     app = APP_User_Inputs;
     while strcmp(app.RunthesegmentationSwitch.Value,'Off') == 1
         pause(0.5); % In order to avoid missuse of the CPU
     end
 
     % Verify presence of identifications
+    
     signalIdentifier_exists = evalin('base', ['exist(''', 'signalIdentifier', ''', ''var'')']);
     DirXidentification_exists = evalin('base', ['exist(''', 'DirXidentification', ''', ''var'')']);
     DirYidentification_exists = evalin('base', ['exist(''', 'DirYidentification', ''', ''var'')']);
@@ -234,7 +248,7 @@ if exist('OCTAVE_VERSION', 'builtin') == 0
 
     delete(app.UIFigure);
     disp (' ');
-
+end
 end
 
 if exist('OCTAVE_VERSION', 'builtin') ~= 0
@@ -243,6 +257,16 @@ if exist('OCTAVE_VERSION', 'builtin') ~= 0
     pkg load signal
     pkg load control
 
+if exist('sensorSignal', "var") && exist('dirX',"var") && exist('dirY',"var") && exist('Fs',"var")
+        % Run the function with the default values when the function is called with the inputs
+        segmentationChoice = 'Points';
+        xticksChoice = 'Number of samples';
+        saveChoice = 'N';
+        graphical = 'N';
+        figureChoice = 'N';
+        signalIdentifier = '';
+        Validationflag = 1;
+else 
     disp (' ');
     disp ('Load file with signals')
     [fname, fpath, fltidx] = uigetfile ();
@@ -340,6 +364,7 @@ if exist('OCTAVE_VERSION', 'builtin') ~= 0
     cleanUpWS;
     return;
     end
+end
 
 end
 
@@ -790,15 +815,25 @@ end
 % \ 15°
 
 % 16° Output and optionally save the results and optionally generate the graphs
-assignin('base', 'resultReposition', resultReposition);
-assignin('base', 'resultContour', resultContour);
-assignin('base', 'resultRaster', resultRaster);
-assignin('base', 'resultTransitionRaster', resultTransitionRaster);
-assignin('base', 'resultWholeWorkpiece', resultWholeWorkpiece);
-assignin('base', 'resultExternalPattern', resultExternalPattern);
-assignin('base', 'resultInternalPattern', resultInternalPattern);
-assignin('base', 'segmentationChoice', segmentationChoice);
-assignin('base', 'signalIdentifier', signalIdentifier);
+
+if exist("Validationflag")
+validationString = '_validation';
+else
+validationString = '';
+end
+
+assignin('base', ['resultReposition', validationString], resultReposition);
+assignin('base', ['resultContour', validationString], resultContour);
+assignin('base', ['resultRaster', validationString], resultRaster);
+assignin('base', ['resultTransitionRaster', validationString], resultTransitionRaster);
+assignin('base', ['resultWholeWorkpiece', validationString], resultWholeWorkpiece);
+assignin('base', ['resultExternalPattern', validationString], resultExternalPattern);
+assignin('base', ['resultInternalPattern', validationString], resultInternalPattern);
+assignin('base', ['segmentationChoice', validationString], segmentationChoice);
+assignin('base', ['signalIdentifier', validationString], signalIdentifier);
+disp (' ');
+disp ('Your results have been generated and are available in the workspace.');
+disp (' ');
 
 if saveChoice == 'Y'
     save_files(resultReposition, resultContour, resultRaster,...
@@ -1286,8 +1321,8 @@ end
 end
 
 % OP2
-function save_files(result_reposition, result_contour, result_raster,...
-    result_transition_raster, resultWholeWorkpiece, resultExternalPattern,...
+function save_files(resultReposition, resultContour, resultRaster,...
+    resultTransitionRaster, resultWholeWorkpiece, resultExternalPattern,...
     resultInternalPattern, segmentation_choice, signal_identifier)
 % save_files  Save the segmentation results in a .mat file on the user current directory.
 %
@@ -1307,8 +1342,8 @@ if checkFolder == 0
 end
 oldFolder = cd('Segmentation results/');
 save ([segmentation_choice,' segmentation results ',signal_identifier],...
-    'result_reposition', 'result_contour',...
-    'result_raster', 'result_transition_raster',...
+    'resultReposition', 'resultContour',...
+    'resultRaster', 'resultTransitionRaster',...
     'resultWholeWorkpiece', 'resultExternalPattern',...
     'resultInternalPattern');
 cd(oldFolder);
