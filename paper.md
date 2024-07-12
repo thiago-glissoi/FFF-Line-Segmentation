@@ -14,7 +14,7 @@ authors:
     affiliation: 1
   - name: Paulo Monteiro de Carvalho Monson
     orcid: 0000-0002-7093-1754
-    affiliation: 1
+    affiliation: 2
   - name: Paulo Roberto de Aguiar
     orcid: 0000-0002-9934-4465
     affiliation: 1
