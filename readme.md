@@ -1,3 +1,7 @@
+<a style="border-width:0" href="https://doi.org/10.21105/joss.06620">
+  <img src="https://joss.theoj.org/papers/10.21105/joss.06620/status.svg" alt="DOI badge" >
+</a>
+
 # Definition
 The `fff_segmenter` algorithm is used to segment an acoustic signal obtained from a first layer 3D print into multiple acoustic blocks related to specific geometrical elements of the printed part, such as contour lines, raster lines, and transition between raster lines. The fff_segmenter algorithm uses the direction control signal of the X and Y axis stepper motors. In order to use the fff_segmenter algorithm, the acoustic signal must be collected synchronously with the X and Y direction control signals at a specified sampling frequency. The folder [Data](Data/) presents three datasets of signals collected from a first layer 3D print. 
 We `strongly encourage` the user to read the [Documentation](Documentation.pdf) pdf file in order to completely comprehend the fff_segmenter algorithm inner workings, and how it was built with a specific part geometry and sampling frequency in consideration.
